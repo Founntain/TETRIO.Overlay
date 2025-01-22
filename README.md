@@ -10,6 +10,9 @@ For screenshots and examples look at the [examples section](#examples) at the bo
 To use the overlay, simply use one of the following URLs:
 
 ### Tetra League
+- **Live View**: `https://tetrio.founntain.dev/user/<username>`
+
+### Tetra League
 - **Live View**: `https://tetrio.founntain.dev/tetraleague/<username>`
 
 ### Quick Play
@@ -32,6 +35,7 @@ For OBS, it is recommended to use the live view URL. To set it up:
 1. Create a new Browser Source in OBS.
 2. Paste the live view URL into the Browser Source settings, replacing `<username>` with your tetr.io username (make sure to remove the `<` and `>`), the same goes for `<mode>`.
 3. Make sure the width and height is correct check below what sizes are best for each overlay:
+   - User Card: 800 x 350
    - Tetra League: 800 x 350
    - Quick Play: 900 x 350
    - 40 Lines: 700 x 225
@@ -42,14 +46,26 @@ For OBS, it is recommended to use the live view URL. To set it up:
 > The data is cached and refreshes every 30 seconds. For 40 Lines and Blitz the default cache is used which is **5 minutes**.
 
 ### 🛠️ Customization Parameters
-You can put any parameters at the end of the url. ***The order does not matter, however spelling is!***
+You can customize a lot, as they are all web-based you can modify the CSS to your liking in OBS.
+Here are some common examples for the **user card**:
+```CSS
+// Hide the profile picture
+.profilePicture{ display: none }
 
-- **`backgroundColor`**: Adjusts the background color (useful if you don’t want a transparent background). Default is `00FFFFFF`.
-- **`textColor`**: Changes the text color and the color of the progress bar. Default is `FFFFFF`.
-- **`displayUsername`**: This only works for 40L, Blitz and Quick Play if set to `false` it will hide the username.
-- **`modes`**: See [Slide section](#slide).
+// Hide Tetra League Progressbar
+#tetraLeagueProgressContainer { display: none }
 
-> **Example:** `https://tetrio.founntain.dev/tetraleague/founntain/web?backgroundColor=FF0000&textColor=00FF00`
+// Change the text color for example red
+.body{ color: #FF0000 }
+
+// Hide 40L, Blitz or QP
+#sprintContainer { display: none }
+#blitzContainer { display: none }
+#zenithContainer { display: none }
+
+// Or hide them all together with one line
+.gamemodesContainer { display: none }
+```
 
 ## Splits
 
@@ -82,7 +98,12 @@ Contributions are welcome! Feel free to open issues, request features, provide f
 - **[ZaptorZap](https://zaptorz.app/)**: for giving feedback and some incredible ideas
 
 ## Examples
-> *added for all examples a simple transparent dark background so those are readable for light github users aswell Parameter used `backgroundColor=AA000000`*
+> *added a background to all of them so they are visible on github light mode users*
+>
+
+#### User Card
+![image](https://github.com/user-attachments/assets/f873cb7e-8917-422f-bf90-93160ca53cb8)
+
 #### Tetra League
 ![founntain](https://github.com/user-attachments/assets/b867218b-de57-4a44-85d3-1a5721878720)
 
