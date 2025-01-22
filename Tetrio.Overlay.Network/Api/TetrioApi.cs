@@ -93,7 +93,6 @@ public class TetrioApi : ApiBase
         }
     }
 
-
     public async Task<TetrioUser?> GetUserInformation(string username)
     {
         // Let's check the cache first

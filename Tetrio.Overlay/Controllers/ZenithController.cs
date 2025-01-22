@@ -18,7 +18,7 @@ public class ZenithController : BaseController
 
     [HttpGet]
     [Route("{username}")]
-    public async Task<ActionResult> StaticImage(string username)
+    public async Task<ActionResult> Web(string username)
     {
         username = username.ToLower();
 

@@ -44,7 +44,6 @@ function updateStats() {
             if (data.rank == "x+")
                 nextRankImage.src = `${imgUrl + "leaderboard1"}.png`;
             else {
-
                 nextRankImage.src = `${imgUrl + data.nextRank}.png`;
             }
 
@@ -122,9 +121,8 @@ function updateStats() {
             animateValue(apm, parseFloat(apm.innerText), data.apm, animationDuration);
             animateValue(pps, parseFloat(pps.innerText), data.pps, animationDuration);
             animateValue(vs, parseFloat(vs.innerText), data.vs, animationDuration);
-            animateValue(globalRank, parseInt(globalRank.innerText.replace('#', '')), data.globalRank, animationDuration, 1, "# ", "");
-            animateValue(localRank, parseInt(localRank.innerText.replace('#', '')), data.countryRank, animationDuration, 1, "# ", "");
-
+            animateValue(globalRank, parseInt(globalRank.innerText.replace(/[^0-9.]/g, '')), data.globalRank, animationDuration, 1, "# ", "");
+            animateValue(localRank, parseInt(localRank.innerText.replace(/[^0-9.]/g, '')), data.countryRank, animationDuration, 1, "# ", "");
 
             let range = data.prevAt - data.nextAt;
             let distance = data.prevAt - data.globalRank;

@@ -1,0 +1,73 @@
+﻿@font-face {
+    font-family: 'CB';
+    /*src: url('fonts/cb.ttf');*/
+    src: url('/web/res/fonts/cb.ttf');
+}
+
+html{
+    font-family: 'CB';
+    font-size: 24pt;
+
+    /*background: gray;*/
+}
+
+.hidden {
+    position: absolute;
+    color: transparent;
+    left: 0;
+    top: 0;
+}
+
+body {
+    background: transparent;
+    color:white;
+}
+
+img {
+    image-rendering: high-quality;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+.container {
+    text-shadow: 2px 2px 3px black;
+}
+
+.progressContainer{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.box{
+    display: block;
+    height: 10px;
+}
+
+.progressBarContainer {
+    position: relative;
+    width: 100%; /* Adjust the width as needed */
+    height: 10px; /* Ensure the height matches the height of the boxes */
+    margin: 10px;
+}
+
+.progressBar,
+.progressBarAccent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Adjust as necessary */
+}
+
+.progressBar {
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 1;
+}
+
+.progressBarAccent {
+    background-color: rgba(255, 255, 255, 1);
+    transition: width 1s ease-in-out;
+    width: 0;
+    z-index: 2;
+}

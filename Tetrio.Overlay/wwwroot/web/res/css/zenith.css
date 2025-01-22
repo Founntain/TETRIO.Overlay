@@ -5,11 +5,12 @@
 }
 
 .modsContainer{
-    margin-top: 2px;
+    width: 100%;
+    margin: 5px;
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
+    align-items: end;
 }
 
 .container{

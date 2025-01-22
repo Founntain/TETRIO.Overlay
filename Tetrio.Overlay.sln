@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetraLeague.Overlay", "TetraLeague.Overlay\TetraLeague.Overlay.csproj", "{E5CE37FD-F7A5-45B8-B8D3-EDD20241300A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Overlay", "Tetrio.Overlay\Tetrio.Overlay.csproj", "{E5CE37FD-F7A5-45B8-B8D3-EDD20241300A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetraLeague.Overlay.Network", "TetraLeague.Overlay.Network\TetraLeague.Overlay.Network.csproj", "{CCD2ED82-68D5-476E-BD4F-19B701207533}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Overlay.Network", "Tetrio.Overlay.Network\Tetrio.Overlay.Network.csproj", "{CCD2ED82-68D5-476E-BD4F-19B701207533}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

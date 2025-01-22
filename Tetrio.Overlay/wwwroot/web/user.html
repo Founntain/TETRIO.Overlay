@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{username}</title>
+    <link rel="stylesheet" href="/web/res/css/base.css">
+    <link rel="stylesheet" href="/web/res/css/user.css">
+</head>
+<body>
+<p class="hidden" id="usernameInfo">{username}</p>
+<div class="container profileContainer">
+    <img id="profilePicture" class="profilePicture" alt="profile picture">
+
+    <div class="verticalContainer">
+
+        <p id="username" class="bigText username">{username}</p>
+
+        <div class="statsContainer">
+            <img id="bigRankImage" class="bigRank" alt="rank">
+            <div class="leagueStatsContainer">
+                <a id="currentSeasonTr" class="trText">0</a>
+                <div class="oldSeasonContainer">
+                    <img id="lastSeasonRank" class="smallRank" alt="rank">
+                    <a id="lastSeasonTr" class="smallText trText">0</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="tetraLeagueProgressContainer" class="progressContainer">
+            <div class="prevRankContainer">
+                <a id="lastRank">0</a>
+                <img id="prevRankImage" class="smallRank prevRank" />
+            </div>
+            <div class="progressBarContainer">
+                <div id="progressBarBackground" class="box progressBar"></div>
+                <div id="progressBar" class="box progressBarAccent"></div>
+            </div>
+            <img id="nextRankImage" class="smallRank nextRank"/>
+        </div>
+
+        <div class="gamemodesContainer">
+            <div id="sprintContainer" class="gamemodeRecordContainer">
+                <a class="gamemodeText">40 LINES</a>
+                <a id="sprintPb" class="gamemodeRecord">00:00.000</a>
+            </div>
+            <div id="blitzContainer" class="gamemodeRecordContainer">
+                <a class="gamemodeText">BLITZ</a>
+                <a id="blitzPb" class="gamemodeRecord">0</a>
+            </div>
+            <div id="zenithContainer" class="gamemodeRecordContainer">
+                <a class="gamemodeText">QP</a>
+                <div style="display: flex; align-items: center;">
+                    <div id="mods" class="modsContainer background"></div>
+                    <a id="zenithPb" class="gamemodeRecord">0</a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    </div>
+</body>
+
+<script src="/web/res/js/base.js"></script>
+<script src="/web/res/js/user.js"></script>
+</html>

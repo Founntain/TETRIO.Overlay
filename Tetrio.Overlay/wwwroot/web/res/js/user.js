@@ -1,0 +1,119 @@
+﻿let usernameInfo = document.getElementById("usernameInfo").innerText;
+
+let username = document.getElementById("username");
+let profilePicture = document.getElementById("profilePicture");
+let rankImage = document.getElementById("bigRankImage");
+let lastSeasonRank = document.getElementById("lastSeasonRank");
+let currentSeasonTr = document.getElementById("currentSeasonTr");
+let lastSeaonTr = document.getElementById("lastSeasonTr");
+let sprintPb = document.getElementById("sprintPb");
+let blitzPb = document.getElementById("blitzPb");
+let zenithPb = document.getElementById("zenithPb");
+
+let prevRankImage = document.getElementById("prevRankImage");
+let nextRankImage = document.getElementById("nextRankImage");
+let progressBar = document.getElementById("progressBar");
+let lastRank = document.getElementById("lastRank");
+
+let tetraLeagueProgressContainer = document.getElementById("tetraLeagueProgressContainer");
+let mods = document.getElementById("mods");
+
+function updateTetreaLeagueProgressbar(data){
+    let placements = data.league.gamesPlayed < 10;
+
+    if (!placements) {
+        if (data.league.rank === "z") {
+            tetraLeagueProgressContainer.style.display = "none";
+        } else {
+            tetraLeagueProgressContainer.style.display = "";
+        }
+    } else {
+        tetraLeagueProgressContainer.style.display = "none";
+    }
+
+    prevRankImage.src = `${imgUrl + data.league["prev_rank"]}.png`;
+
+    if (data.league.rank === "x+")
+        nextRankImage.src = `${imgUrl + "leaderboard1"}.png`;
+    else {
+
+        nextRankImage.src = `${imgUrl + data.league["next_rank"]}.png`;
+    }
+
+    if (data.league.rank === "d") {
+        prevRankImage.src = null;
+        prevRankImage.style.display = "none";
+        animateValue(lastRank, parseInt(lastRank.innerText.replace(/[^0-9.]/g, '')), data.league.prev_at, animationDuration, 1, "#", "");
+    } else {
+        lastRank.style.display = "none";
+        prevRankImage.style.display = "block";
+    }
+
+    let range = data.league["prev_at"] - data.league["Next_at"];
+    let distance = data.league["prev_at"] - data.league.standing;
+    let rankPercentage = (distance / range) * 100;
+
+    progressBar.style.width = `${rankPercentage}%`;
+}
+
+function updateStats() {
+    let url = `${baseUrl}/user/${usernameInfo}/stats`
+
+    console.log(url)
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            return response.json();
+        })
+        .then(data => {
+            console.log(data);
+
+            username.innerText = usernameInfo.toUpperCase();
+
+            rankImage.src = `${imgUrl + data.league.rank}.png`;
+            lastSeasonRank.src = `${imgUrl + data.league.past["1"].rank}.png`;
+            profilePicture.src = `https://tetr.io/user-content/avatars/${data["40l"].record.user.id}.jpg?rv=${data["40l"].record.user.avatar_revision}`
+
+            let trString = currentSeasonTr.innerText;
+            let cleanTrString = trString.replace(/[^0-9.]/g, '');
+            cleanTrString = cleanTrString.replace(/,/g, '');
+
+            animateValue(currentSeasonTr, parseFloat(cleanTrString), data.league.tr, animationDuration, 0, "", " TR");
+
+            let lastSeasonTrString = lastSeaonTr.innerText;
+            let lastSeasonTrCleanTrString = lastSeasonTrString.replace(/[^0-9.]/g, '');
+            lastSeasonCleanTrString = lastSeasonTrCleanTrString.replace(/,/g, '');
+
+            animateValue(lastSeaonTr, parseFloat(lastSeasonCleanTrString), data.league.past["1"].tr, animationDuration, 0, "", " TR (S1)");
+
+            var sprintRecord = timeToMilliseconds(sprintPb.innerText);
+            var sprintNewValue = parseFloat(data["40l"].record.results.stats.finaltime.toFixed(2))
+
+            animateValue(sprintPb, sprintRecord, sprintNewValue, animationDuration, 0, "", "", true);
+            animateValue(blitzPb, parseFloat(blitzPb.innerText.replace(/[^0-9.]/g, '')), data["blitz"].record?.results?.stats?.score ?? 0, animationDuration);
+            animateValue(zenithPb, parseFloat(zenithPb.innerText.replace(/[^0-9.]/g, '')), data["zenith"].best?.record?.results?.stats?.zenith.altitude ?? 0, animationDuration);
+
+            updateTetreaLeagueProgressbar(data);
+
+            mods.innerHTML = "";
+
+            data["zenith"].best?.record.extras.zenith.mods.forEach(mod => {
+                const img = document.createElement('img');
+                img.classList.add("mod");
+                img.src = `${imgUrl}${mod}.png`;
+                mods.appendChild(img);
+            });
+
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+}
+
+updateStats();
+
+setInterval(updateStats, 15000);

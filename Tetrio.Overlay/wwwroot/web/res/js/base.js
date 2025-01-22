@@ -26,20 +26,56 @@ function lerpText(start, end, t) {
     return result;
 }
 
-function animateValue(element, start, end, duration, lerpType = 0, prefix = "", suffix = "") {
+function formatTime(milliseconds) {
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
+    const ms = Math.floor(milliseconds % 1000);
+
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+    const formattedMilliseconds = String(ms).padStart(3, '0');
+
+    return `${formattedMinutes}:${formattedSeconds}.${formattedMilliseconds}`;
+}
+
+function timeToMilliseconds(timeString) {
+    const [minutes, seconds] = timeString.split(':');
+    const [sec, ms] = seconds.split('.');
+
+    const minutesMs = parseInt(minutes, 10) * 60000;
+    const secondsMs = parseInt(sec, 10) * 1000;
+    const milliseconds = parseInt(ms, 10);
+
+    return minutesMs + secondsMs + milliseconds;
+}
+
+
+function animateValue(element, start, end, duration, lerpType = 0, prefix = "", suffix = "", formatAsTime = false) {
     let currentValue;
 
     if(start === end){
 
         switch (lerpType) {
             case 0:
-                currentValue = parseFloat(start.toFixed(2)).toLocaleString('en-US');
+                if(formatAsTime)
+                    currentValue = formatTime(start);
+                else
+                    currentValue = parseFloat(start.toFixed(2)).toLocaleString('en-US');
+
                 break;
             case 1:
-                currentValue = parseInt(start).toLocaleString('en-US');
+                if(formatAsTime)
+                    currentValue = formatTime(start);
+                else
+                    currentValue = parseInt(start).toLocaleString('en-US');
+
                 break;
             default:
-                currentValue = start;
+                if(formatAsTime)
+                    currentValue = formatTime(start);
+                else
+                    currentValue = start;
+
                 break;
         }
 
@@ -53,28 +89,32 @@ function animateValue(element, start, end, duration, lerpType = 0, prefix = "", 
         if (!startTime) startTime = currentTime;
         const elapsed = currentTime - startTime;
 
-        // Calculate the progress (0 to 1)
         const progress = Math.min(elapsed / duration, 1);
 
         switch (lerpType) {
             case 0:
-                currentValue = parseFloat(lerp(start, end, progress).toFixed(2)).toLocaleString('en-US');
+                if(formatAsTime)
+                    currentValue = formatTime(parseFloat(lerp(start, end, progress).toFixed(2)));
+                else
+                    currentValue = parseFloat(lerp(start, end, progress).toFixed(2)).toLocaleString('en-US');
+
                 break;
             case 1:
                 currentValue = parseInt(lerpInt(start, end, progress)).toLocaleString('en-US');
+
                 break;
             case 2:
                 currentValue = lerpText(start, end, progress);
+
+                break;
         }
 
         element.innerText = `${prefix}${currentValue}${suffix}`
 
-        // Continue the animation if not yet complete
         if (progress < 1) {
             requestAnimationFrame(animation);
         }
     }
 
-    // Start the animation
     requestAnimationFrame(animation);
 }

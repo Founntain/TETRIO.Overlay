@@ -5,8 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <AssemblyName>TetraLeague.Overlay</AssemblyName>
         <RootNamespace>TetraLeague.Overlay</RootNamespace>
+        <PackageId>Tetrio.Overlay</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -70,7 +70,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TetraLeague.Overlay.Network\TetraLeague.Overlay.Network.csproj" />
+      <ProjectReference Include="..\Tetrio.Overlay.Network\Tetrio.Overlay.Network.csproj" />
     </ItemGroup>
 
 </Project>

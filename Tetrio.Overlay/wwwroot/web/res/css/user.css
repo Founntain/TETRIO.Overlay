@@ -1,0 +1,98 @@
+﻿.profilePicture {
+    margin: 10px;
+    border-radius: 50%;
+    border: 5px solid white;
+    filter: drop-shadow(2px 2px 3px black);
+}
+
+.profileContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.verticalContainer {
+    display: flex;
+    flex-direction: column;
+    min-width: 450px;
+}
+
+.gamemodesContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.gamemodeRecordContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Ensures vertical alignment if the text size differs */
+    width: 100%; /* Ensures the container spans the full width */
+}
+
+.bigRank {
+    margin: 10px;
+    max-width: 88px;
+    max-height: 88px;
+    filter: drop-shadow(2px 2px 3px black);
+}
+
+.smallRank {
+    max-width: 32px;
+    max-height: 32px;
+    filter: drop-shadow(2px 2px 3px black);
+}
+
+.smallText {
+    font-size: 16pt;
+}
+
+.bigText {
+    font-size: 2em;
+    margin: 0;
+}
+.username{
+    text-align: center;
+}
+
+.gamemodeText {
+    text-align: left;
+}
+
+.gamemodeRecord {
+    text-align: right;
+}
+
+.statsContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.leagueStatsContainer {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.oldSeasonContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+}
+
+.mod{
+    max-width: 24px;
+    max-height: 24px;
+    margin: 5px;
+}
+
+.modsContainer{
+    margin-top: 2px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
