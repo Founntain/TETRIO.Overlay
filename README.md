@@ -1,4 +1,4 @@
-# TetraLeague Overlay
+# TETRIO Overlay
 
 A simple overlay for displaying your Tetra League, Quick Play, 40L, Blitz and much more stats in OBS using a Browser Source. You can choose to display your stats as a static image or a live view that updates every 30 seconds.
 
