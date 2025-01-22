@@ -84,7 +84,7 @@ With the `expert` parameter you can show the splits for expert or normal, defaul
 If you prefer not to use the hosted version, you have a few alternatives:
 
 - Clone the repository, build, and run the project locally, then access it via `localhost`.
-- Pull the [Docker image](https://hub.docker.com/repository/docker/founntain/tetraleague.overlay.api/general) and run it with Docker, accessing it via `localhost` and the assigned port.
+- Pull the [Docker image](https://hub.docker.com/repository/docker/founntain/tetrio.overlay.api/general) and run it with Docker, accessing it via `localhost` and the assigned port.
 
 ## 🔨 Contributing
 
