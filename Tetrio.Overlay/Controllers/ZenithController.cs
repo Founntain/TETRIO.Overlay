@@ -1,19 +1,106 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TetraLeague.Overlay.Generator;
 using TetraLeague.Overlay.Network.Api;
-using TetraLeague.Overlay.Network.Api.Models;
+using TetraLeague.Overlay.Network.Api.Tetrio;
+using TetraLeague.Overlay.Network.Api.Tetrio.Models;
+using Tetrio.Overlay.Database;
+using Tetrio.Overlay.Database.Entities;
 
 namespace TetraLeague.Overlay.Controllers;
 
 public class ZenithController : BaseController
 {
-    public ZenithController(TetrioApi api) : base(api) { }
+    private readonly TetrioContext _context;
+
+    public ZenithController(TetrioApi api, TetrioContext context) : base(api)
+    {
+        _context = context;
+    }
 
     [HttpGet]
     public ActionResult<string> Get()
     {
         return Ok("This Endpoint is for Quick Play Overlays");
+    }
+
+    [HttpGet]
+    [Route("daily/generate")]
+    public async Task<IActionResult> GenerateDailyChallenges()
+    {
+        var generator = new ChallengeGenerator();
+
+        var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+
+        var challengesExist = await _context.Challenges.AnyAsync(x => x.Date == day);
+
+        if (challengesExist)
+        {
+            return Ok("Daily Challenge already exist for this day");
+        }
+
+        var challenges = await generator.GenerateChallengesForDay(_context);
+
+        await _context.AddRangeAsync(challenges);
+        await _context.SaveChangesAsync();
+
+        return Ok(challenges.Select(x => x.Conditions.Select(x => x.ToString())));
+    }
+
+    [HttpGet]
+    [Route("daily")]
+    public async Task<IActionResult> GetDailyChallenges(ulong discordId = 0)
+    {
+        var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+
+        var challenges = await _context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).ToListAsync();
+
+        if (challenges.Count == 0)
+        {
+            await GenerateDailyChallenges();
+
+            challenges = await _context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).ToListAsync();
+        }
+
+        return Ok(challenges);
+    }
+
+    [HttpPost]
+    [Route("daily/submit")]
+    public async Task<IActionResult> SubmitDailyChallenge()
+    {
+        var authResult = await CheckIfAuthorized(_context);
+
+        if (authResult is not OkResult and not OkObjectResult)
+        {
+            return authResult;
+        }
+
+        if (authResult is OkObjectResult result)
+        {
+            var user = result.Value as User;
+
+            if (user == null)
+            {
+                return Ok("You are not authorized to submit daily challenges, please log in again and try again");
+            }
+
+            var records = await Api.GetRecentZenithRecords(user.Username, false, 10);
+            var expertRecords = await Api.GetRecentZenithRecords(user.Username, true, 10);
+
+            if (records == null || expertRecords == null)
+            {
+                return Ok("Could not fetch your recent records, please try again later");
+            }
+
+            var allRecords = new List<Record>();
+
+            allRecords.AddRange(records.Entries);
+            allRecords.AddRange(expertRecords.Entries);
+        }
+
+        return Ok("You are allowed to submit daily challenges");
     }
 
     [HttpGet]
@@ -49,7 +136,7 @@ public class ZenithController : BaseController
     {
         username = username.ToLower();
 
-        var stats = await _api.GetUserSummaries(username);
+        var stats = await Api.GetUserSummaries(username);
 
         if (stats.Zenith.Record == null)
         {
@@ -94,8 +181,8 @@ public class ZenithController : BaseController
     [Route("splits/{username}/stats")]
     public async Task<ActionResult> GetSplitStats(string username, bool expert = false)
     {
-        var stats = await _api.GetRecentZenithRecords(username, expert);
-        var careerBest = await _api.GetZenithStats(username, expert);
+        var stats = await Api.GetRecentZenithRecords(username, expert);
+        var careerBest = await Api.GetZenithStats(username, expert);
 
         var goldSplits = new int[9];
         var secondGoldSplit = new double[9];

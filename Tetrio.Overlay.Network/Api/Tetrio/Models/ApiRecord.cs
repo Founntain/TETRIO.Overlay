@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TetraLeague.Overlay.Network.Api.Models;
+namespace TetraLeague.Overlay.Network.Api.Tetrio.Models;
 
 public class ApiRecord
 {
@@ -124,7 +124,7 @@ public class Record
 
     [JsonPropertyName("revolution")] public object Revolution { get; set; }
 
-    [JsonPropertyName("user")] public User User { get; set; }
+    [JsonPropertyName("user")] public ApiUser User { get; set; }
 
     [JsonPropertyName("otherusers")] public List<object> Otherusers { get; set; }
 
@@ -198,7 +198,7 @@ public class Stats
     [JsonPropertyName("finaltime")] public double? Finaltime { get; set; }
 }
 
-public class User
+public class ApiUser
 {
     [JsonPropertyName("id")] public string Id { get; set; }
 
@@ -211,6 +211,18 @@ public class User
     [JsonPropertyName("country")] public string Country { get; set; }
 
     [JsonPropertyName("supporter")] public bool? Supporter { get; set; }
+}
+
+public class BareUser
+{
+    [JsonPropertyName("_id")] public string Id { get; set; }
+
+    [JsonPropertyName("username")] public string Username { get; set; }
+}
+
+public class DiscordUser
+{
+    [JsonPropertyName("user")] public BareUser User { get; set; }
 }
 
 public class Zenith

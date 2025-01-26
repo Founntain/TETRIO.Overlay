@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Overlay", "Tetrio.Ov
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Overlay.Network", "Tetrio.Overlay.Network\Tetrio.Overlay.Network.csproj", "{CCD2ED82-68D5-476E-BD4F-19B701207533}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Overlay.Database", "Tetrio.Overlay.Database\Tetrio.Overlay.Database.csproj", "{7F8F9954-9D94-468E-8429-0B8AFC392C83}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{CCD2ED82-68D5-476E-BD4F-19B701207533}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCD2ED82-68D5-476E-BD4F-19B701207533}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCD2ED82-68D5-476E-BD4F-19B701207533}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F8F9954-9D94-468E-8429-0B8AFC392C83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F8F9954-9D94-468E-8429-0B8AFC392C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F8F9954-9D94-468E-8429-0B8AFC392C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F8F9954-9D94-468E-8429-0B8AFC392C83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

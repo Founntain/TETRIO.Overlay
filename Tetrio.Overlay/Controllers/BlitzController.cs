@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TetraLeague.Overlay.Generator;
 using TetraLeague.Overlay.Network.Api;
+using TetraLeague.Overlay.Network.Api.Tetrio;
 
 namespace TetraLeague.Overlay.Controllers;
 
@@ -36,8 +37,8 @@ public class BlitzController : BaseController
     {
         username = username.ToLower();
 
-        var userStats = _api.GetUserInformation(username);
-        var stats = _api.GetBlitzStats(username);
+        var userStats = Api.GetUserInformation(username);
+        var stats = Api.GetBlitzStats(username);
 
         return Ok(new
         {

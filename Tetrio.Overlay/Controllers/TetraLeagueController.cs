@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TetraLeague.Overlay.Generator;
 using TetraLeague.Overlay.Network.Api;
+using TetraLeague.Overlay.Network.Api.Tetrio;
 
 namespace TetraLeague.Overlay.Controllers;
 
@@ -47,8 +48,8 @@ public class TetraLeagueController : BaseController
     {
         username = username.ToLower();
 
-        var user = await _api.GetUserInformation(username);
-        var stats = await _api.GetTetraLeagueStats(username);
+        var user = await Api.GetUserInformation(username);
+        var stats = await Api.GetTetraLeagueStats(username);
 
         return Ok(new
         {

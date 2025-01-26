@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TetraLeague.Overlay.Generator;
 using TetraLeague.Overlay.Network.Api;
+using TetraLeague.Overlay.Network.Api.Tetrio;
+using Tetrio.Overlay.Database;
 
 namespace TetraLeague.Overlay.Controllers;
 
-public class BaseController : MinControllerBase
+public class BaseController : MinBaseController
 {
     public BaseController(TetrioApi api) : base(api)
     {
