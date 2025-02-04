@@ -13,11 +13,33 @@ public class AuthController : MinBaseController
     private readonly EncryptionService _encryptionService;
     private readonly TetrioContext _context;
 
+    private readonly string _discordClientSecret;
+
     public AuthController(TetrioApi api, DiscordApi discordApi, EncryptionService encryptionService, TetrioContext context) : base(api)
     {
         _discordApi = discordApi;
         _encryptionService = encryptionService;
         _context = context;
+
+        if (System.IO.File.Exists("/run/secrets/discord-client-secret"))
+        {
+            _discordClientSecret = System.IO.File.ReadAllText("/run/secrets/discord-client-secret");
+
+            Console.WriteLine("loaded encryption key from secrets");
+
+            return;
+        }
+
+        var discordClientSecret = Environment.GetEnvironmentVariable("discord-client-secret");
+
+        if (string.IsNullOrEmpty(discordClientSecret))
+        {
+            throw new ArgumentException("discord-client-secret environment variable is not set.");
+        }
+
+        _discordClientSecret = discordClientSecret;
+
+        Console.WriteLine("loaded discord-client-secret from environment variable");
     }
 
     [HttpGet]
@@ -40,7 +62,7 @@ public class AuthController : MinBaseController
             var values = new Dictionary<string, string>
             {
                 { "client_id", "1332751405374505154" },
-                { "client_secret", "jULmwPf6l-VmZGSHl-Wzl-BQwAq7piIK" },
+                { "client_secret", _discordClientSecret },
                 { "grant_type", "authorization_code" },
                 { "code", code },
                 { "redirect_uri", "https://localhost:7053/auth/discord" }

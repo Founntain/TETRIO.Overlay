@@ -27,13 +27,12 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAnyOrigin",
         b =>
         {
-            if (builder.Environment.IsDevelopment())
-            {
-                b.WithOrigins("http://localhost:8080")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials();
-            }
+
+            b.WithOrigins("http://localhost:8080")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+
 
             b.WithOrigins("https://zenith.founntain.dev")
                 .AllowAnyMethod()

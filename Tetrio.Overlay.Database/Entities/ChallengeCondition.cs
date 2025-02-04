@@ -4,7 +4,7 @@ namespace Tetrio.Overlay.Database.Entities;
 
 public class ChallengeCondition : BaseEntity
 {
-    public ulong ChallengeId { get; set; }
+    public Guid ChallengeId { get; set; }
     public ConditionType Type { get; set; }
     public int Value { get; set; }
 

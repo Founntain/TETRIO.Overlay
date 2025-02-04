@@ -33,22 +33,38 @@ public class ChallengeGenerator
     private async Task<Challenge> GenerateChallenge(Difficulty difficulty, TetrioContext context)
     {
         var challengeConditions = new List<ChallengeCondition>();
-        var conditions = GetRandomConditions();
 
-        foreach (var condition in conditions)
+        // Always add Height as a base condition
+        var heightRange = GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
+        var height = _random.Next(heightRange.min, heightRange.max + 1);
+
+        challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
+
+        var tries = 0;
+
+        while (challengeConditions.Count == 1)
         {
-            // Generate a random value based on the condition type and difficulty
-            var range = GetRangeForConditionAndDifficulty(context, condition, difficulty);
-            var value = _random.Next(range.min, range.max + 1); // Generate random value within range
+            var conditions = GetRandomConditions();
 
-            if (value > 0)
+            foreach (var condition in conditions)
             {
-                challengeConditions.Add(new ChallengeCondition
+                var range = GetRangeForConditionAndDifficulty(context, condition, difficulty);
+                var value = _random.Next(range.min, range.max + 1);
+
+                if (value > 0)
                 {
-                    Type = condition,
-                    Value = value
-                });
+                    challengeConditions.Add(new ChallengeCondition
+                    {
+                        Type = condition,
+                        Value = value
+                    });
+                }
             }
+
+            tries++;
+
+            // If we dont get a valid extra conditions after 100 tries we just go with height
+            if (tries > 100) break;
         }
 
         //TODO: Generate Mods
@@ -142,6 +158,8 @@ public class ChallengeGenerator
     private List<ConditionType> GetRandomConditions()
     {
         var allConditions = Enum.GetValues<ConditionType>().ToList();
+
+        allConditions.RemoveAt(0);
 
         allConditions = allConditions.OrderBy(x => _random.Next()).ToList();
 
