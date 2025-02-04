@@ -74,9 +74,29 @@ function updateStats() {
 
             username.innerText = usernameInfo.toUpperCase();
 
+            let lastSeasonRankImg = "z";
+            let lastSeasonTr = 0;
+
+            if(data.league.past["1"] !== undefined){
+                lastSeasonRankImg = data.league.past["1"].rank;
+                lastSeasonTr = data.league.past["1"].tr;
+
+                lastSeasonRank.style.display = "block";
+                lastSeaonTr.style.display = "block";
+            }else{
+                lastSeasonRank.style.display = "none";
+                lastSeaonTr.style.display = "none";
+            }
+
+            if(data["40l"].record.user.avatar_revision !== null){
+                profilePicture.style.display = "block";
+                profilePicture.src = `https://tetr.io/user-content/avatars/${data["40l"].record.user.id}.jpg?rv=${data["40l"].record.user.avatar_revision}`
+            }else{
+                profilePicture.style.display = "none";
+            }
+
             rankImage.src = `${imgUrl + data.league.rank}.png`;
-            lastSeasonRank.src = `${imgUrl + data.league.past["1"].rank}.png`;
-            profilePicture.src = `https://tetr.io/user-content/avatars/${data["40l"].record.user.id}.jpg?rv=${data["40l"].record.user.avatar_revision}`
+            lastSeasonRank.src = `${imgUrl + lastSeasonRankImg}.png`;
 
             let trString = currentSeasonTr.innerText;
             let cleanTrString = trString.replace(/[^0-9.]/g, '');
@@ -88,7 +108,7 @@ function updateStats() {
             let lastSeasonTrCleanTrString = lastSeasonTrString.replace(/[^0-9.]/g, '');
             lastSeasonCleanTrString = lastSeasonTrCleanTrString.replace(/,/g, '');
 
-            animateValue(lastSeaonTr, parseFloat(lastSeasonCleanTrString), data.league.past["1"].tr, animationDuration, 0, "", " TR (S1)");
+            animateValue(lastSeaonTr, parseFloat(lastSeasonCleanTrString), lastSeasonTr, animationDuration, 0, "", " TR (S1)");
 
             var sprintRecord = timeToMilliseconds(sprintPb.innerText);
             var sprintNewValue = parseFloat(data["40l"].record.results.stats.finaltime.toFixed(2))
