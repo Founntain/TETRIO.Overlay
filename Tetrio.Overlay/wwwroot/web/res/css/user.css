@@ -100,7 +100,7 @@
 /* Default hidden state */
 .fadeElement {
     opacity: 0;
-    transition: opacity 1s ease;
+    transition: opacity 1s ease-in-out;
 }
 
 /* Override when visible to show the element */

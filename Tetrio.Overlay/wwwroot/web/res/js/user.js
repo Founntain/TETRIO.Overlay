@@ -96,7 +96,20 @@ function updateStats() {
 
             username.innerText = usernameInfo.toUpperCase();
 
-            if(firstLoad) fadeIn(username)
+            if(firstLoad){
+                fadeIn(username)
+                fadeIn(rankImage)
+                fadeIn(profilePicture)
+                fadeIn(lastSeasonRank)
+                fadeIn(currentSeasonTr)
+                fadeIn(lastSeaonTr)
+                fadeIn(sprintPb)
+                fadeIn(blitzPb)
+                fadeIn(zenithPb)
+                fadeIn(mods)
+
+                if(firstLoad) fadeIn(profilePicture)
+            }
 
             let lastSeasonRankImg = "z";
             let lastSeasonTr = 0;
@@ -114,31 +127,24 @@ function updateStats() {
 
             if(data["40l"].record.user.avatar_revision !== null && data["40l"].record.user.avatar_revision !== 0){
                 profilePicture.src = `https://tetr.io/user-content/avatars/${data["40l"].record.user.id}.jpg?rv=${data["40l"].record.user.avatar_revision}`
-                if(firstLoad) fadeIn(profilePicture)
+
             }else{
                 profilePicture.style.display = "none";
             }
 
-            if(firstLoad) fadeIn(rankImage)
-
             rankImage.src = `${imgUrl + data.league.rank}.png`;
             lastSeasonRank.src = `${imgUrl + lastSeasonRankImg}.png`;
-
-            if(firstLoad) fadeIn(profilePicture)
-            if(firstLoad) fadeIn(lastSeasonRank)
 
             let trString = currentSeasonTr.innerText;
             let cleanTrString = trString.replace(/[^0-9.]/g, '');
             cleanTrString = cleanTrString.replace(/,/g, '');
 
-            if(firstLoad) fadeIn(currentSeasonTr)
             animateValue(currentSeasonTr, parseFloat(cleanTrString), data.league.tr, animationDuration, 0, "", " TR");
 
             let lastSeasonTrString = lastSeaonTr.innerText;
             let lastSeasonTrCleanTrString = lastSeasonTrString.replace(/[^0-9.]/g, '');
             lastSeasonCleanTrString = lastSeasonTrCleanTrString.replace(/,/g, '');
 
-            if(firstLoad) fadeIn(lastSeaonTr)
             animateValue(lastSeaonTr, parseFloat(lastSeasonCleanTrString), lastSeasonTr, animationDuration, 0, "", " TR (S1)");
 
             var sprintRecord = timeToMilliseconds(sprintPb.innerText);
@@ -149,10 +155,6 @@ function updateStats() {
 
                 for(let i = 0; i < elements.length; i++) fadeIn(elements[i]);
             }
-
-            if(firstLoad) fadeIn(sprintPb)
-            if(firstLoad) fadeIn(blitzPb)
-            if(firstLoad) fadeIn(zenithPb)
 
             animateValue(sprintPb, sprintRecord, sprintNewValue, animationDuration, 0, "", "", true);
             animateValue(blitzPb, parseFloat(blitzPb.innerText.replace(/[^0-9.]/g, '')), data["blitz"].record?.results?.stats?.score ?? 0, animationDuration);
@@ -168,8 +170,6 @@ function updateStats() {
                 img.src = `${imgUrl}${mod}.png`;
                 mods.appendChild(img);
             });
-
-            if(firstLoad) fadeIn(mods)
 
             firstLoad = false;
         })
