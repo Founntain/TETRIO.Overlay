@@ -96,3 +96,15 @@
     justify-content: center;
     align-items: center;
 }
+
+/* Default hidden state */
+.fadeElement {
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+/* Override when visible to show the element */
+.fadeElement.show {
+    opacity: 1;
+    visibility: visible;
+}

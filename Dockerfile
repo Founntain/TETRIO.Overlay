@@ -29,4 +29,4 @@ RUN apt-get update && \
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-ENTRYPOINT ["dotnet", "TetraLeague.Overlay.dll"]
+ENTRYPOINT ["dotnet", "Tetrio.Overlay.dll"]
