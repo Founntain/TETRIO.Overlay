@@ -14,6 +14,8 @@ public class TetrioApi : ApiBase
     private static readonly ConcurrentDictionary<string, (DateTimeOffset, QuickPlay?)> ZenithCache = new();
     private static readonly ConcurrentDictionary<string, (DateTimeOffset, QuickPlay?)> ZenithExpertCache = new();
 
+    private static readonly ConcurrentDictionary<string, (DateTimeOffset, Achievement?)> AchievementCache = new();
+
     private static readonly ConcurrentDictionary<string, (DateTimeOffset, ZenithRecords)> RecentZenithCache = new();
     private static readonly ConcurrentDictionary<string, (DateTimeOffset, ZenithRecords)> RecentZenithExpertCache = new();
 
@@ -26,6 +28,7 @@ public class TetrioApi : ApiBase
     private string ZenithExpertUrl => ApiBaseUrl + "users/{0}/summaries/zenithex";
     private string RecentZenithUrl => ApiBaseUrl + "users/{0}/records/zenith/recent?limit=100";
     private string RecentZenithExpertUrl => ApiBaseUrl + "users/{0}/records/zenithex/recent?limit=100";
+    private string AchievementUrl => ApiBaseUrl + "achievements/{0}";
 
     public async Task<Summary?> GetUserSummaries(string username)
     {
@@ -557,6 +560,71 @@ public class TetrioApi : ApiBase
         catch (Exception ex)
         {
             Console.WriteLine($"[{prefix}] ERROR: {ex.Message}");
+
+            return default;
+        }
+    }
+
+    public async Task<Achievement?> GetAchievement(string achievement)
+    {
+        // Let's check the cache first
+        if (AchievementCache.TryGetValue(achievement, out var data))
+        {
+            Console.WriteLine($"[ACHIEVEMENT] Found achievement {achievement} in cache");
+
+            // If the cache is still valid we return that
+            if (data.Item1 >= DateTimeOffset.UtcNow)
+            {
+                Console.WriteLine("[ACHIEVEMENT] Found valid cache data to return");
+
+                return data.Item2;
+            }
+        }
+
+        Console.WriteLine($"[ACHIEVEMENT] Getting achievement stats for achievement {achievement}, as nothing was found in the cache");
+
+        try
+        {
+            var responseFromApi = await GetString(string.Format(AchievementUrl, achievement));
+
+            if (responseFromApi == null) return default;
+
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<Achievement>>(responseFromApi, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (apiResponse == null) return default;
+            if (!apiResponse.Success) return default;
+
+            if (apiResponse.Cache.Status == "hit")
+            {
+                Console.WriteLine("[40L] Cache hit... returning cache");
+
+                AchievementCache.TryGetValue(achievement, out var result);
+
+                if (result.Item2 != null) return result.Item2;
+
+                Console.WriteLine("[40L] Cache hit, but nothing in there, fetching data again...");
+            }
+
+            if (apiResponse.Data == default) return default;
+
+            Console.WriteLine("[40L] Updating cache and returning");
+
+            var cacheValidUntil = DateTimeOffset.FromUnixTimeMilliseconds(apiResponse.Cache.CacheUntil);
+
+            if (AchievementCache.ContainsKey(achievement))
+            {
+                AchievementCache[achievement] = (cacheValidUntil, apiResponse.Data);
+
+                return AchievementCache[achievement].Item2;
+            }
+
+            AchievementCache.TryAdd(achievement, (cacheValidUntil, apiResponse.Data));
+
+            return apiResponse.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[40L] ERROR: {ex.Message}");
 
             return default;
         }

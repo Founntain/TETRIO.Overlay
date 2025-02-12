@@ -1,0 +1,56 @@
+.container{
+    display: flex;
+    flex-direction: row;
+}
+
+.modeContainer{
+    display: flex;
+    flex-direction: column;
+}
+
+p{
+    margin: 2px;
+    text-align: center;
+}
+
+.statContainer{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.prefix{
+    margin-right: 10px;
+}
+
+.suffix{
+    margin-left: 10px;
+}
+
+#finalTime, #username{
+    font-size: 48pt;
+}
+
+.background{
+    /*background: rgba(0,0,0,0.25);*/
+}
+
+.countryImage{
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+
+    filter: drop-shadow(2px 2px 3px black);
+}
