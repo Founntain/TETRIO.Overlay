@@ -16,6 +16,10 @@ body {
     color:white;
 }
 
+.centeredText{
+    text-align: center;
+}
+
 img {
     image-rendering: high-quality;
     aspect-ratio: 1 / 1;
