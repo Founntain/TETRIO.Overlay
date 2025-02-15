@@ -20,23 +20,6 @@ let mods = document.getElementById("mods");
 
 let firstLoad = true;
 
-function fadeIn(element) {
-    element.style.display = "block";
-
-    setTimeout(() => {
-        element.style.opacity = "1";
-    }, 10);
-}
-
-function fadeOut(element) {
-    element.style.display = "block";
-
-    setTimeout(() => {
-        element.style.opacity = "0";
-    }, 10);
-}
-
-
 function updateTetreaLeagueProgressbar(data){
 
     if(firstLoad) fadeIn(tetraLeagueProgressContainer)

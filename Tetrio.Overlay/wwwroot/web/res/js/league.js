@@ -1,5 +1,7 @@
 ﻿let usernameInfo = document.getElementById("usernameInfo").innerText;
 
+let mainContainer = document.getElementById("mainContainer");
+
 //get all fields
 let rankImage = document.getElementById("bigRankImage");
 let username = document.getElementById("username");
@@ -18,6 +20,8 @@ let progressBar = document.getElementById("progressBar");
 let topRankText = document.getElementById("topRankText");
 let progressBarBackgrounds = document.getElementById("progressBarBackground");
 let lastRank = document.getElementById("lastRank");
+
+let firstLoad = true;
 
 function updateStats() {
     let url = `${baseUrl}/tetraleague/${usernameInfo}/stats`
@@ -129,6 +133,12 @@ function updateStats() {
             let rankPercentage = (distance / range) * 100;
 
             progressBar.style.width = `${rankPercentage}%`;
+
+            console.log(mainContainer)
+
+            if(firstLoad) fadeIn(mainContainer)
+
+            firstLoad = false;
         })
         .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
