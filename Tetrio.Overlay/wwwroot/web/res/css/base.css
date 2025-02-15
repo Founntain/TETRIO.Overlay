@@ -72,6 +72,11 @@ img {
     z-index: 2;
 }
 
+
+.centeredText{
+    text-align: center;
+}
+
 .fadeElement {
     opacity: 0;
     transition: opacity 1s ease-in-out;

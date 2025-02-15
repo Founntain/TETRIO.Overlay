@@ -157,10 +157,15 @@ function updateStats() {
             firstLoad = false;
         })
         .catch(error => {
+            fadeIn(userNotFoundContainer);
+            userNotFound.innerText = `${usernameInfo.toUpperCase()} NOT FOUND!`;
+
             console.error('There has been a problem with your fetch operation:', error);
+
+            clearInterval(interval);
         });
 }
 
 updateStats();
 
-setInterval(updateStats, 15000);
+let interval = setInterval(updateStats, 15000);
