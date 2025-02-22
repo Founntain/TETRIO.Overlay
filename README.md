@@ -1,8 +1,8 @@
-# TETRIO Overlay
+# TETR.IO Overlay
 
 A simple overlay for displaying your Tetra League, Quick Play, 40L, Blitz and much more stats in OBS using a Browser Source. You can choose to display your stats as a static image or a live view that updates every 30 seconds.
 
-If you find this overlay useful, please consider giving it a ⭐ to show your support, or share it with others who might enjoy it. Thank you for using it!
+If you find this overlay useful, please consider giving it a ⭐ to show your support, or share it with others who might enjoy it. Thank you for using it! It really means a lot to me 🧡🦊
 
 ## 🎖️ Usage
 
@@ -93,6 +93,7 @@ Contributions are welcome! Feel free to open issues, request features, provide f
 ## 🧡Special Thanks
 
 - **[osk](https://tetr.io)**: for creating tetr.io and providing an amazing, well-structured API.
+  - *all assets like rank and mod icons belong to osk and tetr.io*
 - **[Veggie_Dog](https://www.twitch.tv/theveggiedog)**: motivating to make this project a reality, testing and feedback
 - **[PixelAtc](https://www.twitch.tv/pixelatc)**: providing feedback, ideas and spreading the word
 - **[ZaptorZap](https://zaptorz.app/)**: for giving feedback and some incredible ideas
