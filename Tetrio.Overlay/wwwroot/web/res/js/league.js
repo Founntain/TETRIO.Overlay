@@ -128,15 +128,18 @@ function updateStats() {
             animateValue(pps, parseFloat(pps.innerText), data.pps, animationDuration);
             animateValue(vs, parseFloat(vs.innerText), data.vs, animationDuration);
             animateValue(globalRank, parseInt(globalRank.innerText.replace(/[^0-9.]/g, '')), data.globalRank, animationDuration, 1, "# ", "");
-            animateValue(localRank, parseInt(localRank.innerText.replace(/[^0-9.]/g, '')), data.countryRank, animationDuration, 1, "# ", "");
+            if(data.countryRank > 0){
+                countryImage.style.display = "block";
+                animateValue(localRank, parseInt(localRank.innerText.replace(/[^0-9.]/g, '')), data.countryRank, animationDuration, 1, "# ", "");
+            }else{
+                countryImage.style.display = "none";
+            }
 
             let range = data.prevAt - data.nextAt;
             let distance = data.prevAt - data.globalRank;
             let rankPercentage = (distance / range) * 100;
 
             progressBar.style.width = `${rankPercentage}%`;
-
-            console.log(mainContainer)
 
             if(firstLoad) fadeIn(mainContainer)
 
