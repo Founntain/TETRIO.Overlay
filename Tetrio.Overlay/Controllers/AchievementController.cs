@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using TetraLeague.Overlay.Network.Api;
 using TetraLeague.Overlay.Network.Api.Models;
+using TetraLeague.Overlay.Network.Api.Tetrio;
 
 namespace TetraLeague.Overlay.Controllers;
 
@@ -33,7 +33,7 @@ public class AchievementController : BaseController
     {
         username = username.ToLower();
 
-        var achievement = await _api.GetAchievement(id);
+        var achievement = await Api.GetAchievement(id);
 
         if (achievement == null)
         {

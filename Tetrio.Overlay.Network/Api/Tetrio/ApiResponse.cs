@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TetraLeague.Overlay.Network.Api;
+namespace TetraLeague.Overlay.Network.Api.Tetrio;
 
 public class ApiResponse<T>
 {

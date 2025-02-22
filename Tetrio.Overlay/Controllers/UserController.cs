@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TetraLeague.Overlay.Generator;
-using TetraLeague.Overlay.Network.Api;
+using TetraLeague.Overlay.Network.Api.Tetrio;
 
 namespace TetraLeague.Overlay.Controllers;
 
@@ -16,7 +15,7 @@ public class UserController : BaseController
     {
         if (string.IsNullOrWhiteSpace(username)) return NotFound();
 
-        var userData = await _api.GetUserSummaries(username);
+        var userData = await Api.GetUserSummaries(username);
 
         return Ok(userData);
     }

@@ -1,5 +1,5 @@
 ﻿using SkiaSharp;
-using TetraLeague.Overlay.Network.Api.Models;
+using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 
 namespace TetraLeague.Overlay.Generator;
 
@@ -14,7 +14,7 @@ public class TetraLeagueImageGenerator : BaseImageGenerator
     /// <param name="backgroundColor">Optional. The background color of the image. Defaults to null.</param>
     /// <param name="displayUsername"></param>
     /// <returns>A memory stream containing the generated image with the player's statistics.</returns>
-    public async Task<MemoryStream> GenerateTetraLeagueImage(TetrioUser user, Network.Api.Models.TetraLeague stats, string? textColor = null, string? backgroundColor = null, bool displayUsername = true)
+    public async Task<MemoryStream> GenerateTetraLeagueImage(TetrioUser user, Network.Api.Tetrio.Models.TetraLeague stats, string? textColor = null, string? backgroundColor = null, bool displayUsername = true)
     {
         var width = 900;
         var height = 300;

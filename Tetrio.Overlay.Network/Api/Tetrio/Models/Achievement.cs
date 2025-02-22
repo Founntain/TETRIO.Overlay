@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 
 namespace TetraLeague.Overlay.Network.Api.Models;
 

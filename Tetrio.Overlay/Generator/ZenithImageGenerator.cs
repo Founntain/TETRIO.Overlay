@@ -1,5 +1,5 @@
 ﻿using SkiaSharp;
-using TetraLeague.Overlay.Network.Api.Models;
+using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 
 namespace TetraLeague.Overlay.Generator;
 

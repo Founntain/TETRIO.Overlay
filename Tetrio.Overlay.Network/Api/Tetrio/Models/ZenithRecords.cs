@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TetraLeague.Overlay.Network.Api.Models;
+namespace TetraLeague.Overlay.Network.Api.Tetrio.Models;
 
 public class ZenithRecords
 {

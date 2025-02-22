@@ -1,8 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
 using TetraLeague.Overlay.Network.Api.Models;
+using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 
-namespace TetraLeague.Overlay.Network.Api;
+namespace TetraLeague.Overlay.Network.Api.Tetrio;
 
 public class TetrioApi : ApiBase
 {
@@ -26,8 +27,8 @@ public class TetrioApi : ApiBase
     private string BlitzUrl => ApiBaseUrl + "users/{0}/summaries/blitz";
     private string ZenithUrl => ApiBaseUrl + "users/{0}/summaries/zenith";
     private string ZenithExpertUrl => ApiBaseUrl + "users/{0}/summaries/zenithex";
-    private string RecentZenithUrl => ApiBaseUrl + "users/{0}/records/zenith/recent?limit=100";
-    private string RecentZenithExpertUrl => ApiBaseUrl + "users/{0}/records/zenithex/recent?limit=100";
+    private string RecentZenithUrl => ApiBaseUrl + "users/{0}/records/zenith/recent?limit={1}";
+    private string RecentZenithExpertUrl => ApiBaseUrl + "users/{0}/records/zenithex/recent?limit={1}";
     private string AchievementUrl => ApiBaseUrl + "achievements/{0}";
 
     public async Task<Summary?> GetUserSummaries(string username)
@@ -461,7 +462,7 @@ public class TetrioApi : ApiBase
         }
     }
 
-    public async Task<ZenithRecords?> GetRecentZenithRecords(string username, bool expert = false)
+    public async Task<ZenithRecords?> GetRecentZenithRecords(string username, bool expert = false, byte limit = 100)
     {
         var prefix = expert ? "QP EX" : "QP";
         ;
@@ -496,7 +497,7 @@ public class TetrioApi : ApiBase
 
         try
         {
-            var responseFromApi = await GetString(string.Format(expert ? RecentZenithExpertUrl : RecentZenithUrl, username));
+            var responseFromApi = await GetString(string.Format(expert ? RecentZenithExpertUrl : RecentZenithUrl, username, limit));
 
             if (responseFromApi == null) return default;
 
@@ -628,5 +629,21 @@ public class TetrioApi : ApiBase
 
             return default;
         }
+    }
+
+    public async Task<DiscordUser?> GetUserFromDiscordId(string discordId)
+    {
+        Console.WriteLine($"{ApiBaseUrl}users/search/discord:{discordId}");
+
+        var responseFromApi = await GetString($"{ApiBaseUrl}users/search/discord:{discordId}");
+
+        if (responseFromApi == null) return default;
+
+        var apiResponse = JsonSerializer.Deserialize<ApiResponse<DiscordUser?>>(responseFromApi, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        if (apiResponse == null) return default;
+        if (!apiResponse.Success) return default;
+
+        return apiResponse.Data ?? default;
     }
 }
