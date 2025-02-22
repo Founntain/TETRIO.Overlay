@@ -9,24 +9,24 @@
 <body>
 <p class="hidden" id="usernameInfo">{username}</p>
 <div class="container profileContainer">
-    <img id="profilePicture" class="profilePicture" alt="profile picture">
+    <img id="profilePicture" class="profilePicture fadeElement" alt="">
 
     <div class="verticalContainer">
 
-        <p id="username" class="bigText username">{username}</p>
+        <p id="username" class="bigText username fadeElement"></p>
 
         <div class="statsContainer">
-            <img id="bigRankImage" class="bigRank" alt="rank">
+            <img id="bigRankImage" class="bigRank fadeElement" alt="">
             <div class="leagueStatsContainer">
-                <a id="currentSeasonTr" class="trText">0</a>
+                <a id="currentSeasonTr" class="trText fadeElement">0</a>
                 <div class="oldSeasonContainer">
-                    <img id="lastSeasonRank" class="smallRank" alt="rank">
-                    <a id="lastSeasonTr" class="smallText trText">0</a>
+                    <img id="lastSeasonRank" class="smallRank fadeElement" alt="">
+                    <a id="lastSeasonTr" class="smallText trTex fadeElement">0</a>
                 </div>
             </div>
         </div>
 
-        <div id="tetraLeagueProgressContainer" class="progressContainer">
+        <div id="tetraLeagueProgressContainer" class="progressContainer fadeElement">
             <div class="prevRankContainer">
                 <a id="lastRank">0</a>
                 <img id="prevRankImage" class="smallRank prevRank" />
@@ -40,25 +40,30 @@
 
         <div class="gamemodesContainer">
             <div id="sprintContainer" class="gamemodeRecordContainer">
-                <a class="gamemodeText">40 LINES</a>
-                <a id="sprintPb" class="gamemodeRecord">00:00.000</a>
+                <a class="gamemodeText fadeElement">40 LINES</a>
+                <a id="sprintPb" class="gamemodeRecord fadeElement">00:00.000</a>
             </div>
             <div id="blitzContainer" class="gamemodeRecordContainer">
-                <a class="gamemodeText">BLITZ</a>
-                <a id="blitzPb" class="gamemodeRecord">0</a>
+                <a class="gamemodeText fadeElement">BLITZ</a>
+                <a id="blitzPb" class="gamemodeRecord fadeElement">0</a>
             </div>
             <div id="zenithContainer" class="gamemodeRecordContainer">
-                <a class="gamemodeText">QP</a>
+                <a class="gamemodeText fadeElement">QP</a>
                 <div style="display: flex; align-items: center;">
-                    <div id="mods" class="modsContainer background"></div>
-                    <a id="zenithPb" class="gamemodeRecord">0</a>
+                    <div id="mods" class="modsContainer background fadeElement"></div>
+                    <a id="zenithPb" class="gamemodeRecord fadeElement">0</a>
                 </div>
-
             </div>
-
         </div>
     </div>
-    </div>
+</div>
+<div id="userNotFoundContainer" class="container fadeElement centeredText">
+    <p id="userNotFound" class="bigText"></p>
+    <p>please check your typing or ask founntain</p>
+    <img class="userNotFoundImage" src="/web/res/img/error1.gif"/>
+    <img class="userNotFoundImage" src="/web/res/img/error2.gif"/>
+    <img class="userNotFoundImage" src="/web/res/img/error3.png"/>
+</div>
 </body>
 
 <script src="/web/res/js/base.js"></script>

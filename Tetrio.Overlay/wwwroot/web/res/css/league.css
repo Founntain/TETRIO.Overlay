@@ -103,6 +103,7 @@ td img.rankImage, td img.countryImage {
 
 .progressContainer{
     width: 100%;
+    max-width: 800px;
     display: flex;
     flex-direction: row;
     align-items: center;

@@ -1,13 +1,16 @@
-# TETRIO Overlay
+# TETR.IO Overlay
 
 A simple overlay for displaying your Tetra League, Quick Play, 40L, Blitz and much more stats in OBS using a Browser Source. You can choose to display your stats as a static image or a live view that updates every 30 seconds.
 
-If you find this overlay useful, please consider giving it a ⭐ to show your support, or share it with others who might enjoy it. Thank you for using it!
+If you find this overlay useful, please consider giving it a ⭐ to show your support, or share it with others who might enjoy it. Thank you for using it! It really means a lot to me 🧡🦊
 
 ## 🎖️ Usage
 
 For screenshots and examples look at the [examples section](#examples) at the bottom.  
 To use the overlay, simply use one of the following URLs:
+
+### Tetra League
+- **Live View**: `https://tetrio.founntain.dev/user/<username>`
 
 ### Tetra League
 - **Live View**: `https://tetrio.founntain.dev/tetraleague/<username>`
@@ -32,6 +35,7 @@ For OBS, it is recommended to use the live view URL. To set it up:
 1. Create a new Browser Source in OBS.
 2. Paste the live view URL into the Browser Source settings, replacing `<username>` with your tetr.io username (make sure to remove the `<` and `>`), the same goes for `<mode>`.
 3. Make sure the width and height is correct check below what sizes are best for each overlay:
+   - User Card: 800 x 350
    - Tetra League: 800 x 350
    - Quick Play: 900 x 350
    - 40 Lines: 700 x 225
@@ -42,14 +46,26 @@ For OBS, it is recommended to use the live view URL. To set it up:
 > The data is cached and refreshes every 30 seconds. For 40 Lines and Blitz the default cache is used which is **5 minutes**.
 
 ### 🛠️ Customization Parameters
-You can put any parameters at the end of the url. ***The order does not matter, however spelling is!***
+You can customize a lot, as they are all web-based you can modify the CSS to your liking in OBS.
+Here are some common examples for the **user card**:
+```CSS
+// Hide the profile picture
+.profilePicture{ display: none }
 
-- **`backgroundColor`**: Adjusts the background color (useful if you don’t want a transparent background). Default is `00FFFFFF`.
-- **`textColor`**: Changes the text color and the color of the progress bar. Default is `FFFFFF`.
-- **`displayUsername`**: This only works for 40L, Blitz and Quick Play if set to `false` it will hide the username.
-- **`modes`**: See [Slide section](#slide).
+// Hide Tetra League Progressbar
+#tetraLeagueProgressContainer { display: none }
 
-> **Example:** `https://tetrio.founntain.dev/tetraleague/founntain/web?backgroundColor=FF0000&textColor=00FF00`
+// Change the text color for example red
+.body{ color: #FF0000 }
+
+// Hide 40L, Blitz or QP
+#sprintContainer { display: none }
+#blitzContainer { display: none }
+#zenithContainer { display: none }
+
+// Or hide them all together with one line
+.gamemodesContainer { display: none }
+```
 
 ## Splits
 
@@ -68,7 +84,7 @@ With the `expert` parameter you can show the splits for expert or normal, defaul
 If you prefer not to use the hosted version, you have a few alternatives:
 
 - Clone the repository, build, and run the project locally, then access it via `localhost`.
-- Pull the [Docker image](https://hub.docker.com/repository/docker/founntain/tetraleague.overlay.api/general) and run it with Docker, accessing it via `localhost` and the assigned port.
+- Pull the [Docker image](https://hub.docker.com/repository/docker/founntain/tetrio.overlay.api/general) and run it with Docker, accessing it via `localhost` and the assigned port.
 
 ## 🔨 Contributing
 
@@ -77,12 +93,18 @@ Contributions are welcome! Feel free to open issues, request features, provide f
 ## 🧡Special Thanks
 
 - **[osk](https://tetr.io)**: for creating tetr.io and providing an amazing, well-structured API.
+  - *all assets like rank and mod icons belong to osk and tetr.io*
 - **[Veggie_Dog](https://www.twitch.tv/theveggiedog)**: motivating to make this project a reality, testing and feedback
 - **[PixelAtc](https://www.twitch.tv/pixelatc)**: providing feedback, ideas and spreading the word
 - **[ZaptorZap](https://zaptorz.app/)**: for giving feedback and some incredible ideas
 
 ## Examples
-> *added for all examples a simple transparent dark background so those are readable for light github users aswell Parameter used `backgroundColor=AA000000`*
+> *added a background to all of them so they are visible on github light mode users*
+>
+
+#### User Card
+![image](https://github.com/user-attachments/assets/f873cb7e-8917-422f-bf90-93160ca53cb8)
+
 #### Tetra League
 ![founntain](https://github.com/user-attachments/assets/b867218b-de57-4a44-85d3-1a5721878720)
 

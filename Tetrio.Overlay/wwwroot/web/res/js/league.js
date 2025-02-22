@@ -1,5 +1,9 @@
 ﻿let usernameInfo = document.getElementById("usernameInfo").innerText;
 
+let userNotFoundContainer = document.getElementById("userNotFoundContainer");
+let mainContainer = document.getElementById("mainContainer");
+let userNotFound = document.getElementById("userNotFound");
+
 //get all fields
 let rankImage = document.getElementById("bigRankImage");
 let username = document.getElementById("username");
@@ -18,6 +22,8 @@ let progressBar = document.getElementById("progressBar");
 let topRankText = document.getElementById("topRankText");
 let progressBarBackgrounds = document.getElementById("progressBarBackground");
 let lastRank = document.getElementById("lastRank");
+
+let firstLoad = true;
 
 function updateStats() {
     let url = `${baseUrl}/tetraleague/${usernameInfo}/stats`
@@ -122,19 +128,33 @@ function updateStats() {
             animateValue(pps, parseFloat(pps.innerText), data.pps, animationDuration);
             animateValue(vs, parseFloat(vs.innerText), data.vs, animationDuration);
             animateValue(globalRank, parseInt(globalRank.innerText.replace(/[^0-9.]/g, '')), data.globalRank, animationDuration, 1, "# ", "");
-            animateValue(localRank, parseInt(localRank.innerText.replace(/[^0-9.]/g, '')), data.countryRank, animationDuration, 1, "# ", "");
+            if(data.countryRank > 0){
+                countryImage.style.display = "block";
+                animateValue(localRank, parseInt(localRank.innerText.replace(/[^0-9.]/g, '')), data.countryRank, animationDuration, 1, "# ", "");
+            }else{
+                countryImage.style.display = "none";
+            }
 
             let range = data.prevAt - data.nextAt;
             let distance = data.prevAt - data.globalRank;
             let rankPercentage = (distance / range) * 100;
 
             progressBar.style.width = `${rankPercentage}%`;
+
+            if(firstLoad) fadeIn(mainContainer)
+
+            firstLoad = false;
         })
         .catch(error => {
+            fadeIn(userNotFoundContainer);
+            userNotFound.innerText = `${usernameInfo.toUpperCase()} NOT FOUND!`;
+
             console.error('There has been a problem with your fetch operation:', error);
+
+            clearInterval(interval);
         });
 }
 
 updateStats();
 
-setInterval(updateStats, 15000);
+let interval = setInterval(updateStats, 15000);

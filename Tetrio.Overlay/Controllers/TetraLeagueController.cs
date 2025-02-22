@@ -51,6 +51,8 @@ public class TetraLeagueController : BaseController
         var user = await Api.GetUserInformation(username);
         var stats = await Api.GetTetraLeagueStats(username);
 
+        if(user == null || stats == null) return NotFound();
+
         return Ok(new
         {
             Username= user.Username,

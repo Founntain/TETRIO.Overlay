@@ -118,3 +118,20 @@ function animateValue(element, start, end, duration, lerpType = 0, prefix = "", 
 
     requestAnimationFrame(animation);
 }
+
+
+function fadeIn(element) {
+    element.style.display = "block";
+
+    setTimeout(() => {
+        element.style.opacity = "1";
+    }, 10);
+}
+
+function fadeOut(element) {
+    element.style.display = "block";
+
+    setTimeout(() => {
+        element.style.opacity = "0";
+    }, 10);
+}

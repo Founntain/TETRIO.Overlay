@@ -10,10 +10,10 @@
 <body>
 <p class="hidden" id="usernameInfo">{username}</p>
 
-<div class="container">
+<div id="mainContainer" class="container fadeElement">
     <div class="statsContainer">
         <div class="imageContainer">
-            <img id="bigRankImage" class="bigRank" alt="rank image">
+            <img id="bigRankImage" class="bigRank">
         </div>
         <div>
             <div>
@@ -25,7 +25,7 @@
                 <tr>
                     <td id="apm">0</td>
                     <td>APM</td>
-                    <td id="globalText">GLOBAL</td>
+                    <td id="globalText" class="centeredText">GLOBAL</td>
                     <td id="globalRank">0</td>
                 </tr>
                 <tr>
@@ -37,7 +37,7 @@
                 <tr>
                     <td id="vs">0</td>
                     <td>VS</td>
-                    <td id="topRankText">TOP RANK</td>
+                    <td id="topRankText" class="centeredText">TOP RANK</td>
                     <td><img id="topRankImage" class="rankImage" /></td>
                 </tr>
             </table>
@@ -52,8 +52,16 @@
             <div id="progressBarBackground" class="box progressBar"></div>
             <div id="progressBar" class="box progressBarAccent"></div>
         </div>
-        <img id="nextRankImage" class="rankImage nextRank" src="/web/resources/img/ss.png"/>
+        <img id="nextRankImage" class="rankImage nextRank"/>
     </div>
+</div>
+
+<div id="userNotFoundContainer" class="container fadeElement centeredText">
+    <p id="userNotFound" class="bigText"></p>
+    <p>please check your typing or ask founntain</p>
+    <img class="userNotFoundImage" src="/web/res/img/error1.gif"/>
+    <img class="userNotFoundImage" src="/web/res/img/error2.gif"/>
+    <img class="userNotFoundImage" src="/web/res/img/error3.png"/>
 </div>
 </body>
 
