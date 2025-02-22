@@ -4,6 +4,8 @@ A simple overlay for displaying your Tetra League, Quick Play, 40L, Blitz and mu
 
 If you find this overlay useful, please consider giving it a ⭐ to show your support, or share it with others who might enjoy it. Thank you for using it! It really means a lot to me 🧡🦊
 
+> *this project also contains the backend of the [Zenith Daily Challenge](https://github.com/Founntain/Zenith.DailyChallenge.Web) as this project contains almost like 99% of the code that is need anyways*
+
 ## 🎖️ Usage
 
 For screenshots and examples look at the [examples section](#examples) at the bottom.  
