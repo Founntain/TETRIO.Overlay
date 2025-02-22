@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TetraLeague.Overlay.Network.Api;
 using TetraLeague.Overlay.Network.Api.Tetrio;
 using Tetrio.Overlay.Database;
-using Tetrio.Overlay.Database.Entities;
 
 namespace TetraLeague.Overlay.Controllers;
 

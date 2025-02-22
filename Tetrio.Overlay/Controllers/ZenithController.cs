@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TetraLeague.Overlay.Generator;
-using TetraLeague.Overlay.Network.Api;
 using TetraLeague.Overlay.Network.Api.Tetrio;
 using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 using Tetrio.Overlay.Database;
@@ -45,7 +42,7 @@ public class ZenithController : BaseController
         await _context.AddRangeAsync(challenges);
         await _context.SaveChangesAsync();
 
-        return Ok(challenges.Select(x => x.Conditions.Select(x => x.ToString())));
+        return Ok(challenges.Select(x => x.Conditions?.Select(y => y.ToString())));
     }
 
     [HttpGet]
@@ -70,6 +67,8 @@ public class ZenithController : BaseController
     [Route("daily/submit")]
     public async Task<IActionResult> SubmitDailyChallenge()
     {
+        return StatusCode(501);
+
         var authResult = await CheckIfAuthorized(_context);
 
         if (authResult is not OkResult and not OkObjectResult)
@@ -77,28 +76,27 @@ public class ZenithController : BaseController
             return authResult;
         }
 
-        if (authResult is OkObjectResult result)
+        if (authResult is not OkObjectResult result) return Ok("You are allowed to submit daily challenges");
+
+        var user = result.Value as User;
+
+        if (user == null)
         {
-            var user = result.Value as User;
-
-            if (user == null)
-            {
-                return Ok("You are not authorized to submit daily challenges, please log in again and try again");
-            }
-
-            var records = await Api.GetRecentZenithRecords(user.Username, false, 10);
-            var expertRecords = await Api.GetRecentZenithRecords(user.Username, true, 10);
-
-            if (records == null || expertRecords == null)
-            {
-                return Ok("Could not fetch your recent records, please try again later");
-            }
-
-            var allRecords = new List<Record>();
-
-            allRecords.AddRange(records.Entries);
-            allRecords.AddRange(expertRecords.Entries);
+            return Ok("You are not authorized to submit daily challenges, please log in again and try again");
         }
+
+        var records = await Api.GetRecentZenithRecords(user.Username, false, 10);
+        var expertRecords = await Api.GetRecentZenithRecords(user.Username, true, 10);
+
+        if (records == null || expertRecords == null)
+        {
+            return Ok("Could not fetch your recent records, please try again later");
+        }
+
+        var allRecords = new List<Record>();
+
+        allRecords.AddRange(records.Entries);
+        allRecords.AddRange(expertRecords.Entries);
 
         return Ok("You are allowed to submit daily challenges");
     }

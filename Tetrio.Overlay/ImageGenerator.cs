@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using TetraLeague.Overlay.Generator;
+﻿using TetraLeague.Overlay.Generator;
 
 namespace TetraLeague.Overlay;
 

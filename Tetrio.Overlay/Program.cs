@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
-using TetraLeague.Overlay.Network.Api;
 using TetraLeague.Overlay.Network.Api.Discord;
 using TetraLeague.Overlay.Network.Api.Tetrio;
 using Tetrio.Overlay.Database;
@@ -27,17 +26,21 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAnyOrigin",
         b =>
         {
-
+#if DEBUG
             b.WithOrigins("http://localhost:8080")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
-
-
-            b.WithOrigins("https://zenith.founntain.dev")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
+#endif
+            
+            options.AddPolicy("AllowFounntainDev", policy =>
+            {
+                policy.SetIsOriginAllowed(origin =>
+                        origin.EndsWith(".founntain.dev") || origin == "https://founntain.dev")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            });
         });
 });
 

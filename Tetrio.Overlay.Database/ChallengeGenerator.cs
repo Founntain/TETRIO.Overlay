@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Tetrio.Overlay.Database.Entities;
 using Tetrio.Overlay.Database.Enums;
 

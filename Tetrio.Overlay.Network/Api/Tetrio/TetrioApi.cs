@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
+using TetraLeague.Overlay.Network.Api.Models;
 using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 
 namespace TetraLeague.Overlay.Network.Api.Tetrio;
