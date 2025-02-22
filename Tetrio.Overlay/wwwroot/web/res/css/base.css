@@ -21,6 +21,7 @@ html{
 body {
     background: transparent;
     color:white;
+    overflow: hidden;;
 }
 
 img {

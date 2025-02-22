@@ -157,7 +157,10 @@ function updateStats() {
             firstLoad = false;
         })
         .catch(error => {
+            userNotFoundContainer.classList.remove("hidden");
+
             fadeIn(userNotFoundContainer);
+
             userNotFound.innerText = `${usernameInfo.toUpperCase()} NOT FOUND!`;
 
             console.error('There has been a problem with your fetch operation:', error);

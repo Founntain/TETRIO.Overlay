@@ -146,6 +146,8 @@ function updateStats() {
             firstLoad = false;
         })
         .catch(error => {
+            userNotFoundContainer.classList.remove("hidden");
+
             fadeIn(userNotFoundContainer);
             userNotFound.innerText = `${usernameInfo.toUpperCase()} NOT FOUND!`;
 
