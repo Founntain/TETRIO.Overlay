@@ -17,10 +17,11 @@ let lastRank = document.getElementById("lastRank");
 
 let tetraLeagueProgressContainer = document.getElementById("tetraLeagueProgressContainer");
 let mods = document.getElementById("mods");
+let badgesContainer = document.getElementById("badges");
 
 let firstLoad = true;
 
-function updateTetreaLeagueProgressbar(data){
+function updateTetraLeagueProgressbar(data){
 
     if(firstLoad) fadeIn(tetraLeagueProgressContainer)
 
@@ -75,6 +76,9 @@ function updateStats() {
             return response.json();
         })
         .then(data => {
+            let summary = data.summaryData;
+            let badges = data.badges;
+
             console.log(data);
 
             username.innerText = usernameInfo.toUpperCase();
@@ -90,6 +94,7 @@ function updateStats() {
                 fadeIn(blitzPb)
                 fadeIn(zenithPb)
                 fadeIn(mods)
+                fadeIn(badgesContainer)
 
                 if(firstLoad) fadeIn(profilePicture)
             }
@@ -97,9 +102,9 @@ function updateStats() {
             let lastSeasonRankImg = "z";
             let lastSeasonTr = 0;
 
-            if(data.league.past["1"] !== undefined){
-                lastSeasonRankImg = data.league.past["1"].rank;
-                lastSeasonTr = data.league.past["1"].tr;
+            if(summary.league.past["1"] !== undefined){
+                lastSeasonRankImg = summary.league.past["1"].rank;
+                lastSeasonTr = summary.league.past["1"].tr;
 
                 lastSeasonRank.style.display = "block";
                 lastSeaonTr.style.display = "block";
@@ -108,21 +113,21 @@ function updateStats() {
                 lastSeaonTr.style.display = "none";
             }
 
-            if(data["40l"].record.user.avatar_revision !== null && data["40l"].record.user.avatar_revision !== 0){
-                profilePicture.src = `https://tetr.io/user-content/avatars/${data["40l"].record.user.id}.jpg?rv=${data["40l"].record.user.avatar_revision}`
+            if(summary["40l"].record.user.avatar_revision !== null && summary["40l"].record.user.avatar_revision !== 0){
+                profilePicture.src = `https://tetr.io/user-content/avatars/${summary["40l"].record.user.id}.jpg?rv=${summary["40l"].record.user.avatar_revision}`
 
             }else{
                 profilePicture.style.display = "none";
             }
 
-            rankImage.src = `${imgUrl + data.league.rank}.png`;
+            rankImage.src = `${imgUrl + summary.league.rank}.png`;
             lastSeasonRank.src = `${imgUrl + lastSeasonRankImg}.png`;
 
             let trString = currentSeasonTr.innerText;
             let cleanTrString = trString.replace(/[^0-9.]/g, '');
             cleanTrString = cleanTrString.replace(/,/g, '');
 
-            animateValue(currentSeasonTr, parseFloat(cleanTrString), data.league.tr, animationDuration, 0, "", " TR");
+            animateValue(currentSeasonTr, parseFloat(cleanTrString), summary.league.tr, animationDuration, 0, "", " TR");
 
             let lastSeasonTrString = lastSeaonTr.innerText;
             let lastSeasonTrCleanTrString = lastSeasonTrString.replace(/[^0-9.]/g, '');
@@ -131,7 +136,7 @@ function updateStats() {
             animateValue(lastSeaonTr, parseFloat(lastSeasonCleanTrString), lastSeasonTr, animationDuration, 0, "", " TR (S1)");
 
             var sprintRecord = timeToMilliseconds(sprintPb.innerText);
-            var sprintNewValue = parseFloat(data["40l"].record.results.stats.finaltime.toFixed(2))
+            var sprintNewValue = parseFloat(summary["40l"].record.results.stats.finaltime.toFixed(2))
 
             if(firstLoad){
                 let elements = document.getElementsByClassName("gamemodeText");
@@ -140,19 +145,28 @@ function updateStats() {
             }
 
             animateValue(sprintPb, sprintRecord, sprintNewValue, animationDuration, 0, "", "", true);
-            animateValue(blitzPb, parseFloat(blitzPb.innerText.replace(/[^0-9.]/g, '')), data["blitz"].record?.results?.stats?.score ?? 0, animationDuration);
-            animateValue(zenithPb, parseFloat(zenithPb.innerText.replace(/[^0-9.]/g, '')), data["zenith"].best?.record?.results?.stats?.zenith.altitude ?? 0, animationDuration);
+            animateValue(blitzPb, parseFloat(blitzPb.innerText.replace(/[^0-9.]/g, '')), summary["blitz"].record?.results?.stats?.score ?? 0, animationDuration);
+            animateValue(zenithPb, parseFloat(zenithPb.innerText.replace(/[^0-9.]/g, '')), summary["zenith"].best?.record?.results?.stats?.zenith.altitude ?? 0, animationDuration);
 
-            updateTetreaLeagueProgressbar(data);
+            updateTetraLeagueProgressbar(summary);
 
             mods.innerHTML = "";
 
-            data["zenith"].best?.record.extras.zenith.mods.forEach(mod => {
+            summary["zenith"].best?.record.extras.zenith.mods.forEach(mod => {
                 const img = document.createElement('img');
                 img.classList.add("mod");
                 img.src = `${imgUrl}${mod}.png`;
                 mods.appendChild(img);
             });
+
+            badgesContainer.innerHTML = "";
+
+            badges.forEach(badge => {
+                const img = document.createElement('img');
+                img.classList.add("badge");
+                img.src = `https://tetr.io/res/badges/${badge}.png`;
+                badgesContainer.appendChild(img);
+            })
 
             firstLoad = false;
         })
