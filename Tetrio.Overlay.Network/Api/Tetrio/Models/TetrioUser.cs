@@ -36,4 +36,7 @@ public class TetrioUser
 
     [JsonPropertyName("supportertier")]
     public int? SupporterTier { get; set; }
+
+    [JsonPropertyName("badges")]
+    public List<Badges>? Badges { get; set; }
 }

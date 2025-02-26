@@ -52,13 +52,19 @@ You can customize a lot, as they are all web-based you can modify the CSS to you
 Here are some common examples for the **user card**:
 ```CSS
 // Hide the profile picture
-.profilePicture{ display: none }
+.profilePicture { display: none }
+
+// Hide username 
+#username { display: none }
+
+// Hide badges
+#badges { display: none }
 
 // Hide Tetra League Progressbar
 #tetraLeagueProgressContainer { display: none }
 
 // Change the text color for example red
-.body{ color: #FF0000 }
+.body { color: #FF0000 }
 
 // Hide 40L, Blitz or QP
 #sprintContainer { display: none }
@@ -121,4 +127,3 @@ Contributions are welcome! Feel free to open issues, request features, provide f
 
 #### Blitz
 ![image](https://github.com/user-attachments/assets/90fc37f2-2a7d-408b-a60a-f412e38c3378)
-

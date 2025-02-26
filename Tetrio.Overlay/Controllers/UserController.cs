@@ -15,9 +15,16 @@ public class UserController : BaseController
     {
         if (string.IsNullOrWhiteSpace(username)) return NotFound();
 
-        var userData = await Api.GetUserSummaries(username);
+        var userData = await Api.GetUserInformation(username);
+        var userSummaryData = await Api.GetUserSummaries(username);
 
-        return Ok(userData);
+        var data = new
+        {
+            Badges = userData?.Badges?.Select(x => x.Id),
+            SummaryData = userSummaryData
+        };
+
+        return Ok(data);
     }
 
     [HttpGet]
