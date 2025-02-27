@@ -87,8 +87,7 @@ public class ChallengeGenerator
         switch (difficulty)
         {
             case Difficulty.Easy:
-                maxMods = 1;
-                break;
+                return string.Empty;
             case Difficulty.Normal:
                 maxMods = 2;
                 break;
@@ -96,7 +95,7 @@ public class ChallengeGenerator
                 maxMods = 3;
                 break;
             default:
-                maxMods = 0;
+                return string.Empty;
                 break;
         }
 
