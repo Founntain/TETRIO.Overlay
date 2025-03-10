@@ -111,7 +111,7 @@ Contributions are welcome! Feel free to open issues, request features, provide f
 >
 
 #### User Card
-![image](https://github.com/user-attachments/assets/f873cb7e-8917-422f-bf90-93160ca53cb8)
+![image](https://github.com/user-attachments/assets/bddedc0c-d560-444b-9474-6071286dcb17)
 
 #### Tetra League
 ![founntain](https://github.com/user-attachments/assets/b867218b-de57-4a44-85d3-1a5721878720)
