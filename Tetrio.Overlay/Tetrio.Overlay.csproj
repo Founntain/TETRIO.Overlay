@@ -72,6 +72,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Tetrio.Overlay.Database\Tetrio.Overlay.Database.csproj" />
       <ProjectReference Include="..\Tetrio.Overlay.Network\Tetrio.Overlay.Network.csproj" />
+      <ProjectReference Include="..\Tetrio.Zenith.DailyChallenge\Tetrio.Zenith.DailyChallenge.csproj" />
     </ItemGroup>
 
 </Project>

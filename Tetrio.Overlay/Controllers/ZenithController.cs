@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TetraLeague.Overlay.Network.Api.Tetrio;
 using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 using Tetrio.Overlay.Database;
 using Tetrio.Overlay.Database.Entities;
+using Tetrio.Zenith.DailyChallenge;
 
 namespace TetraLeague.Overlay.Controllers;
 
@@ -67,8 +69,6 @@ public class ZenithController : BaseController
     [Route("daily/submit")]
     public async Task<IActionResult> SubmitDailyChallenge()
     {
-        return StatusCode(501);
-
         var authResult = await CheckIfAuthorized(_context);
 
         if (authResult is not OkResult and not OkObjectResult)
@@ -85,18 +85,82 @@ public class ZenithController : BaseController
             return Ok("You are not authorized to submit daily challenges, please log in again and try again");
         }
 
-        var records = await Api.GetRecentZenithRecords(user.Username, false, 10);
-        var expertRecords = await Api.GetRecentZenithRecords(user.Username, true, 10);
+        var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+
+        var challenges = await _context.Challenges.Where( x => x.Date == day).OrderByDescending(x => x.Points).ToListAsync();
+
+        if (challenges.Count == 0)
+        {
+            return Ok("No daily challenges found, submission canceled");
+        }
+
+        var records = await Api.GetRecentZenithRecords(user.Username, false, 100);
+        var expertRecords = await Api.GetRecentZenithRecords(user.Username, true, 100);
 
         if (records == null || expertRecords == null)
         {
             return Ok("Could not fetch your recent records, please try again later");
         }
 
-        var allRecords = new List<Record>();
+        var totalRuns = new List<Record>();
 
-        allRecords.AddRange(records.Entries);
-        allRecords.AddRange(expertRecords.Entries);
+        totalRuns.AddRange(records.Entries);
+        totalRuns.AddRange(expertRecords.Entries);
+
+        Console.WriteLine($"[DAILY SUBMIT] {user.Username} submitted {totalRuns.Count} run(s)]");
+
+        var tetrioIds = totalRuns.Select(x => x.Id).ToList();
+
+        var runsInDb = _context.Runs.Where(x => tetrioIds.Contains(x.TetrioId)).ToList();
+
+        var runsSavedInDb = 0;
+
+        var sw = new Stopwatch();
+        sw.Restart();
+
+        foreach (var record in totalRuns)
+        {
+            if (runsInDb.Any(x => x.TetrioId == record.Id)) continue;
+
+            var stats = record.Results.Stats;
+            var clears = stats.Clears;
+
+            var mods = record.Extras.Zenith.Mods;
+            var totalSpins =   clears.RealTspins
+                             + clears.MiniTspins
+                             + clears.MiniTspinSingles
+                             + clears.TspinSingles
+                             + clears.MiniTspindDoubles
+                             + clears.TspinDoubles
+                             + clears.MiniTspinTriples
+                             + clears.TspinTriples
+                             + clears.MiniTspinQuads
+                             + clears.TspinQuads
+                             + clears.TspinPentas;
+
+            var run = new Run
+            {
+                TetrioId = record.Id,
+                Altitude = stats.Zenith.Altitude ?? 0,
+                KOs = ((byte?)stats.Kills) ?? 0,
+                AllClears = ((ushort?)clears.AllClear) ?? 0,
+                Quads = ((ushort?)clears.Quads) ?? 0,
+                Spins = ((ushort?)totalSpins) ?? 0,
+                Mods = string.Join(" ", mods),
+                User = user,
+            };
+
+            var completedChallenges = new RunValidator().ValidateRun(challenges, run, mods);
+
+            run.Challenges = completedChallenges.ToHashSet();
+
+            await _context.Runs.AddAsync(run);
+            runsSavedInDb += await _context.SaveChangesAsync();
+        }
+
+        sw.Stop();
+
+        Console.WriteLine($"[DAILY SUBMIT] {user.Username} submitted {totalRuns.Count} run(s) successfully | Validation took {sw.Elapsed:g}");
 
         return Ok("You are allowed to submit daily challenges");
     }

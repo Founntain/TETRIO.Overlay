@@ -7,5 +7,6 @@ public class Challenge : BaseEntity
     public byte Points { get; set; }
 
     public virtual ISet<User>? Users { get; set; } = new HashSet<User>();
+    public virtual ISet<Run>? Runs { get; set; } = new HashSet<Run>();
     public virtual ISet<ChallengeCondition>? Conditions { get; set; } = new HashSet<ChallengeCondition>();
 }

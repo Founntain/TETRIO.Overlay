@@ -14,4 +14,5 @@ public class User : BaseEntity
 
     public virtual ISet<Challenge>? Challenges { get; set; } = new HashSet<Challenge>();
     public virtual ISet<ZenithSplit>? ZenithSplits { get; set; } = new HashSet<ZenithSplit>();
+    public virtual ISet<Run>? Runs { get; set; } = new HashSet<Run>();
 }

@@ -34,29 +34,29 @@ public class Clears
 
     [JsonPropertyName("pentas")] public double? Pentas { get; set; }
 
-    [JsonPropertyName("realtspins")] public double? Realtspins { get; set; }
+    [JsonPropertyName("realtspins")] public double? RealTspins { get; set; }
 
-    [JsonPropertyName("minitspins")] public double? Minitspins { get; set; }
+    [JsonPropertyName("minitspins")] public double? MiniTspins { get; set; }
 
-    [JsonPropertyName("minitspinsingles")] public double? Minitspinsingles { get; set; }
+    [JsonPropertyName("minitspinsingles")] public double? MiniTspinSingles { get; set; }
 
-    [JsonPropertyName("tspinsingles")] public double? Tspinsingles { get; set; }
+    [JsonPropertyName("tspinsingles")] public double? TspinSingles { get; set; }
 
-    [JsonPropertyName("minitspindoubles")] public double? Minitspindoubles { get; set; }
+    [JsonPropertyName("minitspindoubles")] public double? MiniTspindDoubles { get; set; }
 
-    [JsonPropertyName("tspindoubles")] public double? Tspindoubles { get; set; }
+    [JsonPropertyName("tspindoubles")] public double? TspinDoubles { get; set; }
 
-    [JsonPropertyName("minitspdoubleriples")] public double? Minitspdoubleriples { get; set; }
+    [JsonPropertyName("minitspintriples")] public double? MiniTspinTriples { get; set; }
 
-    [JsonPropertyName("tspdoubleriples")] public double? Tspdoubleriples { get; set; }
+    [JsonPropertyName("tspintriples")] public double? TspinTriples { get; set; }
 
-    [JsonPropertyName("minitspinquads")] public double? Minitspinquads { get; set; }
+    [JsonPropertyName("minitspinquads")] public double? MiniTspinQuads { get; set; }
 
-    [JsonPropertyName("tspinquads")] public double? Tspinquads { get; set; }
+    [JsonPropertyName("tspinquads")] public double? TspinQuads { get; set; }
 
-    [JsonPropertyName("tspinpentas")] public double? Tspinpentas { get; set; }
+    [JsonPropertyName("tspinpentas")] public double? TspinPentas { get; set; }
 
-    [JsonPropertyName("allclear")] public double? Allclear { get; set; }
+    [JsonPropertyName("allclear")] public double? AllClear { get; set; }
 }
 
 public class Extras

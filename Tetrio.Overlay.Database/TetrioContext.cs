@@ -12,6 +12,7 @@ public class TetrioContext : DbContext
     public DbSet<ConditionRange> ConditionRanges { get; set; }
     public DbSet<ChallengeCondition> ChallengeConditions { get; set; }
     public DbSet<Mod> Mods { get; set; }
+    public DbSet<Run> Runs { get; set; }
 
     public TetrioContext()
     {
@@ -36,5 +37,6 @@ public class TetrioContext : DbContext
         builder.ApplyConfiguration(new ChallengeConditionConfiguration());
         builder.ApplyConfiguration(new ConditionRangeConfiguration());
         builder.ApplyConfiguration(new ModConfiguration());
+        builder.ApplyConfiguration(new RunConfiguration());
     }
 }
