@@ -21,10 +21,14 @@ public class TetrioContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        base.OnConfiguring(optionsBuilder);
+
         optionsBuilder.UseSqlite("Data Source=database.db");
         optionsBuilder.UseLazyLoadingProxies();
 
         optionsBuilder.EnableSensitiveDataLogging();
+        optionsBuilder.LogTo(Console.WriteLine);
+        optionsBuilder.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Error);
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
