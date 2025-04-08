@@ -16,7 +16,7 @@ public class TetrioContext : DbContext
 
     public TetrioContext()
     {
-        Database.EnsureCreated();
+        // Database.EnsureCreated();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

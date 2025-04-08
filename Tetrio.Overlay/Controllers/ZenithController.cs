@@ -63,6 +63,7 @@ public class ZenithController : BaseController
             Conditions = x.Conditions.Select(a => new ChallengeCondition
             {
                 Id = a.Id,
+                ChallengeId = a.ChallengeId,
                 Value = a.Value,
                 Type = a.Type,
             }).ToHashSet(),

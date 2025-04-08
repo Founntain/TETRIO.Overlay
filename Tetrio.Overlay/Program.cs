@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using TetraLeague.Overlay.Network.Api.Discord;
 using TetraLeague.Overlay.Network.Api.Tetrio;
 using Tetrio.Overlay.Database;
@@ -70,6 +71,11 @@ if (app.Environment.IsDevelopment())
 #if DEBUG
 Console.WriteLine("Applying CORS Policy: AllowDev");
 app.UseCors("AllowDev");
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TetrioContext>();
+    await db.Database.MigrateAsync();
+}
 #else
 Console.WriteLine("Applying CORS Policy: AllowFounntainDev");
 app.UseCors("AllowFounntainDev");
