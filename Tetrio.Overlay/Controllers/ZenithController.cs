@@ -50,14 +50,26 @@ public class ZenithController : BaseController
     {
         var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
-        var challenges = await _context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).ToListAsync();
+        var challengeCount = await _context.Challenges.Where(x => x.Date == day).CountAsync();
 
-        if (challenges.Count == 0)
+        if (challengeCount == 0)
         {
             await GenerateDailyChallenges();
-
-            challenges = await _context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).ToListAsync();
         }
+
+        var challenges = await _context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).Select(x => new Challenge
+        {
+            Id = x.Id,
+            Conditions = x.Conditions.Select(a => new ChallengeCondition
+            {
+                Id = a.Id,
+                Value = a.Value,
+                Type = a.Type,
+            }).ToHashSet(),
+            Date = x.Date,
+            Points = x.Points,
+            Mods = x.Mods,
+        }).ToListAsync();
 
         return Ok(challenges);
     }
@@ -74,6 +86,11 @@ public class ZenithController : BaseController
         var user = result.Value as User;
 
         if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
+
+        var now = DateTime.UtcNow;
+        var nextSubmissionPossible = user.LastSubmission?.AddMinutes(5) ?? DateTime.MinValue;
+
+        if(nextSubmissionPossible > DateTime.UtcNow) return BadRequest("Please wait 5 minutes before requesting submitting daily challenges again, you can submit daily challenges every 5 minutes.");
 
         var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
@@ -144,12 +161,17 @@ public class ZenithController : BaseController
             {
                 User = user,
                 TetrioId = record.Id,
+                PlayedAt = record.Ts,
                 Altitude = stats.Zenith.Altitude ?? 0,
                 KOs = (byte?)stats.Kills ?? 0,
                 AllClears = (ushort?)clears.AllClear ?? 0,
                 Quads = (ushort?)clears.Quads ?? 0,
                 Spins = (ushort?)totalSpins ?? 0,
                 Mods = string.Join(" ", mods),
+                Apm = record.Results.Aggregatestats.Apm ?? 0,
+                Pps = record.Results.Aggregatestats.Pps ?? 0,
+                Vs = record.Results.Aggregatestats.Vsscore ?? 0,
+                Finesse = ((stats.Piecesplaced - stats.Finesse!.Faults) / stats.Piecesplaced) * 100 ?? 0
             };
 
             var completedChallenges = new RunValidator().ValidateRun(challenges, run, mods);
@@ -167,6 +189,8 @@ public class ZenithController : BaseController
             runsToAdd.Add(run);
         }
 
+        user.LastSubmission = DateTime.UtcNow;
+
         await using var transaction = await _context.Database.BeginTransactionAsync();
         await _context.AddRangeAsync(splitsToAdd);
         await _context.AddRangeAsync(runsToAdd);
@@ -177,7 +201,12 @@ public class ZenithController : BaseController
 
         Console.WriteLine($"[DAILY SUBMIT] {user.Username} saved {dataSavedToDb} columns successfully | Took {sw.Elapsed:g}");
 
-        return Ok("You are allowed to submit daily challenges");
+        return Ok(new
+        {
+            Username = user.Username,
+            EntriesSaved = dataSavedToDb,
+            TimeToProcess = sw.Elapsed.ToString("g")
+        });
     }
 
     [HttpGet]
@@ -367,4 +396,22 @@ public class ZenithController : BaseController
 
         return Ok(result);
     }
+
+    [HttpGet]
+    [Route("daily/date")]
+    public async Task<ActionResult> GetDate()
+    {
+        var date = DateTime.UtcNow.Date;
+        var runsUntil = date.AddDays(1).AddSeconds(-1);
+
+        return Ok(new
+        {
+            DateString = date.ToString("dddd, dd. MMMM yyyy"),
+            Date = date,
+            DateUnixSeconds = ((DateTimeOffset)date).ToUnixTimeSeconds(),
+            RunsUntil = runsUntil,
+            RunsUntilUnixSeconds = ((DateTimeOffset)runsUntil).ToUnixTimeSeconds()
+        });
+    }
+
 }

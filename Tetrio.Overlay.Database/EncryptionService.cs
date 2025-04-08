@@ -45,7 +45,6 @@ public class EncryptionService
         var inputBytes = Encoding.UTF8.GetBytes(plaintext);
         var encrypted = encryptor.TransformFinalBlock(inputBytes, 0, inputBytes.Length);
 
-        // Return the IV and encrypted data combined (example)
         var result = new byte[iv.Length + encrypted.Length];
         iv.CopyTo(result, 0);
         encrypted.CopyTo(result, iv.Length);

@@ -16,7 +16,7 @@ public class DiscordApi
 
         if (!tokenResponse.IsSuccessStatusCode)
         {
-            return new() { ErrorMessage = $"Failed to exchange authorization code.{Environment.NewLine}{Environment.NewLine}{tokenResponse.ReasonPhrase}" };
+            return new() { ErrorMessage = $"Failed to exchange authorization code.{Environment.NewLine}{Environment.NewLine}{tokenResponse.ReasonPhrase}{Environment.NewLine}{Environment.NewLine}{await tokenResponse.Content.ReadAsStringAsync()}" };
         }
 
         var tokenContent = await tokenResponse.Content.ReadAsStringAsync();

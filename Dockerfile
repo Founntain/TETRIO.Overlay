@@ -8,7 +8,9 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Tetrio.Overlay/Tetrio.Overlay.csproj", "./"]
-COPY ["Tetrio.Overlay.Network/Tetrio.Overlay.Network.csproj", "./"]
+#COPY ["Tetrio.Overlay.Network/Tetrio.Overlay.Network.csproj", "./Network"]
+#COPY ["Tetrio.Overlay.Database/Tetrio.Overlay.Database.csproj", "./Database"]
+#COPY ["Tetrio.Zenith.DailyChallenge/Tetrio.Zenith.DailyChallenge.csproj", "./DailyChallenge"]
 RUN dotnet restore "Tetrio.Overlay.csproj"
 COPY . .
 WORKDIR "/src/"
@@ -22,9 +24,9 @@ FROM base AS final
 
 USER root
 
-RUN apt-get update && \
-    apt-get install -y libfontconfig1 libfreetype6 fontconfig && \
-    apt-get clean
+#RUN apt-get update && \
+#    apt-get install -y libfontconfig1 libfreetype6 fontconfig && \
+#    apt-get clean
 
 WORKDIR /app
 COPY --from=publish /app/publish .

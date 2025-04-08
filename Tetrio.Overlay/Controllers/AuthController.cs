@@ -25,7 +25,7 @@ public class AuthController : MinBaseController
         {
             _discordClientSecret = System.IO.File.ReadAllText("/run/secrets/discord-client-secret");
 
-            Console.WriteLine("loaded encryption key from secrets");
+            Console.WriteLine("loaded discord-client-secrets from secrets");
 
             return;
         }
@@ -59,13 +59,18 @@ public class AuthController : MinBaseController
         try
         {
             // Exchange the code for an access token
+
             var values = new Dictionary<string, string>
             {
                 { "client_id", "1332751405374505154" },
                 { "client_secret", _discordClientSecret },
                 { "grant_type", "authorization_code" },
                 { "code", code },
+                #if DEBUG
                 { "redirect_uri", "https://localhost:7053/auth/discord" }
+                #else
+                { "redirect_uri", "https://teto.founntain.dev/auth/discord" }
+                #endif
             };
 
             using var client = new HttpClient();
@@ -111,7 +116,17 @@ public class AuthController : MinBaseController
                 await _context.AddAsync(dbUser);
                 await _context.SaveChangesAsync();
             }
+            else
+            {
+                dbUser.SessionToken = Guid.NewGuid();
+                dbUser.AccessToken = _encryptionService.EncryptWithIv(tokenResult.AccessToken);
+                dbUser.RefreshToken = _encryptionService.EncryptWithIv(tokenResult.RefreshToken);
+                dbUser.ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(tokenResult.ExpiresIn);
 
+                await _context.SaveChangesAsync();
+            }
+
+#if DEBUG
             HttpContext.Response.Cookies.Append("username", dbUser.Username.ToString(), new CookieOptions
             {
                 Path = "/",
@@ -129,6 +144,27 @@ public class AuthController : MinBaseController
                 SameSite = SameSiteMode.None,
                 Expires = dbUser.ExpiresAt,
             });
+#else
+            HttpContext.Response.Cookies.Append("username", dbUser.Username.ToString(), new CookieOptions
+            {
+                Path = "/",
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Domain = ".founntain.dev",
+                Expires = dbUser.ExpiresAt,
+            });
+
+            HttpContext.Response.Cookies.Append("session_token", dbUser.SessionToken.ToString(), new CookieOptions
+            {
+                Path = "/",
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Domain = ".founntain.dev",
+                Expires = dbUser.ExpiresAt,
+            });
+#endif
 
             // Return the user's Discord ID
             return Redirect(Uri.UnescapeDataString(state));

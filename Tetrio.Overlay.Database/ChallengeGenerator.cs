@@ -35,7 +35,7 @@ public class ChallengeGenerator
 
         // Always add Height as a base condition
         var heightRange = GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
-        var height = _random.Next(heightRange.min, heightRange.max + 1);
+        var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
 
         challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
 
@@ -48,7 +48,14 @@ public class ChallengeGenerator
             foreach (var condition in conditions)
             {
                 var range = GetRangeForConditionAndDifficulty(context, condition, difficulty);
-                var value = _random.Next(range.min, range.max + 1);
+                var value = 0d;
+
+                if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs)
+                {
+                    value = range.min + _random.NextDouble() * (range.max - range.min);
+
+                    value = Math.Round(value, 2);
+                }
 
                 if (value > 0)
                 {
@@ -143,7 +150,7 @@ public class ChallengeGenerator
         return string.Join(" ", selectedMods.Select(x => x.Name));
     }
 
-    private static (int min, int max) GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)
+    private static (double min, double max) GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)
     {
         var range = context.ConditionRanges.FirstOrDefault(x => x.ConditionType == condition && x.Difficulty == difficulty);
 

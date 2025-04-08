@@ -18,28 +18,44 @@ public static class ModelBuilderExtensions
         var ranges = new List<ConditionRange>();
 
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Height,    Min = 50, Max = 350});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.KOs,       Min = 0,   Max = 1});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.AllClears, Min = 0,   Max = 0});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Quads,     Min = 3,   Max = 10});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Spins,     Min = 0,   Max = 0});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.KOs,       Min = 0,  Max = 1});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.AllClears, Min = 0,  Max = 0});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Quads,     Min = 3,  Max = 10});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Spins,     Min = 0,  Max = 0});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Apm,       Min = 10,  Max = 20});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Pps,       Min = 0.75,  Max = 1});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Vs,        Min = 30,  Max = 40});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Finesse,   Min = 35, Max = 50});
 
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Height,    Min = 350, Max = 650});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.KOs,       Min = 1,   Max = 2});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.AllClears, Min = 0,   Max = 1});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Quads,     Min = 5,   Max = 15});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Spins,     Min = 5,   Max = 30});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Apm,       Min = 20,   Max = 55});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Pps,       Min = 1,   Max = 1.75});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Vs,        Min = 40,   Max = 100});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Finesse,   Min = 50,  Max = 65});
 
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Height,    Min = 650, Max = 1350});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.KOs,       Min = 2,   Max = 5});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.AllClears, Min = 1,   Max = 3});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Quads,     Min = 10,   Max = 20});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Spins,     Min = 30,   Max = 75});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Quads,     Min = 10,  Max = 20});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Spins,     Min = 30,  Max = 75});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Apm,       Min = 55,   Max = 85});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Pps,       Min = 1.75,   Max = 2});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Vs,        Min = 100,   Max = 200});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Finesse,   Min = 65,  Max = 80});
 
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Height,    Min = 1350, Max = 2500});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.KOs,       Min = 3,   Max = 5});
-        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.AllClears, Min = 3,   Max = 6});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.KOs,       Min = 3,    Max = 5});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.AllClears, Min = 3,    Max = 6});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Quads,     Min = 20,   Max = 30});
         ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Spins,     Min = 75,   Max = 125});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Apm,       Min = 85,    Max = 130});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Pps,       Min = 1.75, Max = 2.25});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Vs,        Min = 100,  Max = 200});
+        ranges.Add(new () {Id = Guid.NewGuid(), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Finesse,   Min = 75,   Max = 100});
 
         modelBuilder.Entity<ConditionRange>().HasData(ranges);
     }
