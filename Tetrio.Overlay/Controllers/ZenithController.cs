@@ -172,7 +172,9 @@ public class ZenithController : BaseController
                 Apm = record.Results.Aggregatestats.Apm ?? 0,
                 Pps = record.Results.Aggregatestats.Pps ?? 0,
                 Vs = record.Results.Aggregatestats.Vsscore ?? 0,
-                Finesse = ((stats.Piecesplaced - stats.Finesse!.Faults) / stats.Piecesplaced) * 100 ?? 0
+                Finesse = ((stats.Piecesplaced - stats.Finesse!.Faults) / stats.Piecesplaced) * 100 ?? 0,
+                SpeedrunSeen = stats.Zenith.SpeedrunSeen ?? false,
+                SpeedrunCompleted = stats.Zenith.Speedrun ?? false,
             };
 
             var completedChallenges = new RunValidator().ValidateRun(challenges, run, mods);
