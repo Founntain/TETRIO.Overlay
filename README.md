@@ -11,7 +11,7 @@ If you find this overlay useful, please consider giving it a ⭐ to show your su
 For screenshots and examples look at the [examples section](#examples) at the bottom.  
 To use the overlay, simply use one of the following URLs:
 
-### Tetra League
+### User Card
 - **Live View**: `https://tetrio.founntain.dev/user/<username>`
 
 ### Tetra League
