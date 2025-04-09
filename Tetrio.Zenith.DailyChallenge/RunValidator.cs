@@ -48,6 +48,18 @@ public class RunValidator
                             case ConditionType.Spins:
                                 isChallengeCompleted &= run.Spins >= condition.Value;
                                 break;
+                            case ConditionType.Apm:
+                                isChallengeCompleted &= run.Apm >= condition.Value;
+                                break;
+                            case ConditionType.Pps:
+                                isChallengeCompleted &= run.Pps >= condition.Value;
+                                break;
+                            case ConditionType.Vs:
+                                isChallengeCompleted &= run.Vs >= condition.Value;
+                                break;
+                            case ConditionType.Finesse:
+                                isChallengeCompleted &= run.Finesse >= condition.Value;
+                                break;
                             default:
                                 continue;
                         }

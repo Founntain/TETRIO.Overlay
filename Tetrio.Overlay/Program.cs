@@ -68,14 +68,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-#if DEBUG
-Console.WriteLine("Applying CORS Policy: AllowDev");
-app.UseCors("AllowDev");
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TetrioContext>();
     await db.Database.MigrateAsync();
 }
+
+#if DEBUG
+Console.WriteLine("Applying CORS Policy: AllowDev");
+app.UseCors("AllowDev");
 #else
 Console.WriteLine("Applying CORS Policy: AllowFounntainDev");
 app.UseCors("AllowFounntainDev");

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TetraLeague.Overlay.Network.Api.Discord;
 using TetraLeague.Overlay.Network.Api.Tetrio;
+using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 using Tetrio.Overlay.Database;
 using Tetrio.Overlay.Database.Entities;
 
@@ -44,7 +45,7 @@ public class AuthController : MinBaseController
 
     [HttpGet]
     [Route("discord")]
-    public async Task<ActionResult<string>> DiscordAuth([FromQuery] string code, [FromQuery] string? state)
+    public async Task<ActionResult> DiscordAuth([FromQuery] string code, [FromQuery] string? state)
     {
         if (string.IsNullOrEmpty(code))
         {
@@ -173,5 +174,34 @@ public class AuthController : MinBaseController
         {
             return StatusCode(500, $"An error occurred: {ex.Message}");
         }
+    }
+
+    [HttpPost]
+    [Route("")]
+    public async Task<IActionResult> GetProfileFromAuthorization()
+    {
+        var authResult = await CheckIfAuthorized(_context);
+
+        if (!authResult.IsAuthorized)
+        {
+            ResetCookies();
+
+            return StatusCode(authResult.StatusCode, $"{authResult.StatusCode} - Unauthorized. Reason: {authResult.ResponseText}");
+        }
+
+        var user = authResult.User;
+
+        if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
+
+        var userInfo = await Api.GetUserInformation(authResult.User.Username);
+
+        if(userInfo == default) return null;
+
+        return Ok(new SlimUserInfo
+        {
+            Username = user.Username,
+            Avatar = $"https://tetr.io/user-content/avatars/{userInfo.Id}.jpg?rv={userInfo.Avatar}",
+            Banner = $"https://tetr.io/user-content/banners/{userInfo.Id}.jpg?rv={userInfo.Banner}",
+        });
     }
 }

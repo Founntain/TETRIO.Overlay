@@ -181,6 +181,8 @@ public class UserController : BaseController
             Pps = Math.Round(x.Pps, 2),
             Vs = Math.Round(x.Vs, 2),
             Finesse = Math.Round(x.Finesse,2),
+            SpeedrunSeen = x.SpeedrunSeen,
+            SpeedrunCompleted = x.SpeedrunCompleted
         }).ToArrayAsync();
 
         return Ok(runs);
