@@ -5,6 +5,7 @@ using TetraLeague.Overlay.Network.Api.Tetrio;
 using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 using Tetrio.Overlay.Database;
 using Tetrio.Overlay.Database.Entities;
+using Tetrio.Overlay.Database.Enums;
 using Tetrio.Zenith.DailyChallenge;
 
 namespace TetraLeague.Overlay.Controllers;
@@ -110,10 +111,9 @@ public class DailyController : BaseController
 
         if(nextSubmissionPossible > DateTime.UtcNow) return BadRequest("Please wait 1 minute before requesting submitting daily challenges again.");
 
-        var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
+        var day = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
         var challenges = await _context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).ToListAsync();
-
         if (challenges.Count == 0) return Ok("No daily challenges found, submission canceled");
 
         var records = await Api.GetRecentZenithRecords(user.Username);
@@ -128,6 +128,8 @@ public class DailyController : BaseController
 
         totalRuns = totalRuns.DistinctBy(x => x.Id).ToList();
 
+        var communityChallenge = await _context.CommunityChallenges.FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
+
         Console.WriteLine($"[DAILY SUBMIT] {user.Username} submitted {totalRuns.Count} run(s)]");
 
         var tetrioIds = totalRuns.Select(x => x.Id).ToList();
@@ -139,6 +141,7 @@ public class DailyController : BaseController
 
         var splitsToAdd = new List<ZenithSplit>();
         var runsToAdd = new List<Run>();
+        var contributionsToAdd = new List<CommunityContribution>();
 
         foreach (var record in totalRuns)
         {
@@ -196,15 +199,42 @@ public class DailyController : BaseController
                 SpeedrunCompleted = stats.Zenith.Speedrun ?? false,
             };
 
-            var completedChallenges = new RunValidator().ValidateRun(challenges, run, mods);
-
-            var completedChallengesSet = completedChallenges.ToHashSet();
-
-            run.Challenges = completedChallengesSet;
-
-            foreach (var challenge in completedChallengesSet)
+            if (run.PlayedAt?.Date == null)
             {
-                user.Challenges.Add(challenge);
+                Console.WriteLine($"No date found for run {run.TetrioId} | Skipping run");
+
+                continue;
+            }
+
+            var playedAtDay = DateOnly.FromDateTime(run.PlayedAt!.Value.Date);
+
+            var runValidator = new RunValidator();
+
+            if (communityChallenge != null)
+            {
+                var contribution = runValidator.CreateCommunityContribution(communityChallenge, run);
+
+                contribution.User = user;
+                contributionsToAdd.Add(contribution);
+
+                communityChallenge.Value += contribution.Amount;
+            }
+
+            if (day == playedAtDay)
+            {
+                var completedChallenges = runValidator.ValidateRun(challenges, run, mods);
+                var completedChallengesSet = completedChallenges.ToHashSet();
+
+                run.Challenges = completedChallengesSet;
+
+                foreach (var challenge in completedChallengesSet)
+                {
+                    user.Challenges.Add(challenge);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Run {run.TetrioId} was played on a different day, added but its not counted for daily challenge");
             }
 
             splitsToAdd.Add(splits);
@@ -214,8 +244,10 @@ public class DailyController : BaseController
         user.LastSubmission = DateTime.UtcNow;
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
+
         await _context.AddRangeAsync(splitsToAdd);
         await _context.AddRangeAsync(runsToAdd);
+        await _context.AddRangeAsync(contributionsToAdd);
         var dataSavedToDb = await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
@@ -235,7 +267,7 @@ public class DailyController : BaseController
     [Route("getLeaderboard")]
     public async Task<IActionResult> GetLeaderboard(int page = 1, int pageSize = 15)
     {
-        var users = await _context.Users.Select(x => new
+        var users = await _context.Users.Where(x => x.Challenges.Count > 0).Select(x => new
         {
             User = new
             {
@@ -356,5 +388,33 @@ public class DailyController : BaseController
         //         Username = minPotg?.User?.Username
         //     },
         // });
+    }
+
+    [HttpGet]
+    [Route("getCommunityChallenge")]
+    public async Task<IActionResult> GetCommunityChallenge()
+    {
+        var now = DateTime.UtcNow;
+
+        var communityChallenge = await _context.CommunityChallenges.Select(x => new
+        {
+            Id = x.Id,
+            StartDate = x.StartDate,
+            EndDate = x.EndDate,
+            ConditionType = x.ConditionType,
+            Value = Math.Round(x.Value,2 ),
+            TargetValue = x.TargetValue,
+            Finished = x.Finished,
+        }).FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
+
+        if(communityChallenge == null) return Ok(new { Finished = false });
+
+        var topContributers = await _context.CommunityContributions.Where(x => x.CommunityChallengeId == communityChallenge.Id).GroupBy(x => x.UserId).Select(x => new
+        {
+            Username = x.First().User.Username,
+            Amount = x.Sum(y => y.Amount)
+        }).OrderByDescending(x => x.Amount).Take(10).FirstOrDefaultAsync();
+
+        return Ok( new {communityChallenge, topContributers});
     }
 }

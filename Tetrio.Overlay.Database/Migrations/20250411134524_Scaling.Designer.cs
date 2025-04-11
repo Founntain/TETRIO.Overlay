@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tetrio.Overlay.Database;
 
@@ -10,9 +11,11 @@ using Tetrio.Overlay.Database;
 namespace Tetrio.Overlay.Database.Migrations
 {
     [DbContext(typeof(TetrioContext))]
-    partial class TetrioContextModelSnapshot : ModelSnapshot
+    [Migration("20250411134524_Scaling")]
+    partial class Scaling
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,74 +110,6 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.HasIndex("ChallengeId");
 
                     b.ToTable("ChallengeConditions");
-                });
-
-            modelBuilder.Entity("Tetrio.Overlay.Database.Entities.CommunityChallenge", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ConditionType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("Finished")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("TargetValue")
-                        .HasColumnType("REAL");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("Value")
-                        .HasColumnType("REAL");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StartDate")
-                        .IsUnique();
-
-                    b.ToTable("CommunityChallenges");
-                });
-
-            modelBuilder.Entity("Tetrio.Overlay.Database.Entities.CommunityContribution", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("REAL");
-
-                    b.Property<Guid>("CommunityChallengeId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CommunityChallengeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CommunityContributions");
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.ConditionRange", b =>
@@ -365,7 +300,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             ConditionType = 6,
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 3,
-                            Max = 1.6499999999999999,
+                            Max = 1.75,
                             Min = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
@@ -456,7 +391,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 5,
                             Max = 2.1000000000000001,
-                            Min = 1.6499999999999999,
+                            Min = 1.75,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -902,25 +837,6 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.Navigation("Challenge");
                 });
 
-            modelBuilder.Entity("Tetrio.Overlay.Database.Entities.CommunityContribution", b =>
-                {
-                    b.HasOne("Tetrio.Overlay.Database.Entities.CommunityChallenge", "CommunityChallenge")
-                        .WithMany("Contributions")
-                        .HasForeignKey("CommunityChallengeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Tetrio.Overlay.Database.Entities.User", "User")
-                        .WithMany("CommunityContributions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CommunityChallenge");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.Run", b =>
                 {
                     b.HasOne("Tetrio.Overlay.Database.Entities.User", "User")
@@ -948,15 +864,8 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.Navigation("Conditions");
                 });
 
-            modelBuilder.Entity("Tetrio.Overlay.Database.Entities.CommunityChallenge", b =>
-                {
-                    b.Navigation("Contributions");
-                });
-
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.User", b =>
                 {
-                    b.Navigation("CommunityContributions");
-
                     b.Navigation("Runs");
 
                     b.Navigation("Splits");

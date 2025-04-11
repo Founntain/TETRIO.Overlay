@@ -79,4 +79,48 @@ public class RunValidator
             }
         }
     }
+
+    public CommunityContribution CreateCommunityContribution(CommunityChallenge communityChallenge, Run run)
+    {
+        var contribution = new CommunityContribution()
+        {
+            CommunityChallenge = communityChallenge,
+        };
+
+        switch (communityChallenge.ConditionType)
+        {
+            case ConditionType.Height:
+                contribution.Amount = run.Altitude;
+                break;
+            case ConditionType.KOs:
+                contribution.Amount = run.KOs;
+                break;
+            case ConditionType.AllClears:
+                contribution.Amount = run.AllClears;
+                break;
+            case ConditionType.Quads:
+                contribution.Amount = run.Quads;
+                break;
+            case ConditionType.Spins:
+                contribution.Amount = run.Spins;
+                break;
+            case ConditionType.Apm:
+                contribution.Amount = run.Apm;
+                break;
+            case ConditionType.Pps:
+                contribution.Amount = run.Pps;
+                break;
+            case ConditionType.Vs:
+                contribution.Amount = run.Vs;
+                break;
+            case ConditionType.Finesse:
+                contribution.Amount = run.Finesse;
+                break;
+            default:
+                // Do nothing
+                break;
+        }
+
+        return contribution;
+    }
 }

@@ -127,12 +127,12 @@ public class ChallengeGenerator
         {
             var mod = mods[rand.Next(mods.Count)];
 
+            // If the difficulty is lower than the allowed mod we can not add it
+            if(difficulty < mod.MinDifficulty) continue;
             // If the mod is already in the list we skip it again
             if (selectedMods.Contains(mod)) continue;
             // If adding the mod exceeds the weight limit, skip it
             if (totalWeight + mod.Weight > maxWeight) continue;
-            // If the difficulty is lower than the allowed mod we can not add it
-            if(difficulty < mod.MinDifficulty) continue;
 
             selectedMods.Add(mod);
             totalWeight += mod.Weight;
@@ -142,9 +142,9 @@ public class ChallengeGenerator
 
             tries++;
 
+            // If we don't get a valid extra conditions after 150 tries we just go with no mods at all or what we have already
             if (tries > 150)
                 break;
-
         }
 
         return string.Join(" ", selectedMods.Select(x => x.Name));

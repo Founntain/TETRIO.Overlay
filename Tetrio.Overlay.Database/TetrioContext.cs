@@ -11,6 +11,8 @@ public class TetrioContext : DbContext
     public DbSet<ZenithSplit> ZenithSplits { get; set; }
     public DbSet<ConditionRange> ConditionRanges { get; set; }
     public DbSet<ChallengeCondition> ChallengeConditions { get; set; }
+    public DbSet<CommunityChallenge> CommunityChallenges { get; set; }
+    public DbSet<CommunityContribution> CommunityContributions { get; set; }
     public DbSet<Mod> Mods { get; set; }
     public DbSet<Run> Runs { get; set; }
 
@@ -42,5 +44,7 @@ public class TetrioContext : DbContext
         builder.ApplyConfiguration(new ConditionRangeConfiguration());
         builder.ApplyConfiguration(new ModConfiguration());
         builder.ApplyConfiguration(new RunConfiguration());
+        builder.ApplyConfiguration(new CommunityChallengeConfiguration());
+        builder.ApplyConfiguration(new CommunityContributionConfiguration());
     }
 }

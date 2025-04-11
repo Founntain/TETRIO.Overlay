@@ -1,11 +1,6 @@
-﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using TetraLeague.Overlay.Network.Api.Tetrio;
-using TetraLeague.Overlay.Network.Api.Tetrio.Models;
 using Tetrio.Overlay.Database;
-using Tetrio.Overlay.Database.Entities;
-using Tetrio.Zenith.DailyChallenge;
 
 namespace TetraLeague.Overlay.Controllers;
 
@@ -60,7 +55,6 @@ public class ZenithController : BaseController
         var stats = await Api.GetUserSummaries(username);
 
         if (stats.Zenith.Record == null) stats.Zenith.Record = stats.Zenith.Best.Record;
-
         if (stats.ZenithExpert.Record == null) stats.ZenithExpert.Record = stats.ZenithExpert.Best.Record;
 
         var expertPlayed = stats.ZenithExpert.Record != null && stats.ZenithExpert.Best.Record != null;
