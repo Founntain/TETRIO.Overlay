@@ -7,11 +7,11 @@ namespace Tetrio.Overlay.Database;
 public class ChallengeGenerator
 {
     private readonly Random _random;
-    private readonly DateTimeOffset _day;
+    private readonly DateTime _day;
 
     public ChallengeGenerator()
     {
-        _day = DateTimeOffset.UtcNow;
+        _day = DateTime.UtcNow;
 
         var seed = int.Parse(_day.ToString("yyyyMMdd"));
 
@@ -36,6 +36,27 @@ public class ChallengeGenerator
         // Always add Height as a base condition
         var heightRange = GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
         var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
+
+        var mods = await GenerateModsForChallenge(context, difficulty);
+
+        var heightScaling = 1d;
+
+        foreach (var mod in mods.Split(" "))
+        {
+            if (mod == "nohold")
+            {
+                if(heightScaling > 0.9)
+                    heightScaling = 0.9;
+            }
+
+            if (mod == "expert")
+            {
+                if (heightScaling > 0.75)
+                    heightScaling = 0.75;
+            }
+        }
+
+        height = (int) Math.Round(height * heightScaling, 0);
 
         challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
 
@@ -72,9 +93,6 @@ public class ChallengeGenerator
             // If we dont get a valid extra conditions after 100 tries we just go with height
             if (tries > 100) break;
         }
-
-        //TODO: Generate Mods
-        var mods = await GenerateModsForChallenge(context, difficulty);
 
         return new Challenge
         {

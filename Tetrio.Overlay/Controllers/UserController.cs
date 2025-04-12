@@ -20,7 +20,7 @@ public class UserController : BaseController
     [Route("{username}/stats")]
     public async Task<ActionResult> Stats(string? username)
     {
-        if (string.IsNullOrWhiteSpace(username)) return NotFound();
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         var userData = await Api.GetUserInformation(username);
         var userSummaryData = await Api.GetUserSummaries(username);
@@ -38,7 +38,7 @@ public class UserController : BaseController
     [Route("{username}")]
     public async Task<ActionResult> View(string? username)
     {
-        if (string.IsNullOrWhiteSpace(username)) return NotFound();
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         username = username.ToLower();
 
@@ -53,7 +53,7 @@ public class UserController : BaseController
     [Route("{username}/profileData")]
     public async Task<ActionResult> ProfileData(string? username)
     {
-        if (string.IsNullOrWhiteSpace(username)) return NotFound();
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         var userInfo = await GetTetrioUserInformation(username);
 
@@ -80,7 +80,7 @@ public class UserController : BaseController
     [Route("{username}/dailyData")]
     public async Task<ActionResult> DailyData(string? username)
     {
-        if (string.IsNullOrWhiteSpace(username)) return NotFound();
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         username = username.ToLower();
 
@@ -166,24 +166,28 @@ public class UserController : BaseController
     [Route("{username}/runs")]
     public async Task<ActionResult> GetRuns(string? username, int page = 0, int pageSize = 25)
     {
-        if (string.IsNullOrWhiteSpace(username)) return NotFound();
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var runs = await _context.Runs.Where(x => x.User.Username == username).OrderByDescending(x => x.PlayedAt).ThenByDescending(x => x.CreatedAt).Skip(page * pageSize).Take(pageSize).Select(x => new
-        {
-            TetrioId = x.TetrioId,
-            Mods = x.Mods,
-            Altitude = Math.Round(x.Altitude, 2),
-            Quads = x.Quads,
-            Spins = x.Spins,
-            AllClears = x.AllClears,
-            KOs = x.KOs,
-            Apm = Math.Round(x.Apm, 2),
-            Pps = Math.Round(x.Pps, 2),
-            Vs = Math.Round(x.Vs, 2),
-            Finesse = Math.Round(x.Finesse,2),
-            SpeedrunSeen = x.SpeedrunSeen,
-            SpeedrunCompleted = x.SpeedrunCompleted
-        }).ToArrayAsync();
+        var runs = await _context.Runs
+            .Where(x => x.User.Username == username)
+            .OrderByDescending(x => x.PlayedAt)
+            .Skip(page * pageSize).Take(pageSize)
+            .Select(x => new
+                {
+                    TetrioId = x.TetrioId,
+                    Mods = x.Mods,
+                    Altitude = Math.Round(x.Altitude, 2),
+                    Quads = x.Quads,
+                    Spins = x.Spins,
+                    AllClears = x.AllClears,
+                    KOs = x.KOs,
+                    Apm = Math.Round(x.Apm, 2),
+                    Pps = Math.Round(x.Pps, 2),
+                    Vs = Math.Round(x.Vs, 2),
+                    Finesse = Math.Round(x.Finesse,2),
+                    SpeedrunSeen = x.SpeedrunSeen,
+                    SpeedrunCompleted = x.SpeedrunCompleted
+                }).ToArrayAsync();
 
         return Ok(runs);
     }
@@ -192,20 +196,26 @@ public class UserController : BaseController
     [Route("{username}/challenges")]
     public async Task<ActionResult> GetChallenges(string? username, int page = 0, int pageSize = 25)
     {
-        if (string.IsNullOrWhiteSpace(username)) return NotFound();
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var runs = await _context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).ThenByDescending(x => x.Points).Skip(page * pageSize).Take(pageSize).Select(x => new
-        {
-            Date = x.Date,
-            Difficulty = x.Points,
-            Mods = x.Mods,
-            Conditions = x.Conditions.Select( a => new
-            {
-                a.ChallengeId,
-                a.Type,
-                a.Value
-            })
-        }).ToArrayAsync();
+        var runs = await _context.Users
+            .Where(x => x.Username == username)
+            .SelectMany(x => x.Challenges)
+            .OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.Points)
+            .Skip(page * pageSize).Take(pageSize)
+            .Select(x => new
+                {
+                    Date = x.Date,
+                    Difficulty = x.Points,
+                    Mods = x.Mods,
+                    Conditions = x.Conditions.Select( a => new
+                    {
+                        a.ChallengeId,
+                        a.Type,
+                        a.Value
+                    })
+                }).ToArrayAsync();
 
         return Ok(runs);
     }
@@ -214,20 +224,26 @@ public class UserController : BaseController
     [Route("{username}/challengeCompletions")]
     public async Task<ActionResult> GetChallengeCompletions(string? username, int page = 0, int pageSize = 25)
     {
-        if (string.IsNullOrWhiteSpace(username)) return NotFound();
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var runs = await _context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).ThenByDescending(x => x.Points).Skip(page * pageSize).Take(pageSize).Select(x => new
-        {
-            Date = x.Date,
-            Difficulty = x.Points,
-            Mods = x.Mods,
-            Conditions = x.Conditions.Select( a => new
-            {
-                a.ChallengeId,
-                a.Type,
-                a.Value
-            })
-        }).GroupBy(x => x.Date).ToArrayAsync();
+        var runs = await _context.Users
+            .Where(x => x.Username == username)
+            .SelectMany(x => x.Challenges)
+            .OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.Points)
+            .Skip(page * pageSize).Take(pageSize)
+            .Select(x => new
+                {
+                    Date = x.Date,
+                    Difficulty = x.Points,
+                    Mods = x.Mods,
+                    Conditions = x.Conditions.Select( a => new
+                    {
+                        a.ChallengeId,
+                        a.Type,
+                        a.Value
+                    })
+                }).GroupBy(x => x.Date).ToArrayAsync();
 
         var a = runs.Select(x =>
         {
@@ -274,4 +290,58 @@ public class UserController : BaseController
 
         return Ok(a);
     }
+
+    [HttpGet]
+    [Route("{username}/getCommunityContributions")]
+    public async Task<ActionResult> GetCommunityContributions(string? username, int page = 0, int pageSize = 25)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username);
+
+        if(user == null) return NotFound();
+
+        var contributions = _context.CommunityContributions
+            .OrderByDescending(x => x.CommunityChallenge.StartDate)
+            .Where(x => x.UserId == user.Id)
+            .GroupBy(x => x.CommunityChallengeId)
+            .Skip(page * pageSize).Take(pageSize)
+            .Select(group => new
+                {
+                    Date = group.First().CommunityChallenge.StartDate,
+                    Challenge = $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}",
+                    TotalAmountContributed = Math.Round(group.Sum(x => x.Amount), 2),
+                    ConditionType = group.First().CommunityChallenge.ConditionType,
+                });
+
+        var contributionsCount = await _context.CommunityContributions
+            .OrderByDescending(x => x.CommunityChallenge.StartDate)
+            .Where(x => x.UserId == user.Id)
+            .GroupBy(x => x.CommunityChallengeId).CountAsync();
+
+        var returnValue = contributions.OrderByDescending(x => x.Date).Select(x => new
+        {
+            Date = x.Date,
+            Challenge = x.Challenge,
+            TotalAmountContributed = x.TotalAmountContributed,
+            ConditionType = x.ConditionType,
+            TotalContributions = contributionsCount
+        });
+
+        return Ok(returnValue);
+    }
+
+    [HttpGet]
+    [Route("search")]
+    public async Task<ActionResult> SearchUser(string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return BadRequest("Query parameter is required");
+
+        query = query.ToLower();
+
+        var foundUsers = await _context.Users.Where(x => x.Username.Contains(query)).ToArrayAsync();
+
+        return Ok(foundUsers);
+    }
+
 }

@@ -37,12 +37,12 @@ public class DailyController : BaseController
         var challenges = await _context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).Select(x => new Challenge
         {
             Id = x.Id,
-            Conditions = x.Conditions.Select(a => new ChallengeCondition
+            Conditions = x.Conditions.Select(y => new ChallengeCondition
             {
-                Id = a.Id,
-                ChallengeId = a.ChallengeId,
-                Value = a.Value,
-                Type = a.Type,
+                Id = y.Id,
+                ChallengeId = y.ChallengeId,
+                Value = y.Value,
+                Type = y.Type,
             }).ToHashSet(),
             Date = x.Date,
             Points = x.Points,
@@ -105,6 +105,7 @@ public class DailyController : BaseController
         var user = authResult.User;
 
         if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
+        if (user.IsRestricted) return BadRequest("No bad person, no submitting for you, ask founntain to unrestrict you");
 
         var now = DateTime.UtcNow;
         var nextSubmissionPossible = user.LastSubmission?.AddMinutes(1) ?? DateTime.MinValue;
@@ -142,6 +143,8 @@ public class DailyController : BaseController
         var splitsToAdd = new List<ZenithSplit>();
         var runsToAdd = new List<Run>();
         var contributionsToAdd = new List<CommunityContribution>();
+
+        var runValidator = new RunValidator();
 
         foreach (var record in totalRuns)
         {
@@ -197,6 +200,7 @@ public class DailyController : BaseController
                 Finesse = finesse,
                 SpeedrunSeen = stats.Zenith.SpeedrunSeen ?? false,
                 SpeedrunCompleted = stats.Zenith.Speedrun ?? false,
+                TotalTime = (int) Math.Round(stats.Finaltime ?? 0, 0)
             };
 
             if (run.PlayedAt?.Date == null)
@@ -207,18 +211,6 @@ public class DailyController : BaseController
             }
 
             var playedAtDay = DateOnly.FromDateTime(run.PlayedAt!.Value.Date);
-
-            var runValidator = new RunValidator();
-
-            if (communityChallenge != null)
-            {
-                var contribution = runValidator.CreateCommunityContribution(communityChallenge, run);
-
-                contribution.User = user;
-                contributionsToAdd.Add(contribution);
-
-                communityChallenge.Value += contribution.Amount;
-            }
 
             if (day == playedAtDay)
             {
@@ -239,6 +231,24 @@ public class DailyController : BaseController
 
             splitsToAdd.Add(splits);
             runsToAdd.Add(run);
+        }
+
+        if (communityChallenge != null)
+        {
+            var contribution = new CommunityContribution()
+            {
+                CommunityChallenge = communityChallenge,
+            };
+
+            var validRuns = runsToAdd.Where(x => x.TotalTime > 60000).ToList();
+
+            runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns);
+
+            contribution.User = user;
+            contributionsToAdd.Add(contribution);
+
+            communityChallenge.Value += contribution.Amount;
+            communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
         }
 
         user.LastSubmission = DateTime.UtcNow;
@@ -396,6 +406,16 @@ public class DailyController : BaseController
     {
         var now = DateTime.UtcNow;
 
+        var isCommunityChallengeActive = await _context.CommunityChallenges.AnyAsync(x => x.StartDate <= now && x.EndDate >= now);
+
+        if (!isCommunityChallengeActive)
+        {
+            var newCommunityChallenge = await new CommunityChallengeGenerator().GenerateCommunityChallenge(_context);
+
+            await _context.CommunityChallenges.AddAsync(newCommunityChallenge);
+            await _context.SaveChangesAsync();
+        }
+
         var communityChallenge = await _context.CommunityChallenges.Select(x => new
         {
             Id = x.Id,
@@ -415,6 +435,12 @@ public class DailyController : BaseController
             Amount = x.Sum(y => y.Amount)
         }).OrderByDescending(x => x.Amount).Take(10).FirstOrDefaultAsync();
 
-        return Ok( new {communityChallenge, topContributers});
+        return Ok( new
+        {
+            communityChallenge,
+            topContributers,
+            StartedAtUnixSeconds = ((DateTimeOffset)communityChallenge.StartDate).ToUnixTimeSeconds(),
+            EndsAtUnixSeconds = ((DateTimeOffset)communityChallenge.EndDate).ToUnixTimeSeconds(),
+        });
     }
 }

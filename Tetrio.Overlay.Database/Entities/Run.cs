@@ -25,6 +25,7 @@ public class Run : BaseEntity
     public double Vs { get; set; } = 0;
     public double Finesse { get; set; } = 0;
 
+    public int TotalTime { get; set; } = 0;
 
     public virtual ISet<Challenge>? Challenges { get; set; } = new HashSet<Challenge>();
     public virtual User User { get; set; }

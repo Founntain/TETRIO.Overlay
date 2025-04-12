@@ -4,8 +4,8 @@ namespace Tetrio.Overlay.Database.Entities;
 
 public class CommunityChallenge : BaseEntity
 {
-    public DateTime StartDate { get; set; } = DateTime.UtcNow;
-    public DateTime EndDate { get; set; } = DateTime.UtcNow.AddDays(7).AddSeconds(-1);
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
 
     public ConditionType ConditionType { get; set; }
     public double TargetValue { get; set; }

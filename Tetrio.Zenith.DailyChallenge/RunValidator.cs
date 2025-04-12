@@ -123,4 +123,41 @@ public class RunValidator
 
         return contribution;
     }
+
+    public void UpdateAmountAccordingToRuns( ref CommunityContribution communityContribution, ConditionType conditionType, IList<Run> runs)
+    {
+        switch (conditionType)
+        {
+            case ConditionType.Height:
+                communityContribution.Amount = runs.Sum(x => x.Altitude);
+                break;
+            case ConditionType.KOs:
+                communityContribution.Amount = runs.Sum(x => x.KOs);
+                break;
+            case ConditionType.AllClears:
+                communityContribution.Amount = runs.Sum(x => x.AllClears);
+                break;
+            case ConditionType.Quads:
+                communityContribution.Amount = runs.Sum(x => x.Quads);
+                break;
+            case ConditionType.Spins:
+                communityContribution.Amount = runs.Sum(x => x.Spins);
+                break;
+            case ConditionType.Apm:
+                communityContribution.Amount = runs.Sum(x => x.Apm);
+                break;
+            case ConditionType.Pps:
+                communityContribution.Amount = runs.Sum(x => x.Pps);
+                break;
+            case ConditionType.Vs:
+                communityContribution.Amount = runs.Sum(x => x.Vs);
+                break;
+            case ConditionType.Finesse:
+                communityContribution.Amount =runs.Sum(x => x.Finesse);
+                break;
+            default:
+                // Do nothing
+                break;
+        }
+    }
 }

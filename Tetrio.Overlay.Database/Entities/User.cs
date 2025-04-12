@@ -8,6 +8,8 @@ public class User : BaseEntity
     public Guid SessionToken { get; set; }
     public DateTime? LastSubmission { get; set; }
 
+    public bool IsRestricted { get; set; } = false;
+
     public string DiscordId { get; set; }
     public string? AccessToken { get; set; }
     public string? RefreshToken { get; set; }
