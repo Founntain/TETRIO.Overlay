@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Overlay.Network", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Overlay.Database", "Tetrio.Overlay.Database\Tetrio.Overlay.Database.csproj", "{7F8F9954-9D94-468E-8429-0B8AFC392C83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Zenith.DailyChallenge", "Tetrio.Zenith.DailyChallenge\Tetrio.Zenith.DailyChallenge.csproj", "{2251E4BB-1084-47AB-945D-F35B0EF7E0FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{7F8F9954-9D94-468E-8429-0B8AFC392C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F8F9954-9D94-468E-8429-0B8AFC392C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F8F9954-9D94-468E-8429-0B8AFC392C83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2251E4BB-1084-47AB-945D-F35B0EF7E0FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2251E4BB-1084-47AB-945D-F35B0EF7E0FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2251E4BB-1084-47AB-945D-F35B0EF7E0FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2251E4BB-1084-47AB-945D-F35B0EF7E0FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

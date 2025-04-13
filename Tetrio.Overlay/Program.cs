@@ -1,13 +1,16 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using TetraLeague.Overlay.Network.Api.Discord;
 using TetraLeague.Overlay.Network.Api.Tetrio;
 using Tetrio.Overlay.Database;
 
+Console.WriteLine("Starting Tetrio.Overlay Backend...");
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Services
+Console.WriteLine("Adding services...");
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
@@ -17,54 +20,70 @@ builder.Services.AddScoped<TetrioApi>();
 builder.Services.AddScoped<DiscordApi>();
 builder.Services.AddScoped<EncryptionService>();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddMvc(options => options.EnableEndpointRouting = false).AddControllersAsServices();
 
 builder.Services.AddDbContext<TetrioContext>();
 
+// CORS config
+Console.WriteLine("Adding CORS Rules...");
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAnyOrigin",
-        b =>
-        {
 #if DEBUG
-            b.WithOrigins("http://localhost:8080")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
+    Console.WriteLine("Adding CORS Policy: AllowDev");
+
+    options.AddPolicy("AllowDev", b =>
+    {
+        b.WithOrigins("http://localhost:8080")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+#else
+    Console.WriteLine("Adding CORS Policy: AllowFounntainDev");
+
+    options.AddPolicy("AllowFounntainDev", policy =>
+    {
+        policy.SetIsOriginAllowed(origin =>
+                origin.EndsWith(".founntain.dev") || origin == "https://founntain.dev")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
 #endif
-            
-            options.AddPolicy("AllowFounntainDev", policy =>
-            {
-                policy.SetIsOriginAllowed(origin =>
-                        origin.EndsWith(".founntain.dev") || origin == "https://founntain.dev")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials();
-            });
-        });
 });
 
+Console.WriteLine("Building app...");
 var app = builder.Build();
 
-// Configure the desired culture
+// Culture
+Console.WriteLine("Setting culture...");
 var cultureInfo = new CultureInfo("en-US");
-cultureInfo.NumberFormat.NumberDecimalSeparator = ".";
-
-// Set default culture
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
-// Configure the HTTP request pipeline.
+// Swagger for dev
 if (app.Environment.IsDevelopment())
 {
+    Console.WriteLine("Adding Swagger...");
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAnyOrigin");
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TetrioContext>();
+    await db.Database.MigrateAsync();
+}
+
+#if DEBUG
+Console.WriteLine("Applying CORS Policy: AllowDev");
+app.UseCors("AllowDev");
+#else
+Console.WriteLine("Applying CORS Policy: AllowFounntainDev");
+app.UseCors("AllowFounntainDev");
+#endif
+
+Console.WriteLine("Adding middleware...");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.MapControllers();
-
 app.Run();

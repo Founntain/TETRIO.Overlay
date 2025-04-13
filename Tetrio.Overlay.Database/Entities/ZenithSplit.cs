@@ -2,6 +2,8 @@
 
 public class ZenithSplit : BaseEntity
 {
+    public string TetrioId { get; set; }
+
     public uint HotelReachedAt { get; set; }
     public uint CasinoReachedAt { get; set; }
     public uint ArenaReachedAt { get; set; }

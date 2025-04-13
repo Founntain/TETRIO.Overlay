@@ -3,5 +3,9 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-TetraLeague.Overlay.sln.DotSettings.user
+*.sln.DotSettings.user
+*.db
+*.db-shm
+*.db-wal
 .name
+.idea/

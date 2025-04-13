@@ -7,11 +7,11 @@ namespace Tetrio.Overlay.Database;
 public class ChallengeGenerator
 {
     private readonly Random _random;
-    private readonly DateTimeOffset _day;
+    private readonly DateTime _day;
 
     public ChallengeGenerator()
     {
-        _day = DateTimeOffset.UtcNow;
+        _day = DateTime.UtcNow;
 
         var seed = int.Parse(_day.ToString("yyyyMMdd"));
 
@@ -35,7 +35,28 @@ public class ChallengeGenerator
 
         // Always add Height as a base condition
         var heightRange = GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
-        var height = _random.Next(heightRange.min, heightRange.max + 1);
+        var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
+
+        var mods = await GenerateModsForChallenge(context, difficulty);
+
+        var heightScaling = 1d;
+
+        foreach (var mod in mods.Split(" "))
+        {
+            if (mod == "nohold")
+            {
+                if(heightScaling > 0.9)
+                    heightScaling = 0.9;
+            }
+
+            if (mod == "expert")
+            {
+                if (heightScaling > 0.75)
+                    heightScaling = 0.75;
+            }
+        }
+
+        height = (int) Math.Round(height * heightScaling, 0);
 
         challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
 
@@ -48,7 +69,14 @@ public class ChallengeGenerator
             foreach (var condition in conditions)
             {
                 var range = GetRangeForConditionAndDifficulty(context, condition, difficulty);
-                var value = _random.Next(range.min, range.max + 1);
+                var value = 0d;
+
+                if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs)
+                {
+                    value = range.min + _random.NextDouble() * (range.max - range.min);
+
+                    value = Math.Round(value, 2);
+                }
 
                 if (value > 0)
                 {
@@ -65,9 +93,6 @@ public class ChallengeGenerator
             // If we dont get a valid extra conditions after 100 tries we just go with height
             if (tries > 100) break;
         }
-
-        //TODO: Generate Mods
-        var mods = await GenerateModsForChallenge(context, difficulty);
 
         return new Challenge
         {
@@ -120,12 +145,12 @@ public class ChallengeGenerator
         {
             var mod = mods[rand.Next(mods.Count)];
 
+            // If the difficulty is lower than the allowed mod we can not add it
+            if(difficulty < mod.MinDifficulty) continue;
             // If the mod is already in the list we skip it again
             if (selectedMods.Contains(mod)) continue;
             // If adding the mod exceeds the weight limit, skip it
             if (totalWeight + mod.Weight > maxWeight) continue;
-            // If the difficulty is lower than the allowed mod we can not add it
-            if(difficulty < mod.MinDifficulty) continue;
 
             selectedMods.Add(mod);
             totalWeight += mod.Weight;
@@ -135,15 +160,15 @@ public class ChallengeGenerator
 
             tries++;
 
+            // If we don't get a valid extra conditions after 150 tries we just go with no mods at all or what we have already
             if (tries > 150)
                 break;
-
         }
 
         return string.Join(" ", selectedMods.Select(x => x.Name));
     }
 
-    private static (int min, int max) GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)
+    private static (double min, double max) GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)
     {
         var range = context.ConditionRanges.FirstOrDefault(x => x.ConditionType == condition && x.Difficulty == difficulty);
 

@@ -6,7 +6,7 @@ public class ChallengeCondition : BaseEntity
 {
     public Guid ChallengeId { get; set; }
     public ConditionType Type { get; set; }
-    public int Value { get; set; }
+    public double Value { get; set; }
 
     public virtual Challenge? Challenge { get; set; }
 

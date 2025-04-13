@@ -7,6 +7,8 @@ namespace TetraLeague.Overlay.Network.Api.Tetrio;
 
 public class TetrioApi : ApiBase
 {
+    private DateTime _lastCacheClear = DateTime.UtcNow;
+
     private static readonly ConcurrentDictionary<string, (DateTimeOffset, Summary?)> SummaryCache = new();
     private static readonly ConcurrentDictionary<string, (DateTimeOffset, TetrioUser?)> UserCache = new();
     private static readonly ConcurrentDictionary<string, (DateTimeOffset, Models.TetraLeague?)> LeagueCache = new();
@@ -31,8 +33,31 @@ public class TetrioApi : ApiBase
     private string RecentZenithExpertUrl => ApiBaseUrl + "users/{0}/records/zenithex/recent?limit={1}";
     private string AchievementUrl => ApiBaseUrl + "achievements/{0}";
 
+    private void ClearCache()
+    {
+        var now = DateTime.UtcNow;
+
+        if (now >= _lastCacheClear) ;
+
+        SummaryCache.Clear();
+        UserCache.Clear();
+        LeagueCache.Clear();
+        SprintCache.Clear();
+        BlitzCache.Clear();
+        ZenithCache.Clear();
+        ZenithExpertCache.Clear();
+        AchievementCache.Clear();
+        RecentZenithCache.Clear();
+        RecentZenithExpertCache.Clear();
+
+        _lastCacheClear = now.AddDays(1);
+        Console.WriteLine("[CACHE] Cleared cache, next cache clear will be in 24 hours");
+    }
+
     public async Task<Summary?> GetUserSummaries(string username)
     {
+        ClearCache();
+
         // Let's check the cache first
         if (SummaryCache.TryGetValue(username, out var data))
         {
@@ -99,6 +124,8 @@ public class TetrioApi : ApiBase
 
     public async Task<TetrioUser?> GetUserInformation(string username)
     {
+        ClearCache();
+
         // Let's check the cache first
         if (UserCache.TryGetValue(username, out var data))
         {
@@ -164,6 +191,8 @@ public class TetrioApi : ApiBase
 
     public async Task<Models.TetraLeague?> GetTetraLeagueStats(string username)
     {
+        ClearCache();
+
         // Let's check the cache first
         if (LeagueCache.TryGetValue(username, out var data))
         {
@@ -230,6 +259,8 @@ public class TetrioApi : ApiBase
 
     public async Task<Sprint?> GetSprintStats(string username)
     {
+        ClearCache();
+
         // Let's check the cache first
         if (SprintCache.TryGetValue(username, out var data))
         {
@@ -295,6 +326,8 @@ public class TetrioApi : ApiBase
 
     public async Task<Blitz?> GetBlitzStats(string username)
     {
+        ClearCache();
+
         // Let's check the cache first
         if (BlitzCache.TryGetValue(username, out var data))
         {
@@ -360,8 +393,10 @@ public class TetrioApi : ApiBase
 
     public async Task<QuickPlay?> GetZenithStats(string username, bool expert = false)
     {
+        ClearCache();
+
         var prefix = expert ? "QP EX" : "QP";
-        ;
+
         // Let's check the cache first
         if (!expert && ZenithCache.TryGetValue(username, out var normalData))
         {
@@ -464,8 +499,10 @@ public class TetrioApi : ApiBase
 
     public async Task<ZenithRecords?> GetRecentZenithRecords(string username, bool expert = false, byte limit = 100)
     {
+        ClearCache();
+
         var prefix = expert ? "QP EX" : "QP";
-        ;
+
         // Let's check the cache first
         if (!expert && RecentZenithCache.TryGetValue(username, out var normalData))
         {
@@ -568,6 +605,8 @@ public class TetrioApi : ApiBase
 
     public async Task<Achievement?> GetAchievement(string achievement)
     {
+        ClearCache();
+
         // Let's check the cache first
         if (AchievementCache.TryGetValue(achievement, out var data))
         {
@@ -633,6 +672,8 @@ public class TetrioApi : ApiBase
 
     public async Task<DiscordUser?> GetUserFromDiscordId(string discordId)
     {
+        ClearCache();
+
         Console.WriteLine($"{ApiBaseUrl}users/search/discord:{discordId}");
 
         var responseFromApi = await GetString($"{ApiBaseUrl}users/search/discord:{discordId}");

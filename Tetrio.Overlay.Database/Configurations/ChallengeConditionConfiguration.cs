@@ -10,5 +10,7 @@ public class ChallengeConditionConfiguration : BaseConfiguration<ChallengeCondit
         base.Configure(builder);
 
         builder.HasIndex(x => x.ChallengeId);
+
+        builder.HasOne(x => x.Challenge).WithMany(x => x.Conditions).HasForeignKey(x => x.ChallengeId);
     }
 }

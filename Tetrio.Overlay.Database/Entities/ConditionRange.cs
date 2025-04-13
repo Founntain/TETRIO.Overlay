@@ -6,6 +6,6 @@ public class ConditionRange : BaseEntity
 {
     public ConditionType ConditionType { get; set; }
     public Difficulty Difficulty { get; set; }
-    public int Min { get; set; }
-    public int Max { get; set; }
+    public double Min { get; set; }
+    public double Max { get; set; }
 }
