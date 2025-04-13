@@ -33,7 +33,7 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.HasIndex("RunsId");
 
-                    b.ToTable("ChallengeRun");
+                    b.ToTable("ChallengeRun", (string)null);
                 });
 
             modelBuilder.Entity("ChallengeUser", b =>
@@ -48,7 +48,7 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ChallengeUser");
+                    b.ToTable("ChallengeUser", (string)null);
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.Challenge", b =>
@@ -78,7 +78,7 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.HasIndex("Date", "Points")
                         .IsUnique();
 
-                    b.ToTable("Challenges");
+                    b.ToTable("Challenges", (string)null);
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.ChallengeCondition", b =>
@@ -106,7 +106,7 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.HasIndex("ChallengeId");
 
-                    b.ToTable("ChallengeConditions");
+                    b.ToTable("ChallengeConditions", (string)null);
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.CommunityChallenge", b =>
@@ -144,7 +144,7 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.HasIndex("StartDate")
                         .IsUnique();
 
-                    b.ToTable("CommunityChallenges");
+                    b.ToTable("CommunityChallenges", (string)null);
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.CommunityContribution", b =>
@@ -174,7 +174,7 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CommunityContributions");
+                    b.ToTable("CommunityContributions", (string)null);
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.ConditionRange", b =>
@@ -206,7 +206,7 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.HasIndex("ConditionType", "Difficulty")
                         .IsUnique();
 
-                    b.ToTable("ConditionRanges");
+                    b.ToTable("ConditionRanges", (string)null);
 
                     b.HasData(
                         new
@@ -688,7 +688,7 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Mods");
+                    b.ToTable("Mods", (string)null);
 
                     b.HasData(
                         new
@@ -842,7 +842,7 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Runs");
+                    b.ToTable("Runs", (string)null);
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.User", b =>
@@ -898,7 +898,7 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.HasIndex("TetrioId")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Tetrio.Overlay.Database.Entities.ZenithSplit", b =>
@@ -954,7 +954,7 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ZenithSplits");
+                    b.ToTable("ZenithSplits", (string)null);
                 });
 
             modelBuilder.Entity("ChallengeRun", b =>

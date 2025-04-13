@@ -70,7 +70,7 @@ public class AuthController : MinBaseController
                 #if DEBUG
                 { "redirect_uri", "https://localhost:7053/auth/discord" }
                 #else
-                { "redirect_uri", "https://teto.founntain.dev/auth/discord" }
+                { "redirect_uri", "https://tetrio.founntain.dev/auth/discord" }
                 #endif
             };
 

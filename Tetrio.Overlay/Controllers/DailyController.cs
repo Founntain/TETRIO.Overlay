@@ -244,11 +244,14 @@ public class DailyController : BaseController
 
             runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns);
 
-            contribution.User = user;
-            contributionsToAdd.Add(contribution);
+            if (contribution.Amount > 0)
+            {
+                contribution.User = user;
+                contributionsToAdd.Add(contribution);
 
-            communityChallenge.Value += contribution.Amount;
-            communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
+                communityChallenge.Value += contribution.Amount;
+                communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
+            }
         }
 
         user.LastSubmission = DateTime.UtcNow;
@@ -433,7 +436,7 @@ public class DailyController : BaseController
         {
             Username = x.First().User.Username,
             Amount = x.Sum(y => y.Amount)
-        }).OrderByDescending(x => x.Amount).Take(10).FirstOrDefaultAsync();
+        }).OrderByDescending(x => x.Amount).Where(x => x.Amount > 0).Take(10).ToArrayAsync();
 
         return Ok( new
         {
@@ -442,5 +445,27 @@ public class DailyController : BaseController
             StartedAtUnixSeconds = ((DateTimeOffset)communityChallenge.StartDate).ToUnixTimeSeconds(),
             EndsAtUnixSeconds = ((DateTimeOffset)communityChallenge.EndDate).ToUnixTimeSeconds(),
         });
+    }
+
+    [HttpGet]
+    [Route("getRecentCommunityContributions")]
+    public async Task<IActionResult> GetRecentCommunityContributions()
+    {
+        var now = DateTime.UtcNow;
+
+        var isCommunityChallengeActive = await _context.CommunityChallenges.AnyAsync(x => x.StartDate <= now && x.EndDate >= now);
+
+        if(!isCommunityChallengeActive) return Ok(new List<object>());
+
+        var recentContributions = await _context.CommunityContributions
+            .Where(x => x.CommunityChallenge.StartDate <= now && x.CommunityChallenge.EndDate >= now)
+            .OrderByDescending(x => x.CreatedAt).Select(x => new
+            {
+                Username = x.User.Username,
+                Amount = Math.Round(x.Amount,2),
+                ConditionType = x.CommunityChallenge.ConditionType,
+            }).Take(5).ToListAsync();
+
+        return Ok(recentContributions);
     }
 }

@@ -34,8 +34,12 @@ public class CommunityChallengeGenerator
 
         var conditionValues = await context.ConditionRanges.Where(x => x.Difficulty == Difficulty.Community && x.ConditionType == selectedCondition).FirstAsync();
 
+        var targetValue = _random.Next((int) conditionValues.Min, (int) conditionValues.Max);
+
+        targetValue = (targetValue / 1000) * 1000;
+
         communityChallenge.ConditionType = selectedCondition.Value;
-        communityChallenge.TargetValue = _random.Next((int) conditionValues.Min, (int) conditionValues.Max);
+        communityChallenge.TargetValue = targetValue;
         communityChallenge.StartDate = new DateTime(_day.Year, _day.Month, _day.Day, 0 , 0 , 0);
         communityChallenge.EndDate = communityChallenge.StartDate.AddDays(7).AddSeconds(-1);
 
