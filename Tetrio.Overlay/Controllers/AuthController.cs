@@ -94,7 +94,7 @@ public class AuthController : MinBaseController
 
             if (user == null)
             {
-                return StatusCode(404, "User not found.");
+                return StatusCode(404, "User not found. This could also mean, that your discord account is not linked to a tetrio account and is not publicly visible.");
             }
 
             var dbUser = await _context.Users.FirstOrDefaultAsync(x => x.DiscordId == discordUser.Id && x.TetrioId == user.User.Id);

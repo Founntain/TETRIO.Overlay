@@ -123,7 +123,8 @@ public class UserController : BaseController
         var splitsCount = await _context.ZenithSplits.Where(x => x.User.Id == user.Id).CountAsync();
         var daysParticipated = await _context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
 
-        var challengesCompleted = await _context.Users.SelectMany(x => x.Challenges).CountAsync();
+        var totalChallengesCompleted = await _context.Users.SelectMany(x => x.Challenges).CountAsync();
+        var challengesCompleted = await _context.Users.SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
 
         var userInfo = await GetTetrioUserInformation(username);
 
@@ -134,6 +135,7 @@ public class UserController : BaseController
             Runs = runCount,
             Splits = splitsCount,
             ChallengesCompleted = challengesCompleted,
+            TotalChallengesCompleted = totalChallengesCompleted,
             DaysParticipated = daysParticipated,
             SplitAverages = new
             {

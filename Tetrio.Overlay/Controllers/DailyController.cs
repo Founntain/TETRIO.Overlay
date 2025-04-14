@@ -181,7 +181,12 @@ public class DailyController : BaseController
                 PlatformOfTheGodsReachedAt = (uint)stats.Zenith.Splits[8]
             };
 
-            var finesse = ((stats.Finesse!.Perfectpieces / stats.Piecesplaced ) * 100) ?? 0;
+            var finesse = 0d;
+
+            if(stats.Piecesplaced > 0 && stats.Finesse!.Perfectpieces > 0)
+            {
+                finesse = ((stats.Finesse!.Perfectpieces / stats.Piecesplaced ) * 100) ?? 0;
+            }
 
             var run = new Run
             {
@@ -240,15 +245,20 @@ public class DailyController : BaseController
                 CommunityChallenge = communityChallenge,
             };
 
-            var validRuns = runsToAdd.Where(x => x.TotalTime > 60000).ToList();
+            var validRuns = runsToAdd.Where(x => x.TotalTime > 60000 && x.PlayedAt >= communityChallenge.StartDate).ToList();
 
             runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns);
 
             if (contribution.Amount > 0)
             {
                 contribution.User = user;
-                contributionsToAdd.Add(contribution);
 
+                // Add Contribution to Database if it isn't finished yet
+                if(!communityChallenge.Finished) contributionsToAdd.Add(contribution);
+
+                // Increase amount of community challenge, as long as it is active.
+                // Doesn't matter if finished OR NOT
+                // If Value is equal or bigger than TargetValue, set finished to true
                 communityChallenge.Value += contribution.Amount;
                 communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
             }
@@ -278,7 +288,7 @@ public class DailyController : BaseController
 
     [HttpGet]
     [Route("getLeaderboard")]
-    public async Task<IActionResult> GetLeaderboard(int page = 1, int pageSize = 15)
+    public async Task<IActionResult> GetLeaderboard(int page = 1, int pageSize = 100)
     {
         var users = await _context.Users.Where(x => x.Challenges.Count > 0).Select(x => new
         {
@@ -428,6 +438,9 @@ public class DailyController : BaseController
             Value = Math.Round(x.Value,2 ),
             TargetValue = x.TargetValue,
             Finished = x.Finished,
+            TotalContributions = x.Contributions.Count(),
+            Participants = x.Contributions.GroupBy(x => x.UserId).Count()
+
         }).FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
 
         if(communityChallenge == null) return Ok(new { Finished = false });
@@ -436,7 +449,7 @@ public class DailyController : BaseController
         {
             Username = x.First().User.Username,
             Amount = x.Sum(y => y.Amount)
-        }).OrderByDescending(x => x.Amount).Where(x => x.Amount > 0).Take(10).ToArrayAsync();
+        }).OrderByDescending(x => x.Amount).Where(x => x.Amount > 0).ToArrayAsync();
 
         return Ok( new
         {
