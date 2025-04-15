@@ -25,8 +25,58 @@ public class ChallengeGenerator
         challenges.Add(await GenerateChallenge(Difficulty.Easy, context));
         challenges.Add(await GenerateChallenge(Difficulty.Normal, context));
         challenges.Add(await GenerateChallenge(Difficulty.Hard, context));
+        challenges.Add(await GenerateChallenge(Difficulty.Expert, context));
+        challenges.Add(await GenerateReverseChallenge(context));
 
         return challenges;
+    }
+
+    private async Task<Challenge> GenerateReverseChallenge(TetrioContext context)
+    {
+        var challengeConditions = new List<ChallengeCondition>();
+
+        var height = 150;
+
+        var randomMod = GetRandomReverseMod();
+
+        height += randomMod.HeightModifier;
+
+        challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
+
+        return new Challenge
+        {
+            Date = DateOnly.FromDateTime(_day.Date),
+            Points = (byte) Difficulty.Reverse,
+            Mods = randomMod.Mod,
+            Conditions = challengeConditions.ToHashSet()
+        };
+    }
+
+    private (string Mod, int HeightModifier) GetRandomReverseMod()
+    {
+        var mod = _random.Next(0, 8);
+
+        switch (mod)
+        {
+            case 0:
+                return ("expert_reversed", _random.Next(0, 50));
+            case 1:
+                return ("nohold_reversed", _random.Next(0, 150));
+            case 2:
+                return ("messy_reversed", _random.Next(0, 200));
+            case 3:
+                return ("gravity_reversed", _random.Next(0, 200));
+            case 4:
+                return ("volatile_reversed", _random.Next(0, 400));
+            case 5:
+                return ("doublehole_reversed", _random.Next(0, 100));
+            case 6:
+                return ("invisible_reversed", _random.Next(0, 50));
+            case 7:
+                return ("allspin_reversed", _random.Next(0, 200));
+            default:
+                return ("volatile_reversed", _random.Next(0, 400));
+        }
     }
 
     private async Task<Challenge> GenerateChallenge(Difficulty difficulty, TetrioContext context)
@@ -41,18 +91,21 @@ public class ChallengeGenerator
 
         var heightScaling = 1d;
 
-        foreach (var mod in mods.Split(" "))
+        if (difficulty != Difficulty.Expert)
         {
-            if (mod == "nohold")
+            foreach (var mod in mods.Split(" "))
             {
-                if(heightScaling > 0.9)
-                    heightScaling = 0.9;
-            }
+                if (mod == "nohold")
+                {
+                    if(heightScaling > 0.9)
+                        heightScaling = 0.9;
+                }
 
-            if (mod == "expert")
-            {
-                if (heightScaling > 0.75)
-                    heightScaling = 0.75;
+                if (mod == "expert")
+                {
+                    if (heightScaling > 0.75)
+                        heightScaling = 0.75;
+                }
             }
         }
 
@@ -105,6 +158,8 @@ public class ChallengeGenerator
 
     private async Task<string> GenerateModsForChallenge(TetrioContext context, Difficulty difficulty)
     {
+        var modCountProbability = new byte[1000];
+        var selectedMods = new List<Mod>();
         var mods = await context.Mods.ToListAsync();
 
         var maxMods = 0;
@@ -119,14 +174,13 @@ public class ChallengeGenerator
             case Difficulty.Hard:
                 maxMods = 3;
                 break;
+            case Difficulty.Expert:
+                maxMods = 1;
+                selectedMods.Add(mods.First(x => x.Name == "expert"));
+                break;
             default:
                 return string.Empty;
-                break;
         }
-
-        var selectedMods = new List<Mod>();
-
-        var modCountProbability = new byte[1000];
 
         for (var i = 0; i < modCountProbability.Length; i++)
         {
@@ -151,6 +205,8 @@ public class ChallengeGenerator
             if (selectedMods.Contains(mod)) continue;
             // If adding the mod exceeds the weight limit, skip it
             if (totalWeight + mod.Weight > maxWeight) continue;
+
+            if(mod.Name == "expert") continue;
 
             selectedMods.Add(mod);
             totalWeight += mod.Weight;

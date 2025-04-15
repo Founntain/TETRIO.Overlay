@@ -22,7 +22,9 @@ public class RunValidator
 
                 var requiredMods = string.IsNullOrWhiteSpace(challenge.Mods) ? new string[0] : challenge.Mods.Split(" ");
 
-                if ( requiredMods.Length > 0 && (mods.Length != requiredMods.Length || !mods.All(x => requiredMods.Contains(x))))
+                var allRequireModsActive = requiredMods.Intersect(mods).ToArray();
+
+                if ( requiredMods.Length > 0 && (mods.Length < requiredMods.Length || !requiredMods.All(x => mods.Contains(x))))
                 {
                     isChallengeCompleted = false;
                     Console.WriteLine("\t- Not all required mods found.");

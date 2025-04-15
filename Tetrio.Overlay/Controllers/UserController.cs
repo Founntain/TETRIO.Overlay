@@ -256,6 +256,7 @@ public class UserController : BaseController
             var normalCompleted = false;
             var hardCompleted = false;
             var expertCompleted = false;
+            var reverseCompleted = false;
 
             foreach (var challenge in x)
             {
@@ -276,6 +277,9 @@ public class UserController : BaseController
                     case Difficulty.Expert:
                         expertCompleted = true;
                         break;
+                    case Difficulty.Reverse:
+                        reverseCompleted = true;
+                        break;
                 }
             }
 
@@ -287,6 +291,7 @@ public class UserController : BaseController
                 NormalCompleted = normalCompleted,
                 HardCompleted = hardCompleted,
                 ExpertCompleted = expertCompleted,
+                ReverseCompleted = reverseCompleted,
             };
         }).OrderByDescending(x => x.Date).ToArray();
 

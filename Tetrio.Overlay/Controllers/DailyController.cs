@@ -296,13 +296,20 @@ public class DailyController : BaseController
             {
                 Name = x.Username
             },
-            Challenges = x.Challenges.Count,
-        }).OrderByDescending(x => x.Challenges).Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
+            Challenges = x.Challenges.Count(y => y.Points < (byte)Difficulty.Expert),
+            ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
+            ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse)
+        }).OrderByDescending(x => x.Challenges)
+            .ThenByDescending(x  => x.ExpertChallengesCompleted)
+            .ThenByDescending(x => x.ReverseChallengesCompleted)
+            .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
 
         return Ok(users.Select(x => new
         {
             Username = x.User.Name,
-            ChallengesCompleted = x.Challenges
+            ChallengesCompleted = x.Challenges,
+            ExpertChallengesCompleted = x.ExpertChallengesCompleted,
+            ReverseChallengesCompleted = x.ReverseChallengesCompleted
         }));
     }
 
