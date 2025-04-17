@@ -296,128 +296,27 @@ public class DailyController : BaseController
             {
                 Name = x.Username
             },
-            Challenges = x.Challenges.Count(y => y.Points < (byte)Difficulty.Expert),
+            Score = x.Challenges.Sum(y => y.Points),
+            EasyChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Easy),
+            NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
+            HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
             ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
             ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse)
-        }).OrderByDescending(x => x.Challenges)
-            .ThenByDescending(x  => x.ExpertChallengesCompleted)
-            .ThenByDescending(x => x.ReverseChallengesCompleted)
+        }).OrderByDescending(x => x.Score)
+            .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
+            .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
             .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
 
         return Ok(users.Select(x => new
         {
             Username = x.User.Name,
-            ChallengesCompleted = x.Challenges,
+            Score = x.Score,
+            EasyChallengesCompleted = x.EasyChallenges,
+            NormalChallengesCompleted = x.NormalChallenges,
+            HardChallengesCompleted = x.HardChallenges,
             ExpertChallengesCompleted = x.ExpertChallengesCompleted,
             ReverseChallengesCompleted = x.ReverseChallengesCompleted
         }));
-    }
-
-    [HttpGet]
-    [Route("getSplitsLeaderboard")]
-    public async Task<IActionResult> GetSplitLeaderboard()
-    {
-        return Ok();
-
-        var minHotel = _context.ZenithSplits.Include(x => x.User).Min(x => x.HotelReachedAt);
-        var minCasino = _context.ZenithSplits.Include(x => x.User).Min(x => x.CasinoReachedAt);
-        var minArena = _context.ZenithSplits.Include(x => x.User).Min(x => x.ArenaReachedAt);
-        var minMuseum = _context.ZenithSplits.Include(x => x.User).Min(x => x.MuseumReachedAt);
-        var minOffices = _context.ZenithSplits.Include(x => x.User).Min(x => x.OfficesReachedAt);
-        var minLaboratory = _context.ZenithSplits.Include(x => x.User).Min(x => x.LaboratoryReachedAt);
-        var minCore = _context.ZenithSplits.Include(x => x.User).Min(x => x.CoreReachedAt);
-        var minCorruption = _context.ZenithSplits.Include(x => x.User).Min(x => x.CorruptionReachedAt);
-        var minPotg = _context.ZenithSplits.Include(x => x.User).Min(x => x.PlatformOfTheGodsReachedAt);
-
-
-        return Ok(new
-        {
-            Hotel = new
-            {
-                Time = minHotel
-            },
-            Casino = new
-            {
-                Time = minCasino
-            },
-            Arena = new
-            {
-                Time = minArena
-            },
-            Museum = new
-            {
-                Time = minMuseum
-            },
-            Offices = new
-            {
-                Time = minOffices
-            },
-            Laboratory = new
-            {
-                Time = minLaboratory
-            },
-            Core = new
-            {
-                Time = minCore
-            },
-            Corruption = new
-            {
-                Time = minCorruption
-            },
-            Potg = new
-            {
-                Time = minPotg
-            },
-        });
-
-        // return Ok(new
-        // {
-        //     Hotel = new
-        //     {
-        //         Time = minHotel?.HotelReachedAt,
-        //         Username = minHotel?.User?.Username
-        //     },
-        //     Casino = new
-        //     {
-        //         Time = minCasino?.CasinoReachedAt,
-        //         Username = minCasino?.User?.Username
-        //     },
-        //     Arena = new
-        //     {
-        //         Time = minArena?.ArenaReachedAt,
-        //         Username = minArena?.User?.Username
-        //     },
-        //     Museum = new
-        //     {
-        //         Time = minMuseum?.MuseumReachedAt,
-        //         Username = minMuseum?.User?.Username
-        //     },
-        //     Offices = new
-        //     {
-        //         Time = minOffices?.OfficesReachedAt,
-        //         Username = minOffices?.User?.Username
-        //     },
-        //     Laboratory = new
-        //     {
-        //         Time = minLaboratory?.LaboratoryReachedAt,
-        //         Username = minLaboratory?.User?.Username
-        //     },
-        //     Core = new
-        //     {
-        //         Time = minCore?.CoreReachedAt,
-        //         Username = minCore?.User?.Username
-        //     },
-        //     Corruption = new
-        //     {
-        //         Time = minCorruption?.CorruptionReachedAt,
-        //         Username = minCorruption?.User?.Username
-        //     },
-        //     Potg = new
-        //     {
-        //         Time = minPotg?.PlatformOfTheGodsReachedAt,
-        //         Username = minPotg?.User?.Username
-        //     },
-        // });
     }
 
     [HttpGet]

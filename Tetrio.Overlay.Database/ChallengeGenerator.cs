@@ -58,24 +58,17 @@ public class ChallengeGenerator
 
         switch (mod)
         {
-            case 0:
-                return ("expert_reversed", _random.Next(0, 50));
-            case 1:
-                return ("nohold_reversed", _random.Next(0, 150));
-            case 2:
-                return ("messy_reversed", _random.Next(0, 200));
-            case 3:
-                return ("gravity_reversed", _random.Next(0, 200));
-            case 4:
-                return ("volatile_reversed", _random.Next(0, 400));
-            case 5:
-                return ("doublehole_reversed", _random.Next(0, 100));
-            case 6:
-                return ("invisible_reversed", _random.Next(0, 50));
-            case 7:
-                return ("allspin_reversed", _random.Next(0, 200));
-            default:
-                return ("volatile_reversed", _random.Next(0, 400));
+            case 0: return ("expert_reversed", _random.Next(0, 50));
+            case 1: return ("nohold_reversed", _random.Next(0, 150));
+            case 2: return ("messy_reversed", _random.Next(0, 200));
+            case 3: return ("gravity_reversed", _random.Next(0, 200));
+            case 4: return ("volatile_reversed", _random.Next(0, 400));
+            case 5: return ("doublehole_reversed", _random.Next(0, 100));
+            case 6: return ("invisible_reversed", _random.Next(0, 50));
+            case 7: return ("allspin_reversed", _random.Next(0, 200));
+            // We default to reverse volatile, as it is the easiest for most.
+            // However the default case should never trigger.
+            default: return ("volatile_reversed", _random.Next(0, 400));
         }
     }
 
