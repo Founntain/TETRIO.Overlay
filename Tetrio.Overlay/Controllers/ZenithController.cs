@@ -4,14 +4,9 @@ using Tetrio.Overlay.Database;
 
 namespace TetraLeague.Overlay.Controllers;
 
-public class ZenithController : BaseController
+public class ZenithController(TetrioApi api, TetrioContext context) : BaseController(api)
 {
-    private readonly TetrioContext _context;
-
-    public ZenithController(TetrioApi api, TetrioContext context) : base(api)
-    {
-        _context = context;
-    }
+    private readonly TetrioContext _context = context;
 
     [HttpGet]
     public ActionResult<string> Get()
@@ -54,8 +49,8 @@ public class ZenithController : BaseController
 
         var stats = await Api.GetUserSummaries(username);
 
-        if (stats.Zenith.Record == null) stats.Zenith.Record = stats.Zenith.Best.Record;
-        if (stats.ZenithExpert.Record == null) stats.ZenithExpert.Record = stats.ZenithExpert.Best.Record;
+        if (stats?.Zenith?.Record == null) stats.Zenith.Record = stats.Zenith.Best.Record;
+        if (stats?.ZenithExpert?.Record == null) stats.ZenithExpert.Record = stats.ZenithExpert.Best.Record;
 
         var expertPlayed = stats.ZenithExpert.Record != null && stats.ZenithExpert.Best.Record != null;
 
@@ -89,6 +84,9 @@ public class ZenithController : BaseController
     {
         var stats = await Api.GetRecentZenithRecords(username, expert);
         var careerBest = await Api.GetZenithStats(username, expert);
+
+        if (stats == null) return NotFound("Stats could not be retrieved from TETR.IO");
+        if (careerBest == null) return NotFound("Career Best could not be retrieved from TETR.IO");
 
         var goldSplits = new int[9];
         var secondGoldSplit = new double[9];

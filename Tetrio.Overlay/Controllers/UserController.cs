@@ -7,15 +7,8 @@ using Tetrio.Overlay.Database.Enums;
 
 namespace TetraLeague.Overlay.Controllers;
 
-public class UserController : BaseController
+public class UserController(TetrioApi api, TetrioContext context) : BaseController(api)
 {
-    private readonly TetrioContext _context;
-
-    public UserController(TetrioApi api, TetrioContext context) : base(api)
-    {
-        this._context = context;
-    }
-
     [HttpGet]
     [Route("{username}/stats")]
     public async Task<ActionResult> Stats(string? username)
@@ -84,11 +77,11 @@ public class UserController : BaseController
 
         username = username.ToLower();
 
-        var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username);
+        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
 
         if(user == default) return NotFound();
 
-        var aggregateData = await _context.ZenithSplits
+        var aggregateData = await context.ZenithSplits
             .Where(x => x.User.Id == user.Id)
             .GroupBy(x => x.User.Id)
             .Select(group => new
@@ -119,12 +112,12 @@ public class UserController : BaseController
             })
             .SingleOrDefaultAsync();
 
-        var runCount = await _context.Runs.Where(x => x.User.Id == user.Id).CountAsync();
-        var splitsCount = await _context.ZenithSplits.Where(x => x.User.Id == user.Id).CountAsync();
-        var daysParticipated = await _context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
+        var runCount = await context.Runs.Where(x => x.User.Id == user.Id).CountAsync();
+        var splitsCount = await context.ZenithSplits.Where(x => x.User.Id == user.Id).CountAsync();
+        var daysParticipated = await context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
 
-        var totalChallengesCompleted = await _context.Users.SelectMany(x => x.Challenges).CountAsync();
-        var challengesCompleted = await _context.Users.SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
+        var totalChallengesCompleted = await context.Users.SelectMany(x => x.Challenges).CountAsync();
+        var challengesCompleted = await context.Users.SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
 
         var userInfo = await GetTetrioUserInformation(username);
 
@@ -170,7 +163,7 @@ public class UserController : BaseController
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var runs = await _context.Runs
+        var runs = await context.Runs
             .Where(x => x.User.Username == username)
             .OrderByDescending(x => x.PlayedAt)
             .Skip(page * pageSize).Take(pageSize)
@@ -200,7 +193,7 @@ public class UserController : BaseController
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var runs = await _context.Users
+        var runs = await context.Users
             .Where(x => x.Username == username)
             .SelectMany(x => x.Challenges)
             .OrderByDescending(x => x.Date)
@@ -228,7 +221,7 @@ public class UserController : BaseController
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var runs = await _context.Users
+        var runs = await context.Users
             .Where(x => x.Username == username)
             .SelectMany(x => x.Challenges)
             .OrderByDescending(x => x.Date)
@@ -304,11 +297,11 @@ public class UserController : BaseController
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username);
+        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
 
         if(user == null) return NotFound();
 
-        var contributions = _context.CommunityContributions
+        var contributions = context.CommunityContributions
             .OrderByDescending(x => x.CommunityChallenge.StartDate)
             .Where(x => x.UserId == user.Id)
             .GroupBy(x => x.CommunityChallengeId)
@@ -321,7 +314,7 @@ public class UserController : BaseController
                     ConditionType = group.First().CommunityChallenge.ConditionType,
                 });
 
-        var contributionsCount = await _context.CommunityContributions
+        var contributionsCount = await context.CommunityContributions
             .OrderByDescending(x => x.CommunityChallenge.StartDate)
             .Where(x => x.UserId == user.Id)
             .GroupBy(x => x.CommunityChallengeId).CountAsync();
@@ -346,7 +339,7 @@ public class UserController : BaseController
 
         query = query.ToLower();
 
-        var foundUsers = await _context.Users.Where(x => x.Username.Contains(query)).ToArrayAsync();
+        var foundUsers = await context.Users.Where(x => x.Username.Contains(query)).ToArrayAsync();
 
         return Ok(foundUsers);
     }

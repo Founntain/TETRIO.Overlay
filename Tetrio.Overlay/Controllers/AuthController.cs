@@ -60,7 +60,6 @@ public class AuthController : MinBaseController
         try
         {
             // Exchange the code for an access token
-
             var values = new Dictionary<string, string>
             {
                 { "client_id", "1332751405374505154" },
@@ -128,7 +127,7 @@ public class AuthController : MinBaseController
             }
 
 #if DEBUG
-            HttpContext.Response.Cookies.Append("username", dbUser.Username.ToString(), new CookieOptions
+            HttpContext.Response.Cookies.Append("username", dbUser.Username, new CookieOptions
             {
                 Path = "/",
                 HttpOnly = false,
@@ -178,7 +177,7 @@ public class AuthController : MinBaseController
 
     [HttpPost]
     [Route("")]
-    public async Task<IActionResult> GetProfileFromAuthorization()
+    public async Task<ActionResult> GetProfileFromAuthorization()
     {
         var authResult = await CheckIfAuthorized(_context);
 
@@ -193,9 +192,9 @@ public class AuthController : MinBaseController
 
         if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
 
-        var userInfo = await Api.GetUserInformation(authResult.User.Username);
+        var userInfo = await Api.GetUserInformation(user.Username);
 
-        if(userInfo == default) return null;
+        if(userInfo == default) return NotFound("Userinfo could not be fetched from TETR.IO API");
 
         return Ok(new SlimUserInfo
         {

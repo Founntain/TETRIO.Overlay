@@ -9,14 +9,9 @@ namespace TetraLeague.Overlay.Controllers;
 [ApiController]
 [Produces("application/json")]
 [Route("[controller]")]
-public class MinBaseController : ControllerBase
+public class MinBaseController(TetrioApi api) : ControllerBase
 {
-    protected readonly TetrioApi Api;
-
-    public MinBaseController(TetrioApi api)
-    {
-        Api = api;
-    }
+    protected readonly TetrioApi Api = api;
 
     protected async Task<(bool IsAuthorized, int StatusCode, string ResponseText, User? User)> CheckIfAuthorized(TetrioContext? context)
     {
@@ -67,25 +62,25 @@ public class MinBaseController : ControllerBase
             Expires = DateTime.UtcNow.AddDays(-3),
         });
 #else
-            HttpContext.Response.Cookies.Append("username", string.Empty, new CookieOptions
-            {
-                Path = "/",
-                HttpOnly = false,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Domain = ".founntain.dev",
-                Expires = DateTime.UtcNow.AddDays(-3),
-            });
+        HttpContext.Response.Cookies.Append("username", string.Empty, new CookieOptions
+        {
+            Path = "/",
+            HttpOnly = false,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Domain = ".founntain.dev",
+            Expires = DateTime.UtcNow.AddDays(-3),
+        });
 
-            HttpContext.Response.Cookies.Append("session_token", string.Empty, new CookieOptions
-            {
-                Path = "/",
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Domain = ".founntain.dev",
-                Expires = DateTime.UtcNow.AddDays(-3)
-            });
+        HttpContext.Response.Cookies.Append("session_token", string.Empty, new CookieOptions
+        {
+            Path = "/",
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Domain = ".founntain.dev",
+            Expires = DateTime.UtcNow.AddDays(-3)
+        });
 #endif
     }
 }

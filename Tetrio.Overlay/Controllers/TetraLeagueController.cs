@@ -3,10 +3,8 @@ using TetraLeague.Overlay.Network.Api.Tetrio;
 
 namespace TetraLeague.Overlay.Controllers;
 
-public class TetraLeagueController : BaseController
+public class TetraLeagueController(TetrioApi api) : BaseController(api)
 {
-    public TetraLeagueController(TetrioApi api) : base(api) { }
-
     [HttpGet]
     public ActionResult<string> Get()
     {

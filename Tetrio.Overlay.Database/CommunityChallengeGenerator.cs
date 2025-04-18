@@ -6,7 +6,7 @@ namespace Tetrio.Overlay.Database;
 
 public class CommunityChallengeGenerator
 {
-    public readonly Random _random;
+    private readonly Random _random;
     private readonly DateTime _day;
 
     public CommunityChallengeGenerator()
@@ -23,13 +23,13 @@ public class CommunityChallengeGenerator
         var communityChallenge = new CommunityChallenge();
 
         var allConditions = Enum.GetValues<ConditionType>().ToList();
-        allConditions = allConditions.OrderBy(x => _random.Next()).ToList();
+        allConditions = allConditions.OrderBy(_ => _random.Next()).ToList();
 
         ConditionType? selectedCondition = null;
 
         while (selectedCondition == null || selectedCondition == ConditionType.Finesse)
         {
-            selectedCondition = allConditions.OrderBy(x => _random.Next()).FirstOrDefault();
+            selectedCondition = allConditions.OrderBy(_ => _random.Next()).FirstOrDefault();
         }
 
         var conditionValues = await context.ConditionRanges.Where(x => x.Difficulty == Difficulty.Community && x.ConditionType == selectedCondition).FirstAsync();

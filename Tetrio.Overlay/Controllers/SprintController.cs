@@ -4,10 +4,8 @@ using TetraLeague.Overlay.Network.Api.Tetrio;
 namespace TetraLeague.Overlay.Controllers;
 
 [Route("[controller]")]
-public class SprintController : BaseController
+public class SprintController(TetrioApi api) : BaseController(api)
 {
-    public SprintController(TetrioApi api) : base(api) { }
-
     [HttpGet]
     public ActionResult<string> Get()
     {
@@ -35,20 +33,23 @@ public class SprintController : BaseController
     {
         username = username.ToLower();
 
-        var userStats = Api.GetUserInformation(username);
-        var stats = Api.GetSprintStats(username);
+        var userStats = await Api.GetUserInformation(username);
+        var stats = await Api.GetSprintStats(username);
+
+        if(userStats == null) return NotFound("User Stats could not be fetched from the TETR.IO API");
+        if(stats?.Record?.Results.Stats == null) return NotFound("Blitz stats could not be fetched from the TETR.IO API");
 
         return Ok(new
         {
-            Country = userStats.Result.Country,
-            Time = stats.Result.Record.Results.Stats.Finaltime,
-            TimeString = TimeSpan.FromMilliseconds(stats.Result.Record.Results.Stats.Finaltime.Value).ToString(@"mm\:ss\.fff"),
-            Pps = stats.Result.Record.Results.Aggregatestats.Pps,
-            Kpp = (double)stats.Result.Record.Results.Stats.Inputs! / (double)stats.Result.Record.Results.Stats.Piecesplaced!,
-            kps = (stats.Result.Record.Results.Stats.Inputs / (stats.Result.Record.Results.Stats.Finaltime / 1000)),
-            Finesse = stats.Result.Record.Results.Stats.Finesse.Faults,
-            GlobalRank = stats.Result.Rank,
-            LocalRank = stats.Result.RankLocal
+            Country = userStats.Country,
+            Time = stats.Record.Results.Stats.Finaltime,
+            TimeString = TimeSpan.FromMilliseconds(stats.Record.Results.Stats.Finaltime!.Value).ToString(@"mm\:ss\.fff"),
+            Pps = stats.Record.Results.Aggregatestats.Pps,
+            Kpp = (double)stats.Record.Results.Stats.Inputs! / (double)stats.Record.Results.Stats.Piecesplaced!,
+            kps = (stats.Record.Results.Stats.Inputs / (stats.Record.Results.Stats.Finaltime / 1000)),
+            Finesse = stats.Record.Results.Stats.Finesse!.Faults,
+            GlobalRank = stats.Rank,
+            LocalRank = stats.RankLocal
         });
     }
 }

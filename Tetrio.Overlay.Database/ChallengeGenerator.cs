@@ -20,23 +20,22 @@ public class ChallengeGenerator
 
     public async Task<List<Challenge>> GenerateChallengesForDay(TetrioContext context)
     {
-        var challenges = new List<Challenge>();
-
-        challenges.Add(await GenerateChallenge(Difficulty.Easy, context));
-        challenges.Add(await GenerateChallenge(Difficulty.Normal, context));
-        challenges.Add(await GenerateChallenge(Difficulty.Hard, context));
-        challenges.Add(await GenerateChallenge(Difficulty.Expert, context));
-        challenges.Add(await GenerateReverseChallenge(context));
+        List<Challenge> challenges =
+        [
+            await GenerateChallenge(Difficulty.Easy, context),
+            await GenerateChallenge(Difficulty.Normal, context),
+            await GenerateChallenge(Difficulty.Hard, context),
+            await GenerateChallenge(Difficulty.Expert, context),
+            GenerateReverseChallenge()
+        ];
 
         return challenges;
     }
 
-    private async Task<Challenge> GenerateReverseChallenge(TetrioContext context)
+    private Challenge GenerateReverseChallenge()
     {
         var challengeConditions = new List<ChallengeCondition>();
-
         var height = 150;
-
         var randomMod = GetRandomReverseMod();
 
         height += randomMod.HeightModifier;
@@ -67,7 +66,7 @@ public class ChallengeGenerator
             case 6: return ("invisible_reversed", _random.Next(0, 50));
             case 7: return ("allspin_reversed", _random.Next(0, 200));
             // We default to reverse volatile, as it is the easiest for most.
-            // However the default case should never trigger.
+            // However, the default case should never trigger.
             default: return ("volatile_reversed", _random.Next(0, 400));
         }
     }
@@ -115,13 +114,17 @@ public class ChallengeGenerator
             foreach (var condition in conditions)
             {
                 var range = GetRangeForConditionAndDifficulty(context, condition, difficulty);
-                var value = 0d;
+                double value;
 
                 if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs)
                 {
                     value = range.min + _random.NextDouble() * (range.max - range.min);
 
                     value = Math.Round(value, 2);
+                }
+                else
+                {
+                    value = _random.Next((int) range.min, (int) range.max);
                 }
 
                 if (value > 0)
@@ -155,7 +158,7 @@ public class ChallengeGenerator
         var selectedMods = new List<Mod>();
         var mods = await context.Mods.ToListAsync();
 
-        var maxMods = 0;
+        int maxMods;
 
         switch (difficulty)
         {
@@ -233,7 +236,7 @@ public class ChallengeGenerator
 
         allConditions.RemoveAt(0);
 
-        allConditions = allConditions.OrderBy(x => _random.Next()).ToList();
+        allConditions = allConditions.OrderBy(_ => _random.Next()).ToList();
 
         var selectedConditions = allConditions.Take(_random.Next(2, 4)).ToList();
 

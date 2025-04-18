@@ -4,13 +4,8 @@ using TetraLeague.Overlay.Network.Api.Tetrio;
 
 namespace TetraLeague.Overlay.Controllers;
 
-public class AchievementController : BaseController
+public class AchievementController(TetrioApi api) : BaseController(api)
 {
-    public AchievementController(TetrioApi api) : base(api)
-    {
-
-    }
-
     [HttpGet]
     [Route("{id}/{username}")]
     public async Task<ActionResult> Web(string id, string username)
