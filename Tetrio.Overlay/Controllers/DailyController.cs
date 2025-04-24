@@ -245,8 +245,10 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             {
                 contribution.User = user;
 
-                // Add Contribution to Database if it isn't finished yet
-                if(!communityChallenge.Finished) contributionsToAdd.Add(contribution);
+                // Add IsLate flag when its finished, so it shows up in the feat, but not on leaderboard
+                if (communityChallenge.Finished) contribution.IsLate = true;
+
+                contributionsToAdd.Add(contribution);
 
                 // Increase amount of community challenge, as long as it is active.
                 // Doesn't matter if finished OR NOT
@@ -334,27 +336,28 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             EndDate = x.EndDate,
             ConditionType = x.ConditionType,
             Value = Math.Round(x.Value, 2),
-            x.TargetValue,
-            x.Finished,
+            TargetValue = x.TargetValue,
+            Finished = x.Finished,
             TotalContributions = x.Contributions.Count(),
-            Participants = x.Contributions.GroupBy(y => y.UserId).Count()
-
+            Participants = x.Contributions.Where(y => !y.IsLate).GroupBy(y => y.UserId).Count()
         }).FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
 
         if(communityChallenge == null) return Ok(new { Finished = false });
 
-        var topContributers = await context.CommunityContributions.Where(x => x.CommunityChallengeId == communityChallenge.Id).GroupBy(x => x.UserId).Select(x => new
+        var topContributers = await context.CommunityContributions.Where(x => x.CommunityChallengeId == communityChallenge.Id && x.IsLate == false).GroupBy(x => x.UserId).Select(x => new
         {
             Username = x.First().User.Username,
-            Amount = x.Sum(y => y.Amount)
+            Amount = Math.Round(x.Sum(y => y.Amount), 2)
         }).OrderByDescending(x => x.Amount).Where(x => x.Amount > 0).ToArrayAsync();
+
+        var x = DateTime.SpecifyKind(communityChallenge.EndDate, DateTimeKind.Utc);
 
         return Ok( new
         {
             communityChallenge,
             topContributers,
-            StartedAtUnixSeconds = ((DateTimeOffset)communityChallenge.StartDate).ToUnixTimeSeconds(),
-            EndsAtUnixSeconds = ((DateTimeOffset)communityChallenge.EndDate).ToUnixTimeSeconds(),
+            StartedAtUnixSeconds = ((DateTimeOffset)DateTime.SpecifyKind(communityChallenge.StartDate, DateTimeKind.Utc)).ToUnixTimeSeconds(),
+            EndsAtUnixSeconds = ((DateTimeOffset)DateTime.SpecifyKind(communityChallenge.EndDate, DateTimeKind.Utc)).ToUnixTimeSeconds(),
         });
     }
 
@@ -375,6 +378,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                 Username = x.User.Username,
                 Amount = Math.Round(x.Amount,2),
                 ConditionType = x.CommunityChallenge.ConditionType,
+                IsLate = x.IsLate,
             }).Take(5).ToListAsync();
 
         return Ok(recentContributions);

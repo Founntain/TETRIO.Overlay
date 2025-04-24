@@ -303,7 +303,7 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
 
         var contributions = context.CommunityContributions
             .OrderByDescending(x => x.CommunityChallenge.StartDate)
-            .Where(x => x.UserId == user.Id)
+            .Where(x => x.UserId == user.Id && !x.IsLate)
             .GroupBy(x => x.CommunityChallengeId)
             .Skip(page * pageSize).Take(pageSize)
             .Select(group => new
@@ -316,7 +316,7 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
 
         var contributionsCount = await context.CommunityContributions
             .OrderByDescending(x => x.CommunityChallenge.StartDate)
-            .Where(x => x.UserId == user.Id)
+            .Where(x => x.UserId == user.Id && !x.IsLate)
             .GroupBy(x => x.CommunityChallengeId).CountAsync();
 
         var returnValue = contributions.OrderByDescending(x => x.Date).Select(x => new

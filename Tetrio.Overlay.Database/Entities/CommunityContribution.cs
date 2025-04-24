@@ -3,6 +3,7 @@
 public class CommunityContribution : BaseEntity
 {
     public double Amount { get; set; }
+    public bool IsLate { get; set; } = false;
 
     public Guid UserId { get; set; }
     public Guid CommunityChallengeId { get; set; }

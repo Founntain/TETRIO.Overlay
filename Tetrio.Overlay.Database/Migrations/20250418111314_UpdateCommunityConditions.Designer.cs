@@ -11,8 +11,8 @@ using Tetrio.Overlay.Database;
 namespace Tetrio.Overlay.Database.Migrations
 {
     [DbContext(typeof(TetrioContext))]
-    [Migration("20250418104915_UpdatedConditionValues")]
-    partial class UpdatedConditionValues
+    [Migration("20250418111314_UpdateCommunityConditions")]
+    partial class UpdateCommunityConditions
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -248,8 +248,8 @@ namespace Tetrio.Overlay.Database.Migrations
                             ConditionType = 2,
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 0,
-                            Max = 2000000.0,
-                            Min = 1000000.0,
+                            Max = 100000.0,
+                            Min = 45000.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -258,8 +258,8 @@ namespace Tetrio.Overlay.Database.Migrations
                             ConditionType = 3,
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 0,
-                            Max = 4000000.0,
-                            Min = 1000000.0,
+                            Max = 1000000.0,
+                            Min = 250000.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -268,8 +268,8 @@ namespace Tetrio.Overlay.Database.Migrations
                             ConditionType = 5,
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 0,
-                            Max = 1000000.0,
-                            Min = 500000.0,
+                            Max = 7500000.0,
+                            Min = 100000.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -278,7 +278,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             ConditionType = 6,
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 0,
-                            Max = 10000.0,
+                            Max = 15000.0,
                             Min = 5000.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
@@ -309,7 +309,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 2,
                             Max = 350.0,
-                            Min = 50.0,
+                            Min = 100.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -518,8 +518,8 @@ namespace Tetrio.Overlay.Database.Migrations
                             ConditionType = 2,
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 5,
-                            Max = 20.0,
-                            Min = 10.0,
+                            Max = 30.0,
+                            Min = 15.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -618,8 +618,8 @@ namespace Tetrio.Overlay.Database.Migrations
                             ConditionType = 3,
                             CreatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Difficulty = 8,
-                            Max = 125.0,
-                            Min = 75.0,
+                            Max = 100.0,
+                            Min = 50.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new

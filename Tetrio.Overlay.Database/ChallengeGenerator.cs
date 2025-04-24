@@ -26,17 +26,18 @@ public class ChallengeGenerator
             await GenerateChallenge(Difficulty.Normal, context),
             await GenerateChallenge(Difficulty.Hard, context),
             await GenerateChallenge(Difficulty.Expert, context),
-            GenerateReverseChallenge()
+            await GenerateReverseChallenge(context)
         ];
 
         return challenges;
     }
 
-    private Challenge GenerateReverseChallenge()
+    private async Task<Challenge> GenerateReverseChallenge(TetrioContext context)
     {
         var challengeConditions = new List<ChallengeCondition>();
         var height = 150;
-        var randomMod = GetRandomReverseMod();
+        var yesterdayChallenge = await context.Challenges.Where(x => x.Points == (byte)Difficulty.Reverse).OrderByDescending(x => x.Date).FirstOrDefaultAsync();
+        var randomMod = GetRandomReverseMod(yesterdayChallenge?.Mods);;
 
         height += randomMod.HeightModifier;
 
@@ -51,24 +52,52 @@ public class ChallengeGenerator
         };
     }
 
-    private (string Mod, int HeightModifier) GetRandomReverseMod()
+    private (string Mod, int HeightModifier) GetRandomReverseMod(string? challenge)
     {
-        var mod = _random.Next(0, 8);
+        var yesterdaysReverseMod = challenge;
 
-        switch (mod)
+        (string, int)? selectedMod = null;
+
+        var tries = 0;
+
+        // If after 300 tries we still don't find a mod that is different from yesterday's one, we just use the one rolled last
+        while (tries <= 300)
         {
-            case 0: return ("expert_reversed", _random.Next(0, 50));
-            case 1: return ("nohold_reversed", _random.Next(0, 150));
-            case 2: return ("messy_reversed", _random.Next(0, 200));
-            case 3: return ("gravity_reversed", _random.Next(0, 200));
-            case 4: return ("volatile_reversed", _random.Next(0, 400));
-            case 5: return ("doublehole_reversed", _random.Next(0, 100));
-            case 6: return ("invisible_reversed", _random.Next(0, 50));
-            case 7: return ("allspin_reversed", _random.Next(0, 200));
-            // We default to reverse volatile, as it is the easiest for most.
-            // However, the default case should never trigger.
-            default: return ("volatile_reversed", _random.Next(0, 400));
+            var mod = _random.Next(0, 8);
+
+            switch (mod)
+            {
+                case 0:
+                    selectedMod = ("expert_reversed", _random.Next(0, 50)); break;
+                case 1:
+                    selectedMod = ("nohold_reversed", _random.Next(0, 150)); break;
+                case 2:
+                    selectedMod = ("messy_reversed", _random.Next(0, 200)); break;
+                case 3:
+                    selectedMod = ("gravity_reversed", _random.Next(0, 200)); break;
+                case 4:
+                    selectedMod = ("volatile_reversed", _random.Next(0, 400)); break;
+                case 5:
+                    selectedMod = ("doublehole_reversed", _random.Next(0, 100)); break;
+                case 6:
+                    selectedMod = ("invisible_reversed", _random.Next(0, 50)); break;
+                case 7:
+                    selectedMod = ("allspin_reversed", _random.Next(0, 200)); break;
+                // We default to reverse volatile, as it is the easiest for most.
+                // However, the default case should never trigger.
+                default: selectedMod = ("volatile_reversed", _random.Next(0, 400)); break;
+            }
+
+            // We generate mods until we find a reverse mod that is different from yesterdays one
+            if (selectedMod.Value.Item1 != yesterdaysReverseMod) break;
+
+            tries++;
         }
+
+        // Just as a fallback, if selectedMod is still null, we just use the default case.
+        selectedMod ??= ("volatile_reversed", _random.Next(0, 400));
+
+        return selectedMod.Value;
     }
 
     private async Task<Challenge> GenerateChallenge(Difficulty difficulty, TetrioContext context)
@@ -83,23 +112,19 @@ public class ChallengeGenerator
 
         var heightScaling = 1d;
 
-        if (difficulty != Difficulty.Expert)
+        foreach (var mod in mods.Split(" "))
         {
-            foreach (var mod in mods.Split(" "))
+            if (mod == "nohold")
             {
-                if (mod == "nohold")
-                {
-                    if(heightScaling > 0.9)
-                        heightScaling = 0.9;
-                }
+                if(heightScaling > 0.9) heightScaling = 0.9;
+            }
 
-                if (mod == "expert")
-                {
-                    if (heightScaling > 0.75)
-                        heightScaling = 0.75;
-                }
+            if (difficulty != Difficulty.Expert && mod == "expert")
+            {
+                if (heightScaling > 0.75) heightScaling = 0.75;
             }
         }
+
 
         height = (int) Math.Round(height * heightScaling, 0);
 
@@ -109,7 +134,7 @@ public class ChallengeGenerator
 
         while (challengeConditions.Count == 1)
         {
-            var conditions = GetRandomConditions();
+            var conditions = GetRandomConditions(mods);
 
             foreach (var condition in conditions)
             {
@@ -230,11 +255,14 @@ public class ChallengeGenerator
         return (range.Min, range.Max);
     }
 
-    private List<ConditionType> GetRandomConditions()
+    private List<ConditionType> GetRandomConditions(string mods)
     {
         var allConditions = Enum.GetValues<ConditionType>().ToList();
 
         allConditions.RemoveAt(0);
+
+        // If no hold was selected as mod, remove all clears from the condition roll
+        if(mods.Contains("nohold")) allConditions.Remove(ConditionType.AllClears);
 
         allConditions = allConditions.OrderBy(_ => _random.Next()).ToList();
 
