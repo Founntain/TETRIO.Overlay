@@ -10,17 +10,6 @@ public static class ModelBuilderExtensions
     {
         GenerateConditionRanges(modelBuilder);
         GenerateMods(modelBuilder);
-
-        // modelBuilder.Entity<CommunityChallenge>().HasData(new CommunityChallenge
-        // {
-        //     Id = new Guid("11111111-1111-1111-1111-111111111101"),
-        //     CreatedAt = new DateTime(2020, 03, 22),
-        //     UpdatedAt = new DateTime(2020, 03, 22),
-        //     StartDate = new DateTime(2025, 04, 10, 0, 0, 0),
-        //     EndDate = new DateTime(2025, 04, 17, 23, 59, 59),
-        //     ConditionType = ConditionType.Height,
-        //     TargetValue = 1000000,
-        // });
     }
 
     private static void GenerateConditionRanges(ModelBuilder modelBuilder)
@@ -65,17 +54,17 @@ public static class ModelBuilderExtensions
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111305"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Hard, ConditionType = ConditionType.Spins,     Min = 30,   Max = 75});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111306"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Hard, ConditionType = ConditionType.Apm,       Min = 55,   Max = 100});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111307"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Hard, ConditionType = ConditionType.Pps,       Min = 1.65, Max = 2.1});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111308"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Hard, ConditionType = ConditionType.Vs,        Min = 80,  Max = 175});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111308"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Hard, ConditionType = ConditionType.Vs,        Min = 80,   Max = 175});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111309"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Hard, ConditionType = ConditionType.Finesse,   Min = 65,   Max = 80});
 
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111401"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Height,    Min = 650,  Max = 1750});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111401"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Height,    Min = 650,  Max = 1100});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111402"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.KOs,       Min = 2,    Max = 5});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111403"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.AllClears, Min = 0,    Max = 1});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111404"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Quads,     Min = 20,   Max = 30});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111405"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Spins,     Min = 50,   Max = 100});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111406"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Apm,       Min = 50,   Max = 80});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111407"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Pps,       Min = 1.4,  Max = 1.75});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111408"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Vs,        Min = 80,  Max = 125});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111408"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Vs,        Min = 80,   Max = 125});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111409"), CreatedAt = date, UpdatedAt = date, Difficulty = Difficulty.Expert, ConditionType = ConditionType.Finesse,   Min = 60,   Max = 80});
 
         modelBuilder.Entity<ConditionRange>().HasData(ranges);

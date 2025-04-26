@@ -290,27 +290,33 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             {
                 Name = x.Username
             },
-            Score = x.Challenges.Sum(y => y.Points),
+            NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
+            ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
+            ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
             EasyChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Easy),
             NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
             HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
             ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
             ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse)
-        }).OrderByDescending(x => x.Score)
+        }).OrderByDescending(x => x.NormalScore + x.ExpertScore + x.ReverseScore)
             .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
             .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
             .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
 
-        return Ok(users.Select(x => new
+        var leaderboardData = users.Select(x => new
         {
             Username = x.User.Name,
-            Score = x.Score,
+            Score = Math.Round(x.NormalScore + x.ExpertScore + (x.ReverseScore / 2d), 0),
             EasyChallengesCompleted = x.EasyChallenges,
             NormalChallengesCompleted = x.NormalChallenges,
             HardChallengesCompleted = x.HardChallenges,
             ExpertChallengesCompleted = x.ExpertChallengesCompleted,
             ReverseChallengesCompleted = x.ReverseChallengesCompleted
-        }));
+        }).OrderByDescending(x => x.Score)
+          .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted))
+          .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted)).ToArray();;
+
+        return Ok(leaderboardData);
     }
 
     [HttpGet]
@@ -319,15 +325,15 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
     {
         var now = DateTime.UtcNow;
 
-        var isCommunityChallengeActive = await context.CommunityChallenges.AnyAsync(x => x.StartDate <= now && x.EndDate >= now);
-
-        if (!isCommunityChallengeActive)
-        {
-            var newCommunityChallenge = await new CommunityChallengeGenerator().GenerateCommunityChallenge(context);
-
-            await context.CommunityChallenges.AddAsync(newCommunityChallenge);
-            await context.SaveChangesAsync();
-        }
+        // var isCommunityChallengeActive = await context.CommunityChallenges.AnyAsync(x => x.StartDate <= now && x.EndDate >= now);
+        //
+        // if (!isCommunityChallengeActive)
+        // {
+        //     var newCommunityChallenge = await new CommunityChallengeGenerator().GenerateCommunityChallenge(context);
+        //
+        //     await context.CommunityChallenges.AddAsync(newCommunityChallenge);
+        //     await context.SaveChangesAsync();
+        // }
 
         var communityChallenge = await context.CommunityChallenges.Select(x => new
         {

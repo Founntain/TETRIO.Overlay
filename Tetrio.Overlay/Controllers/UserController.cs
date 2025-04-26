@@ -292,6 +292,82 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
     }
 
     [HttpGet]
+    [Route("{username}/getTodaysCallengedCompletions")]
+    public async Task<ActionResult> GetTodaysCallengedCompletions(string username)
+    {
+        username = username.ToLower();
+
+        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
+
+        if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
+        if (user.IsRestricted) return BadRequest("No bad person, no submitting for you, ask founntain to unrestrict you");
+
+        var utc = DateTime.UtcNow;
+
+        var date = new DateOnly(utc.Year, utc.Month, utc.Day);
+
+        var challenges = await context.Users
+            .Where(x => x.Username == username)
+            .SelectMany(x => x.Challenges)
+            .Where(x => x.Date == date)
+            .Select(x => new
+                {
+                    Date = x.Date,
+                    Difficulty = x.Points,
+                    Mods = x.Mods,
+                    Conditions = x.Conditions.Select( a => new
+                    {
+                        a.ChallengeId,
+                        a.Type,
+                        a.Value
+                    })
+                }).ToArrayAsync();
+
+        var veryEasyCompleted = false;
+        var easyCompleted = false;
+        var normalCompleted = false;
+        var hardCompleted = false;
+        var expertCompleted = false;
+        var reverseCompleted = false;
+
+        foreach (var challenge in challenges)
+        {
+            switch ((Difficulty)challenge.Difficulty)
+            {
+                case Difficulty.VeryEasy:
+                    veryEasyCompleted = true;
+                    break;
+                case Difficulty.Easy:
+                    easyCompleted = true;
+                    break;
+                case Difficulty.Normal:
+                    normalCompleted = true;
+                    break;
+                case Difficulty.Hard:
+                    hardCompleted = true;
+                    break;
+                case Difficulty.Expert:
+                    expertCompleted = true;
+                    break;
+                case Difficulty.Reverse:
+                    reverseCompleted = true;
+                    break;
+            }
+        }
+
+        return Ok(new
+        {
+            Date = date,
+            VeryEasyCompleted = veryEasyCompleted,
+            EasyCompleted = easyCompleted,
+            NormalCompleted = normalCompleted,
+            HardCompleted = hardCompleted,
+            ExpertCompleted = expertCompleted,
+            ReverseCompleted = reverseCompleted,
+        });
+    }
+
+    [HttpGet]
     [Route("{username}/getCommunityContributions")]
     public async Task<ActionResult> GetCommunityContributions(string? username, int page = 0, int pageSize = 25)
     {
