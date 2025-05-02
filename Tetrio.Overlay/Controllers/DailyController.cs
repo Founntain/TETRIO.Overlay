@@ -135,6 +135,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         var splitsToAdd = new List<ZenithSplit>();
         var runsToAdd = new List<Run>();
         var contributionsToAdd = new List<CommunityContribution>();
+        var everyClear = new List<Clears>();
 
         var runValidator = new RunValidator();
 
@@ -150,7 +151,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                              + clears.MiniTspins
                              + clears.MiniTspinSingles
                              + clears.TspinSingles
-                             + clears.MiniTspindDoubles
+                             + clears.MiniTspinDoubles
                              + clears.TspinDoubles
                              + clears.MiniTspinTriples
                              + clears.TspinTriples
@@ -226,6 +227,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                 Console.WriteLine($"Run {run.TetrioId} was played on a different day, added but its not counted for daily challenge");
             }
 
+
+            everyClear.Add(clears);
             splitsToAdd.Add(splits);
             runsToAdd.Add(run);
         }
@@ -239,7 +242,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
             var validRuns = runsToAdd.Where(x => x.TotalTime > 60000 && x.PlayedAt >= communityChallenge.StartDate).ToList();
 
-            runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns);
+            runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns, everyClear);
 
             if (contribution.Amount > 0)
             {

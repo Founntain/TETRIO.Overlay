@@ -188,6 +188,46 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
     }
 
     [HttpGet]
+    [Route("{username}/splits")]
+    public async Task<ActionResult> GetSplits(string? username, int page = 0, int pageSize = 25)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+
+        var splits = await context.ZenithSplits
+            .Where(x => x.User.Username == username)
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip(page * pageSize).Take(pageSize)
+            .Select(x => new
+            {
+                x.TetrioId,
+                Hotel = x.HotelReachedAt,
+                Casino = x.CasinoReachedAt,
+                Arena = x.ArenaReachedAt,
+                Museum = x.MuseumReachedAt,
+                Offices = x.OfficesReachedAt,
+                Laboratory = x.LaboratoryReachedAt,
+                Core = x.CoreReachedAt,
+                Corruption = x.CorruptionReachedAt,
+                Potg = x.PlatformOfTheGodsReachedAt
+            })
+            .ToArrayAsync();
+
+        return Ok(splits.Select(x => new
+        {
+            x.TetrioId,
+            Hotel = x.Hotel > 0 ? TimeSpan.FromMilliseconds(x.Hotel).ToString(@"mm\:ss\.fff") : "-",
+            Casino = x.Casino > 0 ? TimeSpan.FromMilliseconds(x.Casino).ToString(@"mm\:ss\.fff") : "-",
+            Arena = x.Arena > 0 ? TimeSpan.FromMilliseconds(x.Arena).ToString(@"mm\:ss\.fff") : "-",
+            Museum = x.Museum > 0 ? TimeSpan.FromMilliseconds(x.Museum).ToString(@"mm\:ss\.fff") : "-",
+            Offices = x.Offices > 0 ? TimeSpan.FromMilliseconds(x.Offices).ToString(@"mm\:ss\.fff") : "-",
+            Laboratory = x.Laboratory > 0 ? TimeSpan.FromMilliseconds(x.Laboratory).ToString(@"mm\:ss\.fff") : "-",
+            Core = x.Core > 0 ? TimeSpan.FromMilliseconds(x.Core).ToString(@"mm\:ss\.fff") : "-",
+            Corruption = x.Corruption > 0 ? TimeSpan.FromMilliseconds(x.Corruption).ToString(@"mm\:ss\.fff") : "-",
+            Potg = x.Potg > 0 ? TimeSpan.FromMilliseconds(x.Potg).ToString(@"mm\:ss\.fff") : "-"
+        }));
+    }
+
+    [HttpGet]
     [Route("{username}/challenges")]
     public async Task<ActionResult> GetChallenges(string? username, int page = 0, int pageSize = 25)
     {
@@ -292,8 +332,8 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
     }
 
     [HttpGet]
-    [Route("{username}/getTodaysCallengedCompletions")]
-    public async Task<ActionResult> GetTodaysCallengedCompletions(string username)
+    [Route("{username}/getTodaysCallengeCompletions")]
+    public async Task<ActionResult> GetTodaysCallengeCompletions(string username)
     {
         username = username.ToLower();
 

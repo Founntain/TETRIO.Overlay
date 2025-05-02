@@ -89,21 +89,22 @@ public class AuthController : MinBaseController
                 return BadRequest(discordUser.ErrorMessage);
             }
 
-            var user = await Api.GetUserFromDiscordId(discordUser.Id);
+            var tetrioUser = await Api.GetUserFromDiscordId(discordUser.Id);
 
-            if (user == null)
+            if (tetrioUser == null)
             {
-                return StatusCode(404, "User not found. This could also mean, that your discord account is not linked to a tetrio account and is not publicly visible.");
+                return StatusCode(404, "User not found. This could also mean, that your discord account is not linked to a TETR.IO account or is not publicly visible.");
             }
 
-            var dbUser = await _context.Users.FirstOrDefaultAsync(x => x.DiscordId == discordUser.Id && x.TetrioId == user.User.Id);
+            // Check if we got a user already for the given TETR.IO User that we loaded with the discord ID;
+            var dbUser = await _context.Users.FirstOrDefaultAsync(x => x.TetrioId == tetrioUser.User.Id);
 
             if (dbUser == null)
             {
                 dbUser = new User()
                 {
-                    TetrioId = user.User.Id,
-                    Username = user.User.Username,
+                    TetrioId = tetrioUser.User.Id,
+                    Username = tetrioUser.User.Username,
 
                     SessionToken = Guid.NewGuid(),
 
@@ -118,6 +119,12 @@ public class AuthController : MinBaseController
             }
             else
             {
+                if(tetrioUser.User.Username != dbUser.Username)
+                    dbUser.Username = tetrioUser.User.Username;
+
+                if (dbUser.DiscordId != discordUser.Id)
+                    dbUser.DiscordId = discordUser.Id;
+
                 dbUser.SessionToken = Guid.NewGuid();
                 dbUser.AccessToken = _encryptionService.EncryptWithIv(tokenResult.AccessToken);
                 dbUser.RefreshToken = _encryptionService.EncryptWithIv(tokenResult.RefreshToken);
@@ -166,7 +173,6 @@ public class AuthController : MinBaseController
             });
 #endif
 
-            // Return the user's Discord ID
             return Redirect(Uri.UnescapeDataString(state));
         }
         catch (Exception ex)
@@ -192,9 +198,16 @@ public class AuthController : MinBaseController
 
         if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
 
-        var userInfo = await Api.GetUserInformation(user.Username);
+        var userInfo = await Api.GetUserInformation(user.TetrioId);
 
         if(userInfo == default) return NotFound("Userinfo could not be fetched from TETR.IO API");
+
+        if(userInfo.Username != user.Username)
+        {
+            user.Username = userInfo.Username;
+
+            await _context.SaveChangesAsync();
+        }
 
         return Ok(new SlimUserInfo
         {

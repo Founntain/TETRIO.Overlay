@@ -126,7 +126,7 @@ public class RunValidator
         return contribution;
     }
 
-    public void UpdateAmountAccordingToRuns( ref CommunityContribution communityContribution, ConditionType conditionType, IList<Run> runs)
+    public void UpdateAmountAccordingToRuns(ref CommunityContribution communityContribution, ConditionType conditionType, IList<Run> runs, List<Clears>? everyClear = null)
     {
         switch (conditionType)
         {
@@ -143,7 +143,11 @@ public class RunValidator
                 communityContribution.Amount = runs.Sum(x => x.Quads);
                 break;
             case ConditionType.Spins:
-                communityContribution.Amount = runs.Sum(x => x.Spins);
+                var totalSpins = runs.Sum(x => x.Spins);
+                if (everyClear?.Count > 0)
+                    communityContribution.Amount = CalculateSpinsFromClears(totalSpins, everyClear);
+                else
+                    communityContribution.Amount = totalSpins;
                 break;
             case ConditionType.Apm:
                 communityContribution.Amount = runs.Sum(x => x.Apm);
@@ -161,5 +165,29 @@ public class RunValidator
                 // Do nothing
                 break;
         }
+    }
+
+    private double CalculateSpinsFromClears(int totalSpins, List<Clears> everyClear)
+    {
+        double spins = totalSpins;
+
+        spins += everyClear.Sum(x => x.TspinSingles)!.Value;
+        spins += everyClear.Sum(x => x.TspinDoubles)!.Value * 2;
+        spins += everyClear.Sum(x => x.TspinTriples)!.Value * 3;
+        spins += everyClear.Sum(x => x.TspinQuads)!.Value * 4;
+        spins += everyClear.Sum(x => x.TspinPentas)!.Value * 5;
+
+        spins += totalSpins;
+
+        var miniSpins = 0d;
+
+        miniSpins += everyClear.Sum(x => x.MiniTspinSingles)!.Value;
+        miniSpins += everyClear.Sum(x => x.MiniTspinDoubles)!.Value * 2;
+        miniSpins += everyClear.Sum(x => x.MiniTspinTriples)!.Value * 3;
+        miniSpins += everyClear.Sum(x => x.MiniTspinQuads)!.Value * 4;
+
+        miniSpins /= 2;
+
+        return Math.Round(spins + miniSpins, 0);
     }
 }

@@ -42,7 +42,7 @@ public class Clears
 
     [JsonPropertyName("tspinsingles")] public double? TspinSingles { get; set; }
 
-    [JsonPropertyName("minitspindoubles")] public double? MiniTspindDoubles { get; set; }
+    [JsonPropertyName("minitspindoubles")] public double? MiniTspinDoubles { get; set; }
 
     [JsonPropertyName("tspindoubles")] public double? TspinDoubles { get; set; }
 
