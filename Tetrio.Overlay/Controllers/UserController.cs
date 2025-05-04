@@ -332,8 +332,8 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
     }
 
     [HttpGet]
-    [Route("{username}/getTodaysCallengeCompletions")]
-    public async Task<ActionResult> GetTodaysCallengeCompletions(string username)
+    [Route("{username}/getTodaysChallengeCompletions")]
+    public async Task<ActionResult> GetTodaysChallengeCompletions(string username)
     {
         username = username.ToLower();
 

@@ -177,8 +177,6 @@ public class RunValidator
         spins += everyClear.Sum(x => x.TspinQuads)!.Value * 4;
         spins += everyClear.Sum(x => x.TspinPentas)!.Value * 5;
 
-        spins += totalSpins;
-
         var miniSpins = 0d;
 
         miniSpins += everyClear.Sum(x => x.MiniTspinSingles)!.Value;
