@@ -22,25 +22,25 @@ public class AuthController : MinBaseController
         _encryptionService = encryptionService;
         _context = context;
 
-        if (System.IO.File.Exists("/run/secrets/discord-client-secret"))
+        if (System.IO.File.Exists("/run/secrets/ZENITH_DAILY_CHALLENGE_DISCORD_CLIENT_SECRET"))
         {
-            _discordClientSecret = System.IO.File.ReadAllText("/run/secrets/discord-client-secret");
+            _discordClientSecret = System.IO.File.ReadAllText("/run/secrets/ZENITH_DAILY_CHALLENGE_DISCORD_CLIENT_SECRET");
 
             Console.WriteLine("loaded discord-client-secrets from secrets");
 
             return;
         }
 
-        var discordClientSecret = Environment.GetEnvironmentVariable("discord-client-secret");
+        var discordClientSecret = Environment.GetEnvironmentVariable("ZENITH_DAILY_CHALLENGE_DISCORD_CLIENT_SECRET");
 
         if (string.IsNullOrEmpty(discordClientSecret))
         {
-            throw new ArgumentException("discord-client-secret environment variable is not set.");
+            throw new ArgumentException("ZENITH_DAILY_CHALLENGE_DISCORD_CLIENT_SECRET environment variable is not set.");
         }
 
         _discordClientSecret = discordClientSecret;
 
-        Console.WriteLine("loaded discord-client-secret from environment variable");
+        Console.WriteLine("loaded ZENITH_DAILY_CHALLENGE_DISCORD_CLIENT_SECRET from environment variable");
     }
 
     [HttpGet]

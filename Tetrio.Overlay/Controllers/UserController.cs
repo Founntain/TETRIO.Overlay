@@ -116,8 +116,8 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
         var splitsCount = await context.ZenithSplits.Where(x => x.User.Id == user.Id).CountAsync();
         var daysParticipated = await context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
 
-        var totalChallengesCompleted = await context.Users.SelectMany(x => x.Challenges).CountAsync();
-        var challengesCompleted = await context.Users.SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
+        var totalChallengesCompleted = await context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).CountAsync();
+        var challengesCompleted = await context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
 
         var userInfo = await GetTetrioUserInformation(username);
 
@@ -261,12 +261,9 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-        var runs = await context.Users
+        var runs = (await context.Users
             .Where(x => x.Username == username)
             .SelectMany(x => x.Challenges)
-            .OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.Points)
-            .Skip(page * pageSize).Take(pageSize)
             .Select(x => new
                 {
                     Date = x.Date,
@@ -278,7 +275,9 @@ public class UserController(TetrioApi api, TetrioContext context) : BaseControll
                         a.Type,
                         a.Value
                     })
-                }).GroupBy(x => x.Date).ToArrayAsync();
+                })
+            .GroupBy(x => x.Date)
+            .ToArrayAsync()).OrderByDescending(x => x.Key).ToArray();
 
         var a = runs.Select(x =>
         {

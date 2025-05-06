@@ -9,20 +9,20 @@ public class EncryptionService
 
     public EncryptionService()
     {
-        if (File.Exists("/run/secrets/encryption-key"))
+        if (File.Exists("/run/secrets/TETRIO_OVERLAY_ENCRYPTION_KEY"))
         {
-            _encryptionKey = File.ReadAllText("/run/secrets/encryption-key");
+            _encryptionKey = File.ReadAllText("/run/secrets/TETRIO_OVERLAY_ENCRYPTION_KEY");
 
             Console.WriteLine("loaded encryption key from secrets");
 
             return;
         }
 
-        var encryptionKey = Environment.GetEnvironmentVariable("encryption-key");
+        var encryptionKey = Environment.GetEnvironmentVariable("TETRIO_OVERLAY_ENCRYPTION_KEY");
 
         if (string.IsNullOrEmpty(encryptionKey))
         {
-            throw new ArgumentException("encryption-key environment variable is not set.");
+            throw new ArgumentException("TETRIO_OVERLAY_ENCRYPTION_KEY environment variable is not set.");
         }
 
         _encryptionKey = encryptionKey;
