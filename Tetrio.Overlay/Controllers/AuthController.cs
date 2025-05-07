@@ -89,7 +89,9 @@ public class AuthController : MinBaseController
                 return BadRequest(discordUser.ErrorMessage);
             }
 
-            var tetrioUser = await Api.GetUserFromDiscordId(discordUser.Id);
+            var tetrioUserResult = await Api.GetUserFromDiscordId(discordUser.Id);
+
+            var tetrioUser = tetrioUserResult?.Users.FirstOrDefault();
 
             if (tetrioUser == null)
             {
@@ -97,14 +99,14 @@ public class AuthController : MinBaseController
             }
 
             // Check if we got a user already for the given TETR.IO User that we loaded with the discord ID;
-            var dbUser = await _context.Users.FirstOrDefaultAsync(x => x.TetrioId == tetrioUser.User.Id);
+            var dbUser = await _context.Users.FirstOrDefaultAsync(x => x.TetrioId == tetrioUser.Id);
 
             if (dbUser == null)
             {
                 dbUser = new User()
                 {
-                    TetrioId = tetrioUser.User.Id,
-                    Username = tetrioUser.User.Username,
+                    TetrioId = tetrioUser.Id,
+                    Username = tetrioUser.Username,
 
                     SessionToken = Guid.NewGuid(),
 
@@ -119,8 +121,8 @@ public class AuthController : MinBaseController
             }
             else
             {
-                if(tetrioUser.User.Username != dbUser.Username)
-                    dbUser.Username = tetrioUser.User.Username;
+                if(tetrioUser.Username != dbUser.Username)
+                    dbUser.Username = tetrioUser.Username;
 
                 if (dbUser.DiscordId != discordUser.Id)
                     dbUser.DiscordId = discordUser.Id;

@@ -222,7 +222,7 @@ public class BareUser
 
 public class DiscordUser
 {
-    [JsonPropertyName("user")] public BareUser User { get; set; }
+    [JsonPropertyName("users")] public IList<BareUser> Users { get; set; }
 }
 
 public class Zenith
