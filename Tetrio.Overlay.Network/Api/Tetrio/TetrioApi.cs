@@ -674,9 +674,9 @@ public class TetrioApi : ApiBase
     {
         ClearCache();
 
-        Console.WriteLine($"{ApiBaseUrl}users/search/discord:{discordId}");
+        Console.WriteLine($"{ApiBaseUrl}users/search/discord:id:{discordId}");
 
-        var responseFromApi = await GetString($"{ApiBaseUrl}users/search/discord:{discordId}");
+        var responseFromApi = await GetString($"{ApiBaseUrl}users/search/discord:id:{discordId}");
 
         if (responseFromApi == null) return default;
 
