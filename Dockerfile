@@ -7,18 +7,18 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Tetrio.Overlay/Tetrio.Overlay.csproj", "./"]
-#COPY ["Tetrio.Overlay.Network/Tetrio.Overlay.Network.csproj", "./Network"]
-#COPY ["Tetrio.Overlay.Database/Tetrio.Overlay.Database.csproj", "./Database"]
-#COPY ["Tetrio.Zenith.DailyChallenge/Tetrio.Zenith.DailyChallenge.csproj", "./DailyChallenge"]
-RUN dotnet restore "Tetrio.Overlay.csproj"
+COPY ["Tetrio.Foxhole.Backend/Tetrio.Foxhole.Backend.csproj", "./"]
+#COPY ["Tetrio.Network/Tetrio.Network.csproj", "./Network"]
+#COPY ["Tetrio.ZenithDaily.Database/Tetrio.ZenithDaily.Database.csproj", "./Database"]
+#COPY ["Tetrio.ZenithDaily.Challenge/Tetrio.ZenithDaily.Challenge.csproj", "./DailyChallenge"]
+RUN dotnet restore "Tetrio.Foxhole.Backend.csproj"
 COPY . .
 WORKDIR "/src/"
-RUN dotnet build "Tetrio.Overlay/Tetrio.Overlay.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "Tetrio.Foxhole.Backend/Tetrio.Foxhole.Backend.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Tetrio.Overlay/Tetrio.Overlay.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false -r linux-x64
+RUN dotnet publish "Tetrio.Foxhole.Backend/Tetrio.Foxhole.Backend.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false -r linux-x64
 
 FROM base AS final
 
@@ -31,4 +31,4 @@ USER root
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-ENTRYPOINT ["dotnet", "Tetrio.Overlay.dll"]
+ENTRYPOINT ["dotnet", "Tetrio.Foxhole.Backend.dll"]

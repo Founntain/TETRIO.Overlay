@@ -1,0 +1,16 @@
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Tetrio.Foxhole.Database.Entities;
+
+namespace Tetrio.Foxhole.Database.Configurations;
+
+public class ZenithSplitConfiguration : BaseConfiguration<ZenithSplit>
+{
+    public override void Configure(EntityTypeBuilder<ZenithSplit> builder)
+    {
+        base.Configure(builder);
+
+        builder.HasIndex(x => x.TetrioId).IsUnique();
+
+        builder.HasOne(x => x.User).WithMany(x => x.Splits);
+    }
+}
