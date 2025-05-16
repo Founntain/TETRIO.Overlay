@@ -22,8 +22,9 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
         var challengeCount = await context.Challenges.Where(x => x.Date == day).CountAsync();
+        var masteryChallengeCount = await context.MasteryChallenges.Where(x => x.Date == day).CountAsync();
 
-        if (challengeCount == 0)
+        if (challengeCount == 0 || masteryChallengeCount == 0)
         {
             await GenerateDailyChallenges();
         }
