@@ -32,6 +32,55 @@ public class ChallengeGenerator
         return challenges;
     }
 
+    public async Task<MasteryChallenge> GenerateMasteryChallenge(TetrioContext context)
+    {
+        var conditions = GetRandomConditionsWithoutAllClears();
+
+        var masteryChallengeConditions = new List<MasteryChallengeCondition>();
+
+        // Always add Height as a base condition
+        var heightRange = await GetRangeForConditionAndDifficulty(context, ConditionType.Height, Difficulty.Normal);
+        var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
+
+        masteryChallengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
+
+        foreach (var condition in conditions)
+        {
+            var range = await GetRangeForConditionAndDifficulty(context, condition, Difficulty.Normal);
+
+            double value;
+
+            if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs)
+            {
+                value = range.min + _random.NextDouble() * (range.max - range.min);
+
+                value = Math.Round(value, 2);
+            }
+            else
+            {
+                value = _random.Next((int) range.min, (int) range.max);
+            }
+
+            if (value > 0)
+            {
+                var masteryChallengeCondition = new MasteryChallengeCondition()
+                {
+                    Type = condition,
+                    Value = value
+                };
+
+                masteryChallengeConditions.Add(masteryChallengeCondition);
+            }
+        }
+
+        return new MasteryChallenge
+        {
+            Date = DateOnly.FromDateTime(_day.Date),
+            Conditions = masteryChallengeConditions.ToHashSet(),
+        };
+    }
+
+
     private async Task<Challenge> GenerateReverseChallenge(TetrioContext context)
     {
         var challengeConditions = new List<ChallengeCondition>();
@@ -105,7 +154,7 @@ public class ChallengeGenerator
         var challengeConditions = new List<ChallengeCondition>();
 
         // Always add Height as a base condition
-        var heightRange = GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
+        var heightRange = await GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
         var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
 
         var mods = await GenerateModsForChallenge(context, difficulty);
@@ -138,7 +187,7 @@ public class ChallengeGenerator
 
             foreach (var condition in conditions)
             {
-                var range = GetRangeForConditionAndDifficulty(context, condition, difficulty);
+                var range = await GetRangeForConditionAndDifficulty(context, condition, difficulty);
                 double value;
 
                 if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs)
@@ -245,9 +294,9 @@ public class ChallengeGenerator
         return string.Join(" ", selectedMods.Select(x => x.Name));
     }
 
-    private static (double min, double max) GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)
+    private static async Task<(double min, double max)> GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)
     {
-        var range = context.ConditionRanges.FirstOrDefault(x => x.ConditionType == condition && x.Difficulty == difficulty);
+        var range = await context.ConditionRanges.FirstOrDefaultAsync(x => x.ConditionType == condition && x.Difficulty == difficulty);
 
         if(range == null)
             return (0, 0);
@@ -267,6 +316,21 @@ public class ChallengeGenerator
         allConditions = allConditions.OrderBy(_ => _random.Next()).ToList();
 
         var selectedConditions = allConditions.Take(_random.Next(2, 4)).ToList();
+
+        return selectedConditions;
+    }
+
+    private List<ConditionType> GetRandomConditionsWithoutAllClears()
+    {
+        var allConditions = Enum.GetValues<ConditionType>().ToList();
+
+        allConditions.RemoveAt(0);
+
+        allConditions.Remove(ConditionType.AllClears);
+
+        allConditions = allConditions.OrderBy(_ => _random.Next()).ToList();
+
+        var selectedConditions = allConditions.Take(_random.Next(1, 3)).ToList();
 
         return selectedConditions;
     }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Backend.Base.Controllers;
@@ -7,6 +8,7 @@ using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
 using Tetrio.Foxhole.Network.Api.Tetrio.Models;
+using Tetrio.Zenith.DailyChallenge.Logic;
 
 namespace Tetrio.Zenith.DailyChallenge.Controllers;
 
@@ -26,10 +28,11 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             await GenerateDailyChallenges();
         }
 
-        var challenges = await context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).Select(x => new Challenge
+        var challenges = await context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).Select(x => new
         {
             Id = x.Id,
-            Conditions = x.Conditions.Select(y => new ChallengeCondition
+            IsMasteryChallenge = false,
+            Conditions = x.Conditions.OrderBy(y => y.Type).Select(y => new ChallengeCondition
             {
                 Id = y.Id,
                 ChallengeId = y.ChallengeId,
@@ -41,7 +44,28 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             Mods = x.Mods,
         }).ToListAsync();
 
-        return Ok(challenges);
+        var masteryChallenge = await context.MasteryChallenges.Where(x => x.Date == day).Select(x => new
+        {
+            Id = x.Id,
+            IsMasteryChallenge = true,
+            Conditions = x.Conditions.OrderBy(y => y.Type).Select(y => new MasteryChallengeCondition()
+            {
+                Id = y.Id,
+                ChallengeId = y.ChallengeId,
+                Value = y.Value,
+                Type = y.Type,
+            }).ToHashSet(),
+            Date = x.Date
+        }).FirstOrDefaultAsync();
+
+        var allChallenges = new List<object>();
+
+        allChallenges.AddRange(challenges);
+
+        if(masteryChallenge != null)
+            allChallenges.AddRange(masteryChallenge);
+
+        return Ok(allChallenges);
     }
 
     [HttpGet]
@@ -70,15 +94,31 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
         var challengesExist = await context.Challenges.AnyAsync(x => x.Date == day);
+        var masteryChallengeExists = await context.MasteryChallenges.AnyAsync(x => x.Date == day);
 
-        if (challengesExist) return Ok("Daily Challenge already exist for this day");
+        if (challengesExist && masteryChallengeExists)
+        {
+            return Ok("Challenges already exist for this day.");
+        }
 
-        var challenges = await generator.GenerateChallengesForDay(context);
+        await using var transaction = await context.Database.BeginTransactionAsync();
 
-        await context.AddRangeAsync(challenges);
+        if (!challengesExist)
+        {
+            var challenges = await generator.GenerateChallengesForDay(context);
+            await context.AddRangeAsync(challenges);
+        }
+
+        if (!masteryChallengeExists)
+        {
+            var masteryChallenge = await generator.GenerateMasteryChallenge(context);
+            await context.AddAsync(masteryChallenge);
+        }
+
         await context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
-        return Ok(challenges.Select(x => x.Conditions.Select(y => y.ToString())));
+        return Ok();
     }
 
     [HttpPost]
@@ -99,188 +139,13 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
         if (user.IsRestricted) return BadRequest("No bad person, no submitting for you, ask founntain to unrestrict you");
 
-        var now = DateTime.UtcNow;
-        var nextSubmissionPossible = user.LastSubmission?.AddMinutes(1) ?? DateTime.MinValue;
-
-        if(nextSubmissionPossible > DateTime.UtcNow) return BadRequest("Please wait 1 minute before requesting submitting daily challenges again.");
-
         var day = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
-        var challenges = await context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).ToListAsync();
-        if (challenges.Count == 0) return Ok("No daily challenges found, submission canceled");
+        var submitLogic = new SubmitLogic(context, Api, user, day);
 
-        var records = await Api.GetRecentZenithRecords(user.Username);
-        var expertRecords = await Api.GetRecentZenithRecords(user.Username, true);
+        var response = await submitLogic.ProcessSubmissions();
 
-        if (records == null || expertRecords == null) return Ok("Could not fetch your recent records, please try again later");
-
-        var totalRuns = new List<Record>();
-
-        totalRuns.AddRange(records.Entries);
-        totalRuns.AddRange(expertRecords.Entries);
-
-        totalRuns = totalRuns.DistinctBy(x => x.Id).ToList();
-
-        var communityChallenge = await context.CommunityChallenges.FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
-
-        Console.WriteLine($"[DAILY SUBMIT] {user.Username} submitted {totalRuns.Count} run(s)]");
-
-        var tetrioIds = totalRuns.Select(x => x.Id).ToList();
-
-        var existingTetrioIds = new HashSet<string>(await context.Runs.Where(x => tetrioIds.Contains(x.TetrioId)).Select(x => x.TetrioId).ToListAsync());
-
-        var sw = new Stopwatch();
-        sw.Restart();
-
-        var splitsToAdd = new List<ZenithSplit>();
-        var runsToAdd = new List<Run>();
-        var contributionsToAdd = new List<CommunityContribution>();
-        var everyClear = new List<Clears>();
-
-        var runValidator = new RunValidator();
-
-        foreach (var record in totalRuns)
-        {
-            if (existingTetrioIds.Any(x => x == record.Id)) continue;
-
-            var stats = record.Results.Stats;
-            var clears = stats.Clears;
-
-            var mods = record.Extras.Zenith.Mods;
-            var totalSpins = clears.RealTspins
-                             + clears.MiniTspins
-                             + clears.MiniTspinSingles
-                             + clears.TspinSingles
-                             + clears.MiniTspinDoubles
-                             + clears.TspinDoubles
-                             + clears.MiniTspinTriples
-                             + clears.TspinTriples
-                             + clears.MiniTspinQuads
-                             + clears.TspinQuads
-                             + clears.TspinPentas;
-
-            var splits = new ZenithSplit
-            {
-                User = user,
-                TetrioId = record.Id,
-                HotelReachedAt = (uint)(stats.Zenith.Splits[0] ?? 0),
-                CasinoReachedAt = (uint)(stats.Zenith.Splits[1] ?? 0),
-                ArenaReachedAt = (uint)(stats.Zenith.Splits[2] ?? 0),
-                MuseumReachedAt = (uint)(stats.Zenith.Splits[3] ?? 0),
-                OfficesReachedAt = (uint)(stats.Zenith.Splits[4] ?? 0),
-                LaboratoryReachedAt = (uint)(stats.Zenith.Splits[5] ?? 0),
-                CoreReachedAt = (uint)(stats.Zenith.Splits[6] ?? 0),
-                CorruptionReachedAt = (uint)(stats.Zenith.Splits[7] ?? 0),
-                PlatformOfTheGodsReachedAt = (uint)(stats.Zenith.Splits[8] ?? 0)
-            };
-
-            var finesse = 0d;
-
-            if(stats.Piecesplaced > 0 && stats.Finesse!.Perfectpieces > 0)
-            {
-                finesse = ((stats.Finesse!.Perfectpieces / stats.Piecesplaced ) * 100).Value;
-            }
-
-            var run = new Run
-            {
-                User = user,
-                TetrioId = record.Id,
-                PlayedAt = record.Ts,
-                Altitude = stats.Zenith.Altitude ?? 0,
-                KOs = (byte?)stats.Kills ?? 0,
-                AllClears = (ushort?)clears.AllClear ?? 0,
-                Quads = (ushort?)clears.Quads ?? 0,
-                Spins = (ushort?)totalSpins ?? 0,
-                Mods = string.Join(" ", mods),
-                Apm = record.Results.Aggregatestats.Apm ?? 0,
-                Pps = record.Results.Aggregatestats.Pps ?? 0,
-                Vs = record.Results.Aggregatestats.Vsscore ?? 0,
-                Finesse = finesse,
-                SpeedrunSeen = stats.Zenith.SpeedrunSeen ?? false,
-                SpeedrunCompleted = stats.Zenith.Speedrun ?? false,
-                TotalTime = (int) Math.Round(stats.Finaltime ?? 0, 0)
-            };
-
-            if (run.PlayedAt?.Date == null)
-            {
-                Console.WriteLine($"No date found for run {run.TetrioId} | Skipping run");
-
-                continue;
-            }
-
-            var playedAtDay = DateOnly.FromDateTime(run.PlayedAt!.Value.Date);
-
-            if (day == playedAtDay)
-            {
-                var completedChallenges = runValidator.ValidateRun(challenges, run, mods);
-                var completedChallengesSet = completedChallenges.ToHashSet();
-
-                run.Challenges = completedChallengesSet;
-
-                foreach (var challenge in completedChallengesSet)
-                {
-                    user.Challenges.Add(challenge);
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Run {run.TetrioId} was played on a different day, added but its not counted for daily challenge");
-            }
-
-
-            everyClear.Add(clears);
-            splitsToAdd.Add(splits);
-            runsToAdd.Add(run);
-        }
-
-        if (communityChallenge != null)
-        {
-            var contribution = new CommunityContribution()
-            {
-                CommunityChallenge = communityChallenge,
-            };
-
-            var validRuns = runsToAdd.Where(x => x.TotalTime > 60000 && x.PlayedAt >= communityChallenge.StartDate).ToList();
-
-            runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns, everyClear);
-
-            if (contribution.Amount > 0)
-            {
-                contribution.User = user;
-
-                // Add IsLate flag when its finished, so it shows up in the feat, but not on leaderboard
-                if (communityChallenge.Finished) contribution.IsLate = true;
-
-                contributionsToAdd.Add(contribution);
-
-                // Increase amount of community challenge, as long as it is active.
-                // Doesn't matter if finished OR NOT
-                // If Value is equal or bigger than TargetValue, set finished to true
-                communityChallenge.Value += contribution.Amount;
-                communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
-            }
-        }
-
-        user.LastSubmission = DateTime.UtcNow;
-
-        await using var transaction = await context.Database.BeginTransactionAsync();
-
-        await context.AddRangeAsync(splitsToAdd);
-        await context.AddRangeAsync(runsToAdd);
-        await context.AddRangeAsync(contributionsToAdd);
-        var dataSavedToDb = await context.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        sw.Stop();
-
-        Console.WriteLine($"[DAILY SUBMIT] {user.Username} saved {dataSavedToDb} columns successfully | Took {sw.Elapsed:g}");
-
-        return Ok(new
-        {
-            Username = user.Username,
-            EntriesSaved = dataSavedToDb,
-            TimeToProcess = sw.Elapsed.ToString("g")
-        });
+        return response.ResponseCode != 200 ? StatusCode(response.ResponseCode, response.ResultObject) : Ok(response.ResultObject);
     }
 
     [HttpGet]
@@ -300,7 +165,19 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
             HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
             ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
-            ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse)
+            ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse),
+            MasteryScore = x.MasteryAttempts.Select(y => new
+            {
+                MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
+                                                (y.NoHoldCompleted ? 1 : 0) +
+                                                (y.MessyCompleted ? 1 : 0) +
+                                                (y.GravityCompleted ? 1 : 0) +
+                                                (y.VolatileCompleted ? 1 : 0) +
+                                                (y.DoubleHoleCompleted ? 1 : 0) +
+                                                (y.InvisibleCompleted ? 1 : 0) +
+                                                (y.AllSpinCompleted ? 1 : 0)
+
+            }).Sum(y => y.MasteryChallengeModsCompleted)
         }).OrderByDescending(x => x.NormalScore + x.ExpertScore + x.ReverseScore)
             .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
             .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
@@ -309,12 +186,13 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         var leaderboardData = users.Select(x => new
         {
             Username = x.User.Name,
-            Score = Math.Round(x.NormalScore + x.ExpertScore + (x.ReverseScore / 2d), 0),
+            Score = Math.Round(x.NormalScore + x.ExpertScore + ( x.MasteryScore * 2 )  + (x.ReverseScore / 2d), 0),
             EasyChallengesCompleted = x.EasyChallenges,
             NormalChallengesCompleted = x.NormalChallenges,
             HardChallengesCompleted = x.HardChallenges,
             ExpertChallengesCompleted = x.ExpertChallengesCompleted,
-            ReverseChallengesCompleted = x.ReverseChallengesCompleted
+            ReverseChallengesCompleted = x.ReverseChallengesCompleted,
+            MasteryChallengesCompleted = x.MasteryScore,
         }).OrderByDescending(x => x.Score)
           .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted))
           .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted)).ToArray();;

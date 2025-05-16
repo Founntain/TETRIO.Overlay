@@ -2,13 +2,11 @@
 
 namespace Tetrio.Foxhole.Database.Entities;
 
-public class ChallengeCondition : BaseEntity
+public abstract class ChallengeConditionBase : BaseEntity
 {
     public Guid ChallengeId { get; set; }
     public ConditionType Type { get; set; }
     public double Value { get; set; }
-
-    public virtual Challenge? Challenge { get; set; }
 
     public override string ToString()
     {
@@ -22,9 +20,37 @@ public class ChallengeCondition : BaseEntity
                 return $"DO {Value} ALL CLEARS";
             case ConditionType.KOs:
                 return $"DO {Value} KO'S";
+            case ConditionType.Quads:
+                return $"DO {Value} QUADS";
+            case ConditionType.Apm:
+                return $"DO {Value} APM";
+            case ConditionType.Pps:
+                return $"DO {Value} PPS";
+            case ConditionType.Vs:
+                return $"DO {Value} VS";
+            case ConditionType.Finesse:
+                return $"DO {Value} % FINESSE";
             default:
                 return base.ToString();
 
         }
     }
+}
+
+public class ChallengeCondition : ChallengeConditionBase
+{
+    public Guid ChallengeId { get; set; }
+    public ConditionType Type { get; set; }
+    public double Value { get; set; }
+
+    public virtual Challenge? Challenge { get; set; }
+}
+
+public class MasteryChallengeCondition : ChallengeConditionBase
+{
+    public Guid ChallengeId { get; set; }
+    public ConditionType Type { get; set; }
+    public double Value { get; set; }
+
+    public virtual MasteryChallenge? MasteryChallenge { get; set; }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Backend.Base.Controllers;
 using Tetrio.Foxhole.Database;
+using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
 
@@ -347,6 +348,22 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             }
         }
 
+        var masteryChallenge = await context.Users
+            .Where(x => x.Username == username)
+            .SelectMany(x => x.MasteryAttempts)
+            .Where(x => x.MasteryChallenge.Date == date)
+            .Select(x => new
+            {
+                x.ExpertCompleted,
+                x.NoHoldCompleted,
+                x.MessyCompleted,
+                x.GravityCompleted,
+                x.VolatileCompleted,
+                x.DoubleHoleCompleted,
+                x.InvisibleCompleted,
+                x.AllSpinCompleted
+            }).FirstOrDefaultAsync();
+
         return Ok(new
         {
             Date = date,
@@ -356,6 +373,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             HardCompleted = hardCompleted,
             ExpertCompleted = expertCompleted,
             ReverseCompleted = reverseCompleted,
+            MasteryChallenge = masteryChallenge
         });
     }
 
