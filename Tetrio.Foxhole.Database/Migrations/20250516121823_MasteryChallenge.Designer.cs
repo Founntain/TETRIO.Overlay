@@ -11,7 +11,7 @@ using Tetrio.Foxhole.Database;
 namespace Tetrio.Overlay.Database.Migrations
 {
     [DbContext(typeof(TetrioContext))]
-    [Migration("20250516110956_MasteryChallenge")]
+    [Migration("20250516121823_MasteryChallenge")]
     partial class MasteryChallenge
     {
         /// <inheritdoc />
@@ -1117,7 +1117,7 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.HasOne("Tetrio.Foxhole.Database.Entities.User", "User")
                         .WithMany("CommunityContributions")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("CommunityChallenge");

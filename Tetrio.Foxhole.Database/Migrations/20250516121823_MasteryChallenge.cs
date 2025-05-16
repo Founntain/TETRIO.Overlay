@@ -11,6 +11,10 @@ namespace Tetrio.Overlay.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommunityContributions_Users_UserId",
+                table: "CommunityContributions");
+
             migrationBuilder.CreateTable(
                 name: "MasteryChallenges",
                 columns: table => new
@@ -102,11 +106,23 @@ namespace Tetrio.Overlay.Database.Migrations
                 table: "MasteryChallenges",
                 column: "Date",
                 unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommunityContributions_Users_UserId",
+                table: "CommunityContributions",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommunityContributions_Users_UserId",
+                table: "CommunityContributions");
+
             migrationBuilder.DropTable(
                 name: "MasteryAttempts");
 
@@ -115,6 +131,14 @@ namespace Tetrio.Overlay.Database.Migrations
 
             migrationBuilder.DropTable(
                 name: "MasteryChallenges");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommunityContributions_Users_UserId",
+                table: "CommunityContributions",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
     }
 }

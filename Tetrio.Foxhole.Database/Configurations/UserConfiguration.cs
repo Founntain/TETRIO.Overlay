@@ -12,6 +12,8 @@ public class UserConfiguration : BaseConfiguration<User>
 
         builder.HasMany(x => x.Splits).WithOne(x => x.User).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(x => x.Runs).WithOne(x => x.User).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.MasteryAttempts).WithOne(x => x.User).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.CommunityContributions).WithOne(x => x.User).OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(x => x.SessionToken).IsUnique();
         builder.HasIndex(x => x.TetrioId).IsUnique();

@@ -1114,7 +1114,7 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.HasOne("Tetrio.Foxhole.Database.Entities.User", "User")
                         .WithMany("CommunityContributions")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("CommunityChallenge");
