@@ -1,13 +1,10 @@
-﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Backend.Base.Controllers;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
-using Tetrio.Foxhole.Network.Api.Tetrio.Models;
 using Tetrio.Zenith.DailyChallenge.Logic;
 
 namespace Tetrio.Zenith.DailyChallenge.Controllers;
@@ -21,15 +18,15 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
     {
         var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
-        var challengeCount = await context.Challenges.Where(x => x.Date == day).CountAsync();
-        var masteryChallengeCount = await context.MasteryChallenges.Where(x => x.Date == day).CountAsync();
+        var challengeCount = await context.Challenges.AsNoTracking().Where(x => x.Date == day).CountAsync();
+        var masteryChallengeCount = await context.MasteryChallenges.AsNoTracking().Where(x => x.Date == day).CountAsync();
 
         if (challengeCount == 0 || masteryChallengeCount == 0)
         {
             await GenerateDailyChallenges();
         }
 
-        var challenges = await context.Challenges.Where(x => x.Date == day).OrderByDescending(x => x.Points).Select(x => new
+        var challenges = await context.Challenges.AsNoTracking().Where(x => x.Date == day).OrderByDescending(x => x.Points).Select(x => new
         {
             Id = x.Id,
             IsMasteryChallenge = false,
@@ -45,7 +42,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             Mods = x.Mods,
         }).ToListAsync();
 
-        var masteryChallenge = await context.MasteryChallenges.Where(x => x.Date == day).Select(x => new
+        var masteryChallenge = await context.MasteryChallenges.AsNoTracking().Where(x => x.Date == day).Select(x => new
         {
             Id = x.Id,
             IsMasteryChallenge = true,
@@ -94,8 +91,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         var day = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
-        var challengesExist = await context.Challenges.AnyAsync(x => x.Date == day);
-        var masteryChallengeExists = await context.MasteryChallenges.AnyAsync(x => x.Date == day);
+        var challengesExist = await context.Challenges.AsNoTracking().AnyAsync(x => x.Date == day);
+        var masteryChallengeExists = await context.MasteryChallenges.AsNoTracking().AnyAsync(x => x.Date == day);
 
         if (challengesExist && masteryChallengeExists)
         {
@@ -153,50 +150,50 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
     [Route("getLeaderboard")]
     public async Task<IActionResult> GetLeaderboard(int page = 1, int pageSize = 100)
     {
-        var users = await context.Users.Where(x => x.Challenges.Count > 0).Select(x => new
-        {
-            User = new
+        var users = await context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).Select(x => new
             {
-                Name = x.Username
-            },
-            NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
-            ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
-            ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
-            EasyChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Easy),
-            NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
-            HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
-            ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
-            ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse),
-            MasteryScore = x.MasteryAttempts.Select(y => new
-            {
-                MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
-                                                (y.NoHoldCompleted ? 1 : 0) +
-                                                (y.MessyCompleted ? 1 : 0) +
-                                                (y.GravityCompleted ? 1 : 0) +
-                                                (y.VolatileCompleted ? 1 : 0) +
-                                                (y.DoubleHoleCompleted ? 1 : 0) +
-                                                (y.InvisibleCompleted ? 1 : 0) +
-                                                (y.AllSpinCompleted ? 1 : 0)
+                User = new
+                {
+                    Name = x.Username
+                },
+                NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
+                ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
+                ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
+                EasyChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Easy),
+                NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
+                HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
+                ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
+                ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse),
+                MasteryScore = x.MasteryAttempts.Select(y => new
+                    {
+                        MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
+                                                        (y.NoHoldCompleted ? 1 : 0) +
+                                                        (y.MessyCompleted ? 1 : 0) +
+                                                        (y.GravityCompleted ? 1 : 0) +
+                                                        (y.VolatileCompleted ? 1 : 0) +
+                                                        (y.DoubleHoleCompleted ? 1 : 0) +
+                                                        (y.InvisibleCompleted ? 1 : 0) +
+                                                        (y.AllSpinCompleted ? 1 : 0)
 
-            }).Sum(y => y.MasteryChallengeModsCompleted)
-        }).OrderByDescending(x => x.NormalScore + x.ExpertScore + x.ReverseScore)
-            .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
-            .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
-            .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
+                    }).Sum(y => y.MasteryChallengeModsCompleted)
+            }).OrderByDescending(x => x.NormalScore + x.ExpertScore + x.ReverseScore)
+                .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
+                .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
+                .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
 
         var leaderboardData = users.Select(x => new
-        {
-            Username = x.User.Name,
-            Score = Math.Round(x.NormalScore + x.ExpertScore + ( x.MasteryScore * 2 )  + (x.ReverseScore / 2d), 0),
-            EasyChallengesCompleted = x.EasyChallenges,
-            NormalChallengesCompleted = x.NormalChallenges,
-            HardChallengesCompleted = x.HardChallenges,
-            ExpertChallengesCompleted = x.ExpertChallengesCompleted,
-            ReverseChallengesCompleted = x.ReverseChallengesCompleted,
-            MasteryChallengesCompleted = x.MasteryScore,
-        }).OrderByDescending(x => x.Score)
-          .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted))
-          .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted)).ToArray();;
+            {
+                Username = x.User.Name,
+                Score = Math.Round(x.NormalScore + x.ExpertScore + ( x.MasteryScore * 2 )  + (x.ReverseScore / 2d), 0),
+                EasyChallengesCompleted = x.EasyChallenges,
+                NormalChallengesCompleted = x.NormalChallenges,
+                HardChallengesCompleted = x.HardChallenges,
+                ExpertChallengesCompleted = x.ExpertChallengesCompleted,
+                ReverseChallengesCompleted = x.ReverseChallengesCompleted,
+                MasteryChallengesCompleted = x.MasteryScore,
+            }).OrderByDescending(x => x.Score)
+              .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted))
+              .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted)).ToArray();
 
         return Ok(leaderboardData);
     }
@@ -207,17 +204,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
     {
         var now = DateTime.UtcNow;
 
-        // var isCommunityChallengeActive = await context.CommunityChallenges.AnyAsync(x => x.StartDate <= now && x.EndDate >= now);
-        //
-        // if (!isCommunityChallengeActive)
-        // {
-        //     var newCommunityChallenge = await new CommunityChallengeGenerator().GenerateCommunityChallenge(context);
-        //
-        //     await context.CommunityChallenges.AddAsync(newCommunityChallenge);
-        //     await context.SaveChangesAsync();
-        // }
-
-        var communityChallenge = await context.CommunityChallenges.Select(x => new
+        var communityChallenge = await context.CommunityChallenges.AsNoTracking().Select(x => new
         {
             Id = x.Id,
             StartDate = x.StartDate,
@@ -232,13 +219,11 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         if(communityChallenge == null) return Ok(new { Finished = false });
 
-        var topContributers = await context.CommunityContributions.Where(x => x.CommunityChallengeId == communityChallenge.Id && x.IsLate == false).GroupBy(x => x.UserId).Select(x => new
+        var topContributers = await context.CommunityContributions.AsNoTracking().Where(x => x.CommunityChallengeId == communityChallenge.Id && x.IsLate == false).GroupBy(x => x.UserId).Select(x => new
         {
             Username = x.First().User.Username,
             Amount = Math.Round(x.Sum(y => y.Amount), 2)
         }).OrderByDescending(x => x.Amount).Where(x => x.Amount > 0).ToArrayAsync();
-
-        var x = DateTime.SpecifyKind(communityChallenge.EndDate, DateTimeKind.Utc);
 
         return Ok( new
         {
@@ -255,7 +240,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
     {
         var now = DateTime.UtcNow;
 
-        var isCommunityChallengeActive = await context.CommunityChallenges.AnyAsync(x => x.StartDate <= now && x.EndDate >= now);
+        var isCommunityChallengeActive = await context.CommunityChallenges.AsNoTracking().AnyAsync(x => x.StartDate <= now && x.EndDate >= now);
 
         if(!isCommunityChallengeActive) return Ok(new List<object>());
 

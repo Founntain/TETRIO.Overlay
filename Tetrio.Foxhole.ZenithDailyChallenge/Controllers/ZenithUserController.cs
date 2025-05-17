@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Backend.Base.Controllers;
 using Tetrio.Foxhole.Database;
-using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
 
@@ -11,8 +10,8 @@ namespace Tetrio.Zenith.DailyChallenge.Controllers;
 public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseController(api)
 {
     [HttpGet]
-    [Route("{username}/profileData")]
-    public async Task<ActionResult> ProfileData(string? username)
+    [Route("{username}/profile")]
+    public async Task<ActionResult> GetProfileData(string? username)
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
@@ -24,18 +23,19 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
     }
 
     [HttpGet]
-    [Route("{username}/dailyData")]
-    public async Task<ActionResult> DailyData(string? username)
+    [Route("{username}/daily")]
+    public async Task<ActionResult> GetDailyData(string? username)
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         username = username.ToLower();
 
-        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
+        var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
 
         if(user == default) return NotFound();
 
-        var aggregateData = await context.ZenithSplits
+        var splitData = await context.ZenithSplits
+            .AsNoTracking()
             .Where(x => x.User.Id == user.Id)
             .GroupBy(x => x.User.Id)
             .Select(group => new
@@ -63,17 +63,54 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     Corruption = group.Where(x => x.CorruptionReachedAt > 0).Min(x => (int?)x.CorruptionReachedAt) ?? 0,
                     PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Min(x => (int?)x.PlatformOfTheGodsReachedAt) ?? 0,
                 }
-            })
-            .SingleOrDefaultAsync();
+            }).SingleOrDefaultAsync();
 
-        var runCount = await context.Runs.Where(x => x.User.Id == user.Id).CountAsync();
-        var splitsCount = await context.ZenithSplits.Where(x => x.User.Id == user.Id).CountAsync();
-        var daysParticipated = await context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
+        var masteryCompletions = await context.MasteryAttempts.AsNoTracking().Where(x => x.UserId == user.Id).GroupBy(x => x.UserId).Select(x => new
+        {
+            Expert = x.Count(y => y.ExpertCompleted),
+            NoHold = x.Count(y => y.NoHoldCompleted),
+            Messy = x.Count(y => y.MessyCompleted),
+            Gravity = x.Count(y => y.GravityCompleted),
+            Volatile = x.Count(y => y.VolatileCompleted),
+            DoubleHole = x.Count(y => y.DoubleHoleCompleted),
+            Invisible = x.Count(y => y.InvisibleCompleted),
+            AllSpin = x.Count(y => y.AllSpinCompleted),
+        }).FirstOrDefaultAsync();
 
-        var totalChallengesCompleted = await context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).CountAsync();
-        var challengesCompleted = await context.Users.Where(x => x.Username == username).SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
+        var altitudes = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).GroupBy(x => x.User.Id).Select(x => new
+        {
+            NoMod = Math.Round(x.Where(y => y.Mods.Length == 0).Sum(y => y.Altitude), 2),
+            Expert = Math.Round(x.Where(y => y.Mods.Contains("expert")).Sum(y => y.Altitude), 2),
+            NoHold = Math.Round(x.Where(y => y.Mods.Contains("nohold")).Sum(y => y.Altitude), 2),
+            Messy = Math.Round(x.Where(y => y.Mods.Contains("messy")).Sum(y => y.Altitude), 2),
+            Gravity = Math.Round(x.Where(y => y.Mods.Contains("gravity")).Sum(y => y.Altitude), 2),
+            Volatile = Math.Round(x.Where(y => y.Mods.Contains("volatile")).Sum(y => y.Altitude), 2),
+            DoubleHole = Math.Round(x.Where(y => y.Mods.Contains("doublehole")).Sum(y => y.Altitude), 2),
+            Invisible = Math.Round(x.Where(y => y.Mods.Contains("invisible")).Sum(y => y.Altitude), 2),
+            AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2),
+        }).FirstOrDefaultAsync();
+
+        var runCount = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
+        var splitsCount = await context.ZenithSplits.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
+        var daysParticipated = await context.Users.AsNoTracking().Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
+
+        var totalChallengesCompleted = await context.Users.AsNoTracking().Where(x => x.Username == username).SelectMany(x => x.Challenges).CountAsync();
+        var challengesCompleted = await context.Users.AsNoTracking().Where(x => x.Username == username).SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
 
         var userInfo = await GetTetrioUserInformation(username);
+
+        if (masteryCompletions != null)
+        {
+            totalChallengesCompleted += masteryCompletions.Expert;
+            totalChallengesCompleted += masteryCompletions.NoHold;
+            totalChallengesCompleted += masteryCompletions.Messy;
+            totalChallengesCompleted += masteryCompletions.Gravity;
+            totalChallengesCompleted += masteryCompletions.Volatile;
+            totalChallengesCompleted += masteryCompletions.DoubleHole;
+            totalChallengesCompleted += masteryCompletions.Invisible;
+            totalChallengesCompleted += masteryCompletions.AllSpin;
+        }
+
 
         return Ok(new
         {
@@ -84,40 +121,43 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             ChallengesCompleted = challengesCompleted,
             TotalChallengesCompleted = totalChallengesCompleted,
             DaysParticipated = daysParticipated,
+            Altitudes = altitudes,
+            MasteryCompletions = masteryCompletions,
             SplitAverages = new
             {
-                Hotel = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Hotel ?? 0).ToString(@"mm\:ss\.fff"),
-                Casino = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Casino ?? 0).ToString(@"mm\:ss\.fff"),
-                Arena = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Arena ?? 0).ToString(@"mm\:ss\.fff"),
-                Museum = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Museum ?? 0).ToString(@"mm\:ss\.fff"),
-                Offices = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Offices ?? 0).ToString(@"mm\:ss\.fff"),
-                Laboratory = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
-                Core = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Core ?? 0).ToString(@"mm\:ss\.fff"),
-                Corruption = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
-                PlatformOfTheGods = TimeSpan.FromMilliseconds(aggregateData?.SplitAverages.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
+                Hotel = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Hotel ?? 0).ToString(@"mm\:ss\.fff"),
+                Casino = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Casino ?? 0).ToString(@"mm\:ss\.fff"),
+                Arena = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Arena ?? 0).ToString(@"mm\:ss\.fff"),
+                Museum = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Museum ?? 0).ToString(@"mm\:ss\.fff"),
+                Offices = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Offices ?? 0).ToString(@"mm\:ss\.fff"),
+                Laboratory = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
+                Core = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Core ?? 0).ToString(@"mm\:ss\.fff"),
+                Corruption = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
+                PlatformOfTheGods = TimeSpan.FromMilliseconds(splitData?.SplitAverages.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
             },
             GoldSplits =  new
             {
-                Hotel = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Hotel ?? 0).ToString(@"mm\:ss\.fff"),
-                Casino = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Casino ?? 0).ToString(@"mm\:ss\.fff"),
-                Arena = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Arena ?? 0).ToString(@"mm\:ss\.fff"),
-                Museum = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Museum ?? 0).ToString(@"mm\:ss\.fff"),
-                Offices = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Offices ?? 0).ToString(@"mm\:ss\.fff"),
-                Laboratory = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
-                Core = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Core ?? 0).ToString(@"mm\:ss\.fff"),
-                Corruption = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
-                PlatformOfTheGods = TimeSpan.FromMilliseconds(aggregateData?.GoldSplits.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
+                Hotel = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Hotel ?? 0).ToString(@"mm\:ss\.fff"),
+                Casino = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Casino ?? 0).ToString(@"mm\:ss\.fff"),
+                Arena = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Arena ?? 0).ToString(@"mm\:ss\.fff"),
+                Museum = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Museum ?? 0).ToString(@"mm\:ss\.fff"),
+                Offices = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Offices ?? 0).ToString(@"mm\:ss\.fff"),
+                Laboratory = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
+                Core = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Core ?? 0).ToString(@"mm\:ss\.fff"),
+                Corruption = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
+                PlatformOfTheGods = TimeSpan.FromMilliseconds(splitData?.GoldSplits.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
             },
         });
     }
 
     [HttpGet]
     [Route("{username}/runs")]
-    public async Task<ActionResult> GetRuns(string? username, int page = 0, int pageSize = 25)
+    public async Task<ActionResult> GetRuns(string username, int page = 0, int pageSize = 25)
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         var runs = await context.Runs
+            .AsNoTracking()
             .Where(x => x.User.Username == username)
             .OrderByDescending(x => x.PlayedAt)
             .Skip(page * pageSize).Take(pageSize)
@@ -148,6 +188,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         var splits = await context.ZenithSplits
+            .AsNoTracking()
             .Where(x => x.User.Username == username)
             .OrderByDescending(x => x.CreatedAt)
             .Skip(page * pageSize).Take(pageSize)
@@ -188,6 +229,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         var runs = await context.Users
+            .AsNoTracking()
             .Where(x => x.Username == username)
             .SelectMany(x => x.Challenges)
             .OrderByDescending(x => x.Date)
@@ -216,6 +258,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         var runs = (await context.Users
+            .AsNoTracking()
             .Where(x => x.Username == username)
             .SelectMany(x => x.Challenges)
             .Select(x => new
@@ -231,7 +274,11 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     })
                 })
             .GroupBy(x => x.Date)
-            .ToArrayAsync()).OrderByDescending(x => x.Key).ToArray();
+            .ToArrayAsync())
+            .OrderByDescending(x => x.Key)
+            .Skip( page * pageSize).Take(pageSize);
+
+        context.ChangeTracker.LazyLoadingEnabled = true;
 
         var a = runs.Select(x =>
         {
@@ -246,7 +293,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
             foreach (var challenge in x)
             {
-                switch ((Difficulty)challenge.Difficulty)
+                switch ((Difficulty) challenge.Difficulty)
                 {
                     case Difficulty.VeryEasy:
                         veryEasyCompleted = true;
@@ -290,16 +337,17 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
     {
         username = username.ToLower();
 
-        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
+        var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
 
         if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
-        if (user.IsRestricted) return BadRequest("No bad person, no submitting for you, ask founntain to unrestrict you");
+        if (user.IsRestricted) return BadRequest("No bad person allowed, no submitting for you, ask founntain to unrestrict you");
 
         var utc = DateTime.UtcNow;
 
         var date = new DateOnly(utc.Year, utc.Month, utc.Day);
 
         var challenges = await context.Users
+            .AsNoTracking()
             .Where(x => x.Username == username)
             .SelectMany(x => x.Challenges)
             .Where(x => x.Date == date)
@@ -349,9 +397,10 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         }
 
         var masteryChallenge = await context.Users
+            .AsNoTracking()
             .Where(x => x.Username == username)
             .SelectMany(x => x.MasteryAttempts)
-            .Where(x => x.MasteryChallenge.Date == date)
+            .Where(x => x.MasteryChallenge != null && x.MasteryChallenge.Date == date)
             .Select(x => new
             {
                 x.ExpertCompleted,
@@ -387,7 +436,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         if(user == null) return NotFound();
 
-        var contributions = context.CommunityContributions
+        var contributions = await context.CommunityContributions
+            .AsNoTracking()
             .OrderByDescending(x => x.CommunityChallenge.StartDate)
             .Where(x => x.UserId == user.Id && !x.IsLate)
             .GroupBy(x => x.CommunityChallengeId)
@@ -398,9 +448,10 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     Challenge = $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}",
                     TotalAmountContributed = Math.Round(group.Sum(x => x.Amount), 2),
                     ConditionType = group.First().CommunityChallenge.ConditionType,
-                });
+                }).ToArrayAsync();
 
         var contributionsCount = await context.CommunityContributions
+            .AsNoTracking()
             .OrderByDescending(x => x.CommunityChallenge.StartDate)
             .Where(x => x.UserId == user.Id && !x.IsLate)
             .GroupBy(x => x.CommunityChallengeId).CountAsync();
@@ -425,7 +476,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         query = query.ToLower();
 
-        var foundUsers = await context.Users.Where(x => x.Username.Contains(query)).ToArrayAsync();
+        var foundUsers = await context.Users.AsNoTracking().Where(x => x.Username.Contains(query)).ToArrayAsync();
 
         return Ok(foundUsers);
     }
