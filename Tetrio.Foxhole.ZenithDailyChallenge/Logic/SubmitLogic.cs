@@ -121,6 +121,12 @@ public class SubmitLogic
         var stats = record.Results.Stats;
         var clears = stats.Clears;
 
+        // If the altitude is lower than 10M we ignore these runs, they dont have any meaning full data
+        if ((stats.Zenith.Altitude ?? 0) < 10)
+        {
+            return (null, null);
+        }
+
         var mods = record.Extras.Zenith.Mods;
         var totalSpins = clears.RealTspins // Zero Spins
                          + clears.MiniTspins // Zero Mini Spins
@@ -134,20 +140,28 @@ public class SubmitLogic
                          + clears.TspinQuads
                          + clears.TspinPentas;
 
-        var splits = new ZenithSplit
+        var hotelSplit = stats.Zenith.Splits[0] ?? 0;
+
+        ZenithSplit? splits = null;
+
+        // We only want to create splits when we at least reached the hotel, otherwise we just create empty rows
+        if (hotelSplit > 0)
         {
-            User = _user,
-            TetrioId = record.Id,
-            HotelReachedAt = (uint)(stats.Zenith.Splits[0] ?? 0),
-            CasinoReachedAt = (uint)(stats.Zenith.Splits[1] ?? 0),
-            ArenaReachedAt = (uint)(stats.Zenith.Splits[2] ?? 0),
-            MuseumReachedAt = (uint)(stats.Zenith.Splits[3] ?? 0),
-            OfficesReachedAt = (uint)(stats.Zenith.Splits[4] ?? 0),
-            LaboratoryReachedAt = (uint)(stats.Zenith.Splits[5] ?? 0),
-            CoreReachedAt = (uint)(stats.Zenith.Splits[6] ?? 0),
-            CorruptionReachedAt = (uint)(stats.Zenith.Splits[7] ?? 0),
-            PlatformOfTheGodsReachedAt = (uint)(stats.Zenith.Splits[8] ?? 0)
-        };
+            splits = new ZenithSplit
+            {
+                User = _user,
+                TetrioId = record.Id,
+                HotelReachedAt = (uint)(stats.Zenith.Splits[0] ?? 0),
+                CasinoReachedAt = (uint)(stats.Zenith.Splits[1] ?? 0),
+                ArenaReachedAt = (uint)(stats.Zenith.Splits[2] ?? 0),
+                MuseumReachedAt = (uint)(stats.Zenith.Splits[3] ?? 0),
+                OfficesReachedAt = (uint)(stats.Zenith.Splits[4] ?? 0),
+                LaboratoryReachedAt = (uint)(stats.Zenith.Splits[5] ?? 0),
+                CoreReachedAt = (uint)(stats.Zenith.Splits[6] ?? 0),
+                CorruptionReachedAt = (uint)(stats.Zenith.Splits[7] ?? 0),
+                PlatformOfTheGodsReachedAt = (uint)(stats.Zenith.Splits[8] ?? 0)
+            };
+        }
 
         var finesse = 0d;
 
