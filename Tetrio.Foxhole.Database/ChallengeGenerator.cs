@@ -159,23 +159,10 @@ public class ChallengeGenerator
 
         var mods = await GenerateModsForChallenge(context, difficulty);
 
-        var heightScaling = 1d;
+        var penalty = await CalculatePenalty(context, mods);
 
-        foreach (var mod in mods.Split(" "))
-        {
-            if (mod == "nohold")
-            {
-                if(heightScaling > 0.9) heightScaling = 0.9;
-            }
-
-            if (difficulty != Difficulty.Expert && mod == "expert")
-            {
-                if (heightScaling > 0.75) heightScaling = 0.75;
-            }
-        }
-
-
-        height = (int) Math.Round(height * heightScaling, 0);
+        double hPenaltyWeight = .2d;
+        height -= (int) (height * ((1d - penalty) * hPenaltyWeight));
 
         challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
 
@@ -203,6 +190,31 @@ public class ChallengeGenerator
 
                 if (value > 0)
                 {
+                    // Apply penalty based on mods and round it if it's needed
+                    if (condition is ConditionType.Apm or ConditionType.Vs)
+                        Console.WriteLine(value);
+                    if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs or ConditionType.Finesse)
+                    {
+                        var mult = 1d;
+                        switch (condition)
+                        {
+                            case ConditionType.Pps:
+                                mult = .2d;
+                                break;
+                            case ConditionType.Vs:
+                                mult = .25d;
+                                break;
+                        }
+                        if (condition is not ConditionType.Finesse)
+                            value -= value * (1d - penalty) * mult;
+                        value = Math.Round(value, 2);
+                    }
+                    else
+                    {
+                        //Just round the value fully if it should be a whole number. Those also mostly don't need nerfs.
+                        //ZhunGamer did said though that challenges with gravity could use a spin count nerf.
+                        value = Math.Round(value);
+                    }
                     challengeConditions.Add(new ChallengeCondition
                     {
                         Type = condition,
@@ -216,6 +228,11 @@ public class ChallengeGenerator
             // If we dont get a valid extra conditions after 100 tries we just go with height
             if (tries > 100) break;
         }
+        
+        // Console.WriteLine(difficulty);
+        // Console.WriteLine(mods);
+        // foreach (var condition in challengeConditions)
+        //     Console.WriteLine($"{condition.Type}: {condition.Value}");
 
         return new Challenge
         {
@@ -292,6 +309,24 @@ public class ChallengeGenerator
         }
 
         return string.Join(" ", selectedMods.Select(x => x.Name));
+    }
+
+    private async Task<double> CalculatePenalty(TetrioContext context, string generatedMods)
+    {
+        var scale = await context.Mods.AsNoTracking().ToListAsync();
+        var mods = generatedMods.Split(" ");
+        var penalty = 1d;
+
+        foreach(var mod in mods)
+        {
+            var s = scale.FirstOrDefault(x => x.Name == mod)?.Scaling;
+
+            if (s == null) continue;
+
+            penalty *= s.Value;
+        }
+
+        return penalty;
     }
 
     private static async Task<(double min, double max)> GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)

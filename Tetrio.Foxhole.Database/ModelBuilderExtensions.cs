@@ -75,13 +75,13 @@ public static class ModelBuilderExtensions
         var date = new DateTime(2020, 03, 22);
         var ranges = new List<Mod>();
 
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111101"), CreatedAt = date, UpdatedAt = date, Name = "expert",     MinDifficulty = Difficulty.Hard,   Weight = 60, Scaling = 0.75});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111102"), CreatedAt = date, UpdatedAt = date, Name = "nohold",     MinDifficulty = Difficulty.Easy,   Weight = 25, Scaling = 0.90});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111103"), CreatedAt = date, UpdatedAt = date, Name = "messy",      MinDifficulty = Difficulty.Easy,   Weight = 25, Scaling = 1});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111104"), CreatedAt = date, UpdatedAt = date, Name = "gravity",    MinDifficulty = Difficulty.Normal, Weight = 30, Scaling = 1});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111101"), CreatedAt = date, UpdatedAt = date, Name = "expert",     MinDifficulty = Difficulty.Hard,   Weight = 60, Scaling = 1});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111102"), CreatedAt = date, UpdatedAt = date, Name = "nohold",     MinDifficulty = Difficulty.Easy,   Weight = 25, Scaling = 0.875});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111103"), CreatedAt = date, UpdatedAt = date, Name = "messy",      MinDifficulty = Difficulty.Easy,   Weight = 25, Scaling = 0.97});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111104"), CreatedAt = date, UpdatedAt = date, Name = "gravity",    MinDifficulty = Difficulty.Normal, Weight = 30, Scaling = 0.95});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111105"), CreatedAt = date, UpdatedAt = date, Name = "volatile",   MinDifficulty = Difficulty.Normal, Weight = 25, Scaling = 1});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111106"), CreatedAt = date, UpdatedAt = date, Name = "doublehole", MinDifficulty = Difficulty.Normal, Weight = 25, Scaling = 1});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111107"), CreatedAt = date, UpdatedAt = date, Name = "invisible",  MinDifficulty = Difficulty.Hard,   Weight = 60, Scaling = 1});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111106"), CreatedAt = date, UpdatedAt = date, Name = "doublehole", MinDifficulty = Difficulty.Normal, Weight = 25, Scaling = 0.96});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111107"), CreatedAt = date, UpdatedAt = date, Name = "invisible",  MinDifficulty = Difficulty.Hard,   Weight = 60, Scaling = 0.925});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111108"), CreatedAt = date, UpdatedAt = date, Name = "allspin",    MinDifficulty = Difficulty.Normal, Weight = 40, Scaling = 1});
 
         modelBuilder.Entity<Mod>().HasData(ranges);
