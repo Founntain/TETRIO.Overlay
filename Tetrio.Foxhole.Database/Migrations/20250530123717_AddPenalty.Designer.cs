@@ -11,8 +11,8 @@ using Tetrio.Foxhole.Database;
 namespace Tetrio.Overlay.Database.Migrations
 {
     [DbContext(typeof(TetrioContext))]
-    [Migration("20250530025708_UpdateScaling")]
-    partial class UpdateScaling
+    [Migration("20250530123717_AddPenalty")]
+    partial class AddPenalty
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,6 +204,9 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.Property<double>("Min")
                         .HasColumnType("REAL");
 
+                    b.Property<double>("PenaltyWeight")
+                        .HasColumnType("REAL");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -223,6 +226,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 5000000.0,
                             Min = 1000000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -233,6 +237,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 15000.0,
                             Min = 10000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -243,6 +248,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 100000.0,
                             Min = 50000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -253,6 +259,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 100000.0,
                             Min = 45000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -263,6 +270,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 1000000.0,
                             Min = 250000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -273,6 +281,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 7500000.0,
                             Min = 100000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -283,6 +292,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 15000.0,
                             Min = 5000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -293,6 +303,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 1500000.0,
                             Min = 750000.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -303,6 +314,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 0,
                             Max = 0.0,
                             Min = 0.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -313,6 +325,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 350.0,
                             Min = 100.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -323,6 +336,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 1.0,
                             Min = 0.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -333,6 +347,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 0.0,
                             Min = 0.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -343,6 +358,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 10.0,
                             Min = 3.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -353,6 +369,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 0.0,
                             Min = 0.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -363,6 +380,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 20.0,
                             Min = 10.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -373,6 +391,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 1.0,
                             Min = 0.75,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -383,6 +402,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 40.0,
                             Min = 30.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -393,6 +413,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 2,
                             Max = 50.0,
                             Min = 35.0,
+                            PenaltyWeight = 1.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -403,6 +424,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 650.0,
                             Min = 350.0,
+                            PenaltyWeight = 0.20000000000000001,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -413,6 +435,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 2.0,
                             Min = 1.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -423,6 +446,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 1.0,
                             Min = 0.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -433,6 +457,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 15.0,
                             Min = 5.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -443,6 +468,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 30.0,
                             Min = 5.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -453,6 +479,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 55.0,
                             Min = 20.0,
+                            PenaltyWeight = 0.80000000000000004,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -463,6 +490,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 1.6499999999999999,
                             Min = 1.0,
+                            PenaltyWeight = 0.20000000000000001,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -473,6 +501,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 95.0,
                             Min = 40.0,
+                            PenaltyWeight = 0.25,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -483,6 +512,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 3,
                             Max = 65.0,
                             Min = 50.0,
+                            PenaltyWeight = 0.10000000000000001,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -493,6 +523,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 1350.0,
                             Min = 650.0,
+                            PenaltyWeight = 0.14999999999999999,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -503,6 +534,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 5.0,
                             Min = 2.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -513,6 +545,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 3.0,
                             Min = 1.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -523,6 +556,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 30.0,
                             Min = 15.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -533,6 +567,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 75.0,
                             Min = 30.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -543,6 +578,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 100.0,
                             Min = 55.0,
+                            PenaltyWeight = 0.80000000000000004,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -553,6 +589,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 2.1000000000000001,
                             Min = 1.6499999999999999,
+                            PenaltyWeight = 0.10000000000000001,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -563,6 +600,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 175.0,
                             Min = 80.0,
+                            PenaltyWeight = 0.14999999999999999,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -573,6 +611,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 5,
                             Max = 80.0,
                             Min = 65.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -583,6 +622,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 1100.0,
                             Min = 650.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -593,6 +633,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 5.0,
                             Min = 2.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -603,6 +644,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 1.0,
                             Min = 0.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -613,6 +655,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 30.0,
                             Min = 20.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -623,6 +666,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 100.0,
                             Min = 50.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -633,6 +677,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 80.0,
                             Min = 50.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -643,6 +688,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 1.75,
                             Min = 1.3999999999999999,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -653,6 +699,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 125.0,
                             Min = 80.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
@@ -663,6 +710,7 @@ namespace Tetrio.Overlay.Database.Migrations
                             Difficulty = 8,
                             Max = 80.0,
                             Min = 60.0,
+                            PenaltyWeight = 0.0,
                             UpdatedAt = new DateTime(2020, 3, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });

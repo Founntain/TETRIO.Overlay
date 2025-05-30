@@ -15,7 +15,7 @@ public class ChallengeGenerator
 
         var seed = int.Parse(_day.ToString("yyyyMMdd"));
 
-        _random = new(seed);
+        _random = new();
     }
 
     public async Task<List<Challenge>> GenerateChallengesForDay(TetrioContext context)
@@ -158,16 +158,16 @@ public class ChallengeGenerator
         var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
 
         var mods = await GenerateModsForChallenge(context, difficulty);
-
+        
         var penalty = await CalculatePenalty(context, mods);
 
-        double hPenaltyWeight = .2d;
-        height -= (int) (height * ((1d - penalty) * hPenaltyWeight));
+        var heightCondition = await GetConditionPenaltyWeight(context, difficulty, ConditionType.Height);
+        height -= (int) (height * ((1d - penalty) * heightCondition));
 
         challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
 
         var tries = 0;
-
+        
         while (challengeConditions.Count == 1)
         {
             var conditions = GetRandomConditions(mods);
@@ -190,31 +190,22 @@ public class ChallengeGenerator
 
                 if (value > 0)
                 {
-                    // Apply penalty based on mods and round it if it's needed
-                    if (condition is ConditionType.Apm or ConditionType.Vs)
-                        Console.WriteLine(value);
+                    // Apply penalty based on mods and round them properly
                     if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs or ConditionType.Finesse)
                     {
-                        var mult = 1d;
-                        switch (condition)
-                        {
-                            case ConditionType.Pps:
-                                mult = .2d;
-                                break;
-                            case ConditionType.Vs:
-                                mult = .25d;
-                                break;
-                        }
-                        if (condition is not ConditionType.Finesse)
-                            value -= value * (1d - penalty) * mult;
+                        var mult = await GetConditionPenaltyWeight(context, difficulty, condition);
+                        
+                        value -= value * (1d - penalty) * mult;
+                        
                         value = Math.Round(value, 2);
                     }
                     else
                     {
-                        //Just round the value fully if it should be a whole number. Those also mostly don't need nerfs.
-                        //ZhunGamer did said though that challenges with gravity could use a spin count nerf.
+                        // Just round the value fully if it should be a whole number. Those also mostly don't need nerfs.
+                        // ZhunGamer did say though that challenges with gravity could use a spin count nerf.
                         value = Math.Round(value);
                     }
+                    
                     challengeConditions.Add(new ChallengeCondition
                     {
                         Type = condition,
@@ -229,11 +220,6 @@ public class ChallengeGenerator
             if (tries > 100) break;
         }
         
-        // Console.WriteLine(difficulty);
-        // Console.WriteLine(mods);
-        // foreach (var condition in challengeConditions)
-        //     Console.WriteLine($"{condition.Type}: {condition.Value}");
-
         return new Challenge
         {
             Date = DateOnly.FromDateTime(_day.Date),
@@ -247,7 +233,7 @@ public class ChallengeGenerator
     {
         var modCountProbability = new byte[1000];
         var selectedMods = new List<Mod>();
-        var mods = await context.Mods.ToListAsync();
+        var mods = await context.Mods.AsNoTracking().ToListAsync();
 
         int maxMods;
 
@@ -286,7 +272,7 @@ public class ChallengeGenerator
         {
             var mod = mods[rand.Next(mods.Count)];
 
-            // If the difficulty is lower than the allowed mod we can not add it
+                // If the difficulty is lower than the allowed mod we can not add it
             if(difficulty < mod.MinDifficulty) continue;
             // If the mod is already in the list we skip it again
             if (selectedMods.Contains(mod)) continue;
@@ -311,6 +297,19 @@ public class ChallengeGenerator
         return string.Join(" ", selectedMods.Select(x => x.Name));
     }
 
+    private async Task<double> GetConditionPenaltyWeight(TetrioContext context, Difficulty difficulty, ConditionType conditionType)
+    {
+        var conditions = await context.ConditionRanges.AsNoTracking().ToListAsync();
+        var condition = conditions.FirstOrDefault(x => x.ConditionType == conditionType);
+        
+        var res = condition?.PenaltyWeight;
+        
+        if (res == null)
+            res = 1.0d;
+        
+        return res.Value;
+    }
+    
     private async Task<double> CalculatePenalty(TetrioContext context, string generatedMods)
     {
         var scale = await context.Mods.AsNoTracking().ToListAsync();
