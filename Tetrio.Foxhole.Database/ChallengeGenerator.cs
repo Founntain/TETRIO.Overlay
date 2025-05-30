@@ -158,29 +158,16 @@ public class ChallengeGenerator
         var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
 
         var mods = await GenerateModsForChallenge(context, difficulty);
+        
+        var penalty = await CalculatePenalty(context, mods);
 
-        var heightScaling = 1d;
-
-        foreach (var mod in mods.Split(" "))
-        {
-            if (mod == "nohold")
-            {
-                if(heightScaling > 0.9) heightScaling = 0.9;
-            }
-
-            if (difficulty != Difficulty.Expert && mod == "expert")
-            {
-                if (heightScaling > 0.75) heightScaling = 0.75;
-            }
-        }
-
-
-        height = (int) Math.Round(height * heightScaling, 0);
+        var heightCondition = await GetConditionPenaltyWeight(context, difficulty, ConditionType.Height);
+        height -= (int) (height * ((1d - penalty) * heightCondition));
 
         challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
 
         var tries = 0;
-
+        
         while (challengeConditions.Count == 1)
         {
             var conditions = GetRandomConditions(mods);
@@ -203,6 +190,22 @@ public class ChallengeGenerator
 
                 if (value > 0)
                 {
+                    // Apply penalty based on mods and round them properly
+                    if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs or ConditionType.Finesse)
+                    {
+                        var mult = await GetConditionPenaltyWeight(context, difficulty, condition);
+                        
+                        value -= value * (1d - penalty) * mult;
+                        
+                        value = Math.Round(value, 2);
+                    }
+                    else
+                    {
+                        // Just round the value fully if it should be a whole number. Those also mostly don't need nerfs.
+                        // ZhunGamer did say though that challenges with gravity could use a spin count nerf.
+                        value = Math.Round(value);
+                    }
+                    
                     challengeConditions.Add(new ChallengeCondition
                     {
                         Type = condition,
@@ -216,7 +219,7 @@ public class ChallengeGenerator
             // If we dont get a valid extra conditions after 100 tries we just go with height
             if (tries > 100) break;
         }
-
+        
         return new Challenge
         {
             Date = DateOnly.FromDateTime(_day.Date),
@@ -230,7 +233,7 @@ public class ChallengeGenerator
     {
         var modCountProbability = new byte[1000];
         var selectedMods = new List<Mod>();
-        var mods = await context.Mods.ToListAsync();
+        var mods = await context.Mods.AsNoTracking().ToListAsync();
 
         int maxMods;
 
@@ -269,7 +272,7 @@ public class ChallengeGenerator
         {
             var mod = mods[rand.Next(mods.Count)];
 
-            // If the difficulty is lower than the allowed mod we can not add it
+                // If the difficulty is lower than the allowed mod we can not add it
             if(difficulty < mod.MinDifficulty) continue;
             // If the mod is already in the list we skip it again
             if (selectedMods.Contains(mod)) continue;
@@ -292,6 +295,37 @@ public class ChallengeGenerator
         }
 
         return string.Join(" ", selectedMods.Select(x => x.Name));
+    }
+
+    private async Task<double> GetConditionPenaltyWeight(TetrioContext context, Difficulty difficulty, ConditionType conditionType)
+    {
+        var conditions = await context.ConditionRanges.AsNoTracking().ToListAsync();
+        var condition = conditions.FirstOrDefault(x => x.ConditionType == conditionType);
+        
+        var res = condition?.PenaltyWeight;
+        
+        if (res == null)
+            res = 1.0d;
+        
+        return res.Value;
+    }
+    
+    private async Task<double> CalculatePenalty(TetrioContext context, string generatedMods)
+    {
+        var scale = await context.Mods.AsNoTracking().ToListAsync();
+        var mods = generatedMods.Split(" ");
+        var penalty = 1d;
+
+        foreach(var mod in mods)
+        {
+            var s = scale.FirstOrDefault(x => x.Name == mod)?.Scaling;
+
+            if (s == null) continue;
+
+            penalty *= s.Value;
+        }
+
+        return penalty;
     }
 
     private static async Task<(double min, double max)> GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)

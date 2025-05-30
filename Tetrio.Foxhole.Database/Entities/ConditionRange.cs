@@ -8,4 +8,5 @@ public class ConditionRange : BaseEntity
     public Difficulty Difficulty { get; set; }
     public double Min { get; set; }
     public double Max { get; set; }
+    public double PenaltyWeight { get; set; }
 }
