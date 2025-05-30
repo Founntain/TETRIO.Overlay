@@ -15,7 +15,7 @@ public class ChallengeGenerator
 
         var seed = int.Parse(_day.ToString("yyyyMMdd"));
 
-        _random = new();
+        _random = new(seed);
     }
 
     public async Task<List<Challenge>> GenerateChallengesForDay(TetrioContext context)
