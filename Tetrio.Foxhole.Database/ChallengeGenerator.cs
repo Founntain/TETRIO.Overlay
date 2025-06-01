@@ -18,6 +18,13 @@ public class ChallengeGenerator
         _random = new(seed);
     }
 
+    public ChallengeGenerator(int seed)
+    {
+        _day = DateTime.UtcNow;
+
+        _random = new(seed);
+    }
+
     public async Task<List<Challenge>> GenerateChallengesForDay(TetrioContext context)
     {
         List<Challenge> challenges =
@@ -149,7 +156,7 @@ public class ChallengeGenerator
         return selectedMod.Value;
     }
 
-    private async Task<Challenge> GenerateChallenge(Difficulty difficulty, TetrioContext context)
+    public async Task<Challenge> GenerateChallenge(Difficulty difficulty, TetrioContext context)
     {
         var challengeConditions = new List<ChallengeCondition>();
 
@@ -158,18 +165,23 @@ public class ChallengeGenerator
         var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
 
         var mods = await GenerateModsForChallenge(context, difficulty);
-        
+
         var penalty = await CalculatePenalty(context, mods);
 
         var heightCondition = await GetConditionPenaltyWeight(context, difficulty, ConditionType.Height);
-        height -= (int) (height * ((1d - penalty) * heightCondition));
+        height -= (int)(height * ((1d - penalty) * heightCondition));
 
-        challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
+        challengeConditions.Add(new() { Type = ConditionType.Height, Value = height });
 
         var tries = 0;
-        
+
         while (challengeConditions.Count == 1)
         {
+            tries++;
+
+            // If we dont get a valid extra conditions after 100 tries we just go with height
+            if (tries > 100) break;
+
             var conditions = GetRandomConditions(mods);
 
             foreach (var condition in conditions)
@@ -193,19 +205,19 @@ public class ChallengeGenerator
                     // Apply penalty based on mods and round them properly
                     if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs or ConditionType.Finesse)
                     {
-                        var mult = await GetConditionPenaltyWeight(context, difficulty, condition);
-                        
-                        value -= value * (1d - penalty) * mult;
-                        
+                        var multiplier = await GetConditionPenaltyWeight(context, difficulty, condition);
+
+                        value -= value * (1d - penalty) * multiplier;
+
                         value = Math.Round(value, 2);
                     }
                     else
                     {
                         // Just round the value fully if it should be a whole number. Those also mostly don't need nerfs.
                         // ZhunGamer did say though that challenges with gravity could use a spin count nerf.
-                        value = Math.Round(value);
+                        value = Math.Round(value, 0);
                     }
-                    
+
                     challengeConditions.Add(new ChallengeCondition
                     {
                         Type = condition,
@@ -213,13 +225,8 @@ public class ChallengeGenerator
                     });
                 }
             }
-
-            tries++;
-
-            // If we dont get a valid extra conditions after 100 tries we just go with height
-            if (tries > 100) break;
         }
-        
+
         return new Challenge
         {
             Date = DateOnly.FromDateTime(_day.Date),
@@ -272,10 +279,18 @@ public class ChallengeGenerator
         {
             var mod = mods[rand.Next(mods.Count)];
 
-                // If the difficulty is lower than the allowed mod we can not add it
+            tries++;
+
+            // If we don't get a valid extra conditions after 150 tries we just go with no mods at all or what we have already
+            if (tries > 150)
+                break;
+
+            // If the difficulty is lower than the allowed mod we can not add it
             if(difficulty < mod.MinDifficulty) continue;
+
             // If the mod is already in the list we skip it again
             if (selectedMods.Contains(mod)) continue;
+
             // If adding the mod exceeds the weight limit, skip it
             if (totalWeight + mod.Weight > maxWeight) continue;
 
@@ -286,12 +301,6 @@ public class ChallengeGenerator
 
             if (selectedMods.Count >= modCount)
                 break;
-
-            tries++;
-
-            // If we don't get a valid extra conditions after 150 tries we just go with no mods at all or what we have already
-            if (tries > 150)
-                break;
         }
 
         return string.Join(" ", selectedMods.Select(x => x.Name));
@@ -299,17 +308,16 @@ public class ChallengeGenerator
 
     private async Task<double> GetConditionPenaltyWeight(TetrioContext context, Difficulty difficulty, ConditionType conditionType)
     {
-        var conditions = await context.ConditionRanges.AsNoTracking().ToListAsync();
-        var condition = conditions.FirstOrDefault(x => x.ConditionType == conditionType);
-        
+        var condition = await context.ConditionRanges.AsNoTracking().FirstOrDefaultAsync(x => x.ConditionType == conditionType && x.Difficulty == difficulty);
+
         var res = condition?.PenaltyWeight;
-        
+
         if (res == null)
-            res = 1.0d;
-        
+            return 1.0d;
+
         return res.Value;
     }
-    
+
     private async Task<double> CalculatePenalty(TetrioContext context, string generatedMods)
     {
         var scale = await context.Mods.AsNoTracking().ToListAsync();
@@ -330,7 +338,7 @@ public class ChallengeGenerator
 
     private static async Task<(double min, double max)> GetRangeForConditionAndDifficulty(TetrioContext context, ConditionType condition, Difficulty difficulty)
     {
-        var range = await context.ConditionRanges.FirstOrDefaultAsync(x => x.ConditionType == condition && x.Difficulty == difficulty);
+        var range = await context.ConditionRanges.AsNoTracking().FirstOrDefaultAsync(x => x.ConditionType == condition && x.Difficulty == difficulty);
 
         if(range == null)
             return (0, 0);
