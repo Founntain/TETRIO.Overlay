@@ -309,6 +309,8 @@ public class ChallengeGenerator
         var allConditions = Enum.GetValues<ConditionType>().ToList();
 
         allConditions.RemoveAt(0);
+        // Removed finesse for challenge generator because of popular request
+        allConditions.Remove(ConditionType.Finesse);
 
         // If no hold was selected as mod, remove all clears from the condition roll
         if(mods.Contains("nohold")) allConditions.Remove(ConditionType.AllClears);
