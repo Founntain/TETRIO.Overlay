@@ -7,7 +7,7 @@ using Tetrio.Foxhole.Network.Api.Tetrio;
 using Tetrio.Foxhole.Overlay.Controllers;
 using Tetrio.Zenith.DailyChallenge.Controllers;
 
-Console.WriteLine("Starting Tetrio.Foxhole.Backend Backend...");
+Console.WriteLine("Starting Tetrio.Foxhole.Backend.Runtime...");
 
 var builder = WebApplication.CreateBuilder(args);
 

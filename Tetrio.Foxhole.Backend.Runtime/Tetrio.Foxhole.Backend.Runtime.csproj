@@ -6,7 +6,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>TetraLeague.Overlay</RootNamespace>
-        <PackageId>Tetrio.Foxhole.Backend</PackageId>
+        <PackageId>Tetrio.Foxhole.Backend.Runtime</PackageId>
+        <AssemblyName>Tetrio.Foxhole.Backend.Runtime</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>
