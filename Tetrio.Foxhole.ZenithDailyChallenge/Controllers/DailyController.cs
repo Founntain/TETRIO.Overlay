@@ -256,4 +256,36 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         return Ok(recentContributions);
     }
+
+#if DEBUG
+    [HttpGet]
+    [Route("generateTestChallenges")]
+    public async Task<IActionResult> GenerateTestChallenges(Difficulty dif, int amount)
+    {
+        if (amount > 1000) return BadRequest("Amount is not allowed to be bigger than 1000");
+
+        var random = new Random();
+
+        var c = new ChallengeGenerator(random.Next(1, 100000000));
+
+        var challenges = new List<Challenge>();
+
+        for (int i = 0; i < 1000; i++)
+        {
+            challenges.Add(await c.GenerateChallenge(dif, context));
+        }
+
+        var a = challenges.Select(x => new
+        {
+            c = x.Conditions.Select(y => new
+            {
+                t =y.Type.ToString(),
+                v = y.Value
+            }),
+            m = x.Mods
+        }).ToArray();
+
+        return Ok(a);
+    }
+#endif
 }
