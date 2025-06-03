@@ -112,6 +112,8 @@ public class ChallengeGenerator
         // If after 300 tries we still don't find a mod that is different from yesterday's one, we just use the one rolled last
         while (tries <= 300)
         {
+            tries++;
+
             var mod = _random.Next(0, 8);
 
             switch (mod)
@@ -139,8 +141,6 @@ public class ChallengeGenerator
 
             // We generate mods until we find a reverse mod that is different from yesterdays one
             if (selectedMod.Value.Item1 != yesterdaysReverseMod) break;
-
-            tries++;
         }
 
         // Just as a fallback, if selectedMod is still null, we just use the default case.
@@ -183,6 +183,11 @@ public class ChallengeGenerator
 
         while (challengeConditions.Count == 1)
         {
+            tries++;
+
+            // If we dont get a valid extra conditions after 100 tries we just go with height
+            if (tries > 100) break;
+
             var conditions = GetRandomConditions(mods);
 
             foreach (var condition in conditions)
@@ -210,11 +215,6 @@ public class ChallengeGenerator
                     });
                 }
             }
-
-            tries++;
-
-            // If we dont get a valid extra conditions after 100 tries we just go with height
-            if (tries > 100) break;
         }
 
         return new Challenge
@@ -267,6 +267,12 @@ public class ChallengeGenerator
 
         while (selectedMods.Count < modCount && totalWeight < maxWeight)
         {
+            tries++;
+
+            // If we don't get a valid extra conditions after 150 tries we just go with no mods at all or what we have already
+            if (tries > 150)
+                break;
+
             var mod = mods[rand.Next(mods.Count)];
 
             // If the difficulty is lower than the allowed mod we can not add it
@@ -282,12 +288,6 @@ public class ChallengeGenerator
             totalWeight += mod.Weight;
 
             if (selectedMods.Count >= modCount)
-                break;
-
-            tries++;
-
-            // If we don't get a valid extra conditions after 150 tries we just go with no mods at all or what we have already
-            if (tries > 150)
                 break;
         }
 
