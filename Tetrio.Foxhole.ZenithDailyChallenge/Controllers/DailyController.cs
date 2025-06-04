@@ -5,7 +5,6 @@ using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
-using Tetrio.Zenith.DailyChallenge.Logic;
 
 namespace Tetrio.Zenith.DailyChallenge.Controllers;
 
@@ -148,7 +147,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
     [HttpGet]
     [Route("getLeaderboard")]
-    public async Task<IActionResult> GetLeaderboard(int page = 1, int pageSize = 100)
+    public async Task<IActionResult> GetLeaderboard(int page = 1, int pageSize = 30)
     {
         var users = await context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).Select(x => new
             {
@@ -181,6 +180,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                 .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
                 .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
 
+        var validUserCount = await context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).CountAsync();
+
         var leaderboardData = users.Select(x => new
             {
                 Username = x.User.Name,
@@ -195,7 +196,11 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
               .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted))
               .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted)).ToArray();
 
-        return Ok(leaderboardData);
+        return Ok(new
+        {
+            Leaderboard = leaderboardData,
+            TotalUsers = validUserCount,
+        });
     }
 
     [HttpGet]

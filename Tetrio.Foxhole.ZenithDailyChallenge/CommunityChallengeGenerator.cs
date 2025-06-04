@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 
-namespace Tetrio.Foxhole.Database;
+namespace Tetrio.Zenith.DailyChallenge;
 
 public class CommunityChallengeGenerator
 {

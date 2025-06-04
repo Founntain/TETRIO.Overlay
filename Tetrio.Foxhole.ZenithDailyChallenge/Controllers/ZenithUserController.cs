@@ -111,6 +111,25 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             totalChallengesCompleted += masteryCompletions.AllSpin;
         }
 
+        var scores = await context.Users.AsNoTracking().Where(x => x.Username == username).Select(x => new
+        {
+
+            NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
+            ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
+            ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
+            MasteryScore = x.MasteryAttempts.Select(y => new
+            {
+                MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
+                                                (y.NoHoldCompleted ? 1 : 0) +
+                                                (y.MessyCompleted ? 1 : 0) +
+                                                (y.GravityCompleted ? 1 : 0) +
+                                                (y.VolatileCompleted ? 1 : 0) +
+                                                (y.DoubleHoleCompleted ? 1 : 0) +
+                                                (y.InvisibleCompleted ? 1 : 0) +
+                                                (y.AllSpinCompleted ? 1 : 0)
+
+            }).Sum(y => y.MasteryChallengeModsCompleted)
+        }).FirstOrDefaultAsync();
 
         return Ok(new
         {
@@ -123,6 +142,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             DaysParticipated = daysParticipated,
             Altitudes = altitudes,
             MasteryCompletions = masteryCompletions,
+            Score = scores == null ? 0 : Math.Round(scores.NormalScore + scores.ExpertScore + ( scores.MasteryScore * 2 )  + (scores.ReverseScore / 2d), 0),
             SplitAverages = new
             {
                 Hotel = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Hotel ?? 0).ToString(@"mm\:ss\.fff"),

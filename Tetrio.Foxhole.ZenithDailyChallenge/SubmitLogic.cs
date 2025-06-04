@@ -5,7 +5,7 @@ using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Network.Api.Tetrio;
 using Tetrio.Foxhole.Network.Api.Tetrio.Models;
 
-namespace Tetrio.Zenith.DailyChallenge.Logic;
+namespace Tetrio.Zenith.DailyChallenge;
 
 public class SubmitLogic
 {
