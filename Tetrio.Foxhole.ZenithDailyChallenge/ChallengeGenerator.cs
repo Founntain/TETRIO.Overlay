@@ -239,6 +239,8 @@ public class ChallengeGenerator
         var selectedMods = new List<Mod>();
         var mods = await context.Mods.ToListAsync();
 
+        mods = mods.OrderBy(_ => _random.NextInt64()).ToList();
+
         int maxMods;
 
         switch (difficulty)
@@ -272,6 +274,18 @@ public class ChallengeGenerator
 
         var tries = 0;
 
+        var pastDaysMods = new List<string>();
+
+        if (difficulty == Difficulty.Hard)
+        {
+            pastDaysMods = (await context.Challenges
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.Date)
+                    .Where(x => x.Points == (byte)Difficulty.Hard)
+                    .Take(1).ToArrayAsync())
+                .SelectMany(x => x.Mods.Split(" ")).ToList();
+        }
+
         while (selectedMods.Count < modCount && totalWeight < maxWeight)
         {
             tries++;
@@ -286,6 +300,8 @@ public class ChallengeGenerator
             if(difficulty < mod.MinDifficulty) continue;
             // If the mod is already in the list we skip it again
             if (selectedMods.Contains(mod)) continue;
+            // If the mod was part of the past 3 days we skip it
+            if(pastDaysMods.Count > 0 && pastDaysMods.Contains(mod.Name)) continue;
             // If adding the mod exceeds the weight limit, skip it
             if (totalWeight + mod.Weight > maxWeight) continue;
 

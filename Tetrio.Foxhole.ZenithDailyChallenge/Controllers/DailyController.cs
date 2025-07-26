@@ -262,6 +262,80 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         return Ok(recentContributions);
     }
 
+    [HttpGet]
+    [Route("getServerStatistics")]
+    public async Task<IActionResult> GetServerStatistics()
+    {
+        var userCount = await context.Users.AsNoTracking().CountAsync();
+        var userCountWithAtLeastOneScore = await context.Users.AsNoTracking().CountAsync(x => x.MasteryAttempts.Count > 0 || x.Challenges.Count > 0);
+
+        var totalScore = context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).Select(x => new
+        {
+            User = new
+            {
+                Name = x.Username
+            },
+            NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
+            ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
+            ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
+            MasteryScore = x.MasteryAttempts.Select(y => new
+            {
+                MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
+                                                (y.NoHoldCompleted ? 1 : 0) +
+                                                (y.MessyCompleted ? 1 : 0) +
+                                                (y.GravityCompleted ? 1 : 0) +
+                                                (y.VolatileCompleted ? 1 : 0) +
+                                                (y.DoubleHoleCompleted ? 1 : 0) +
+                                                (y.InvisibleCompleted ? 1 : 0) +
+                                                (y.AllSpinCompleted ? 1 : 0)
+
+            }).Sum(y => y.MasteryChallengeModsCompleted * 2)
+        });
+
+        var reverseCount = await context.Users.AsNoTracking().Select(x => x.Challenges).Select(x => new{
+            ReverseChallengesCompleted = x.Count(y => y.Points == (byte)Difficulty.Reverse)
+        }).SumAsync(x => x.ReverseChallengesCompleted);
+
+        var totalMasteryScore = await context.MasteryAttempts.AsNoTracking().Select(y => new
+        {
+            MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
+                                            (y.NoHoldCompleted ? 1 : 0) +
+                                            (y.MessyCompleted ? 1 : 0) +
+                                            (y.GravityCompleted ? 1 : 0) +
+                                            (y.VolatileCompleted ? 1 : 0) +
+                                            (y.DoubleHoleCompleted ? 1 : 0) +
+                                            (y.InvisibleCompleted ? 1 : 0) +
+                                            (y.AllSpinCompleted ? 1 : 0)
+
+        }).SumAsync(y => y.MasteryChallengeModsCompleted) * 2;
+
+        var altitudes = await context.Runs.AsNoTracking().GroupBy(_ => true).Select(x => new
+        {
+            Total = Math.Round(x.Sum(y => y.Altitude), 2),
+            Reverse = Math.Round(x.Where(y => y.Mods.Contains("_reversed")).Sum(y => y.Altitude), 2),
+            NoMod = Math.Round(x.Where(y => y.Mods.Length == 0).Sum(y => y.Altitude), 2),
+            Expert = Math.Round(x.Where(y => y.Mods.Contains("expert")).Sum(y => y.Altitude), 2),
+            NoHold = Math.Round(x.Where(y => y.Mods.Contains("nohold")).Sum(y => y.Altitude), 2),
+            Messy = Math.Round(x.Where(y => y.Mods.Contains("messy")).Sum(y => y.Altitude), 2),
+            Gravity = Math.Round(x.Where(y => y.Mods.Contains("gravity")).Sum(y => y.Altitude), 2),
+            Volatile = Math.Round(x.Where(y => y.Mods.Contains("volatile")).Sum(y => y.Altitude), 2),
+            DoubleHole = Math.Round(x.Where(y => y.Mods.Contains("doublehole")).Sum(y => y.Altitude), 2),
+            Invisible = Math.Round(x.Where(y => y.Mods.Contains("invisible")).Sum(y => y.Altitude), 2),
+            AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2),
+        }).FirstOrDefaultAsync();
+
+        return Ok(new
+        {
+            TotalUsers = userCount,
+            TotalScore = await totalScore.SumAsync(x => x.NormalScore + x.ExpertScore + (x.ReverseScore / 2) + x.MasteryScore),
+            Score = await totalScore.SumAsync(x => x.NormalScore + x.ExpertScore + (x.ReverseScore / 2)),
+            ReverseCount = reverseCount,
+            MasteryScore = totalMasteryScore,
+            RankedUsers = userCountWithAtLeastOneScore,
+            Altitudes = altitudes,
+        });
+    }
+
 #if DEBUG
     [HttpGet]
     [Route("generateTestChallenges")]
