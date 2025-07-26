@@ -66,6 +66,7 @@ public class SubmitLogic
         foreach (var run in totalRuns)
         {
             if (existingTetrioIds.Any(x => x == run.Id)) continue;
+            if (string.IsNullOrWhiteSpace(run.Id)) continue;
 
             var stats = run.Results.Stats;
             var clears = stats.Clears;
@@ -226,7 +227,7 @@ public class SubmitLogic
             CommunityChallenge = communityChallenge,
         };
 
-        var validRuns = runs.Where(x => x.TotalTime > 60000 && x.PlayedAt >= communityChallenge.StartDate).ToList();
+        var validRuns = runs.Where(x => x.TotalTime > 60000 && x.PlayedAt >= communityChallenge.StartDate && !string.IsNullOrWhiteSpace(x.TetrioId)).ToList();
 
         runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns, clears);
 
@@ -242,6 +243,8 @@ public class SubmitLogic
         // If Value is equal or bigger than TargetValue, set finished to true
         communityChallenge.Value += contribution.Amount;
         communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
+
+        Console.WriteLine($"[CC] Added {contribution.Amount} from {_user.Username}. With runs: {string.Join(' ', runs.Select(x => x.TetrioId))}");
 
         return contribution;
     }
