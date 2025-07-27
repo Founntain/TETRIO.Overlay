@@ -35,8 +35,16 @@ public class SubmitLogic
 
         if (challenges.Count == 0) return (200, "No daily challenges found, submission canceled");
 
+        var summary = await Api.GetTetraLeagueStats(_user.Username);
         var records = await Api.GetRecentZenithRecords(_user.Username);
         var expertRecords = await Api.GetRecentZenithRecords(_user.Username, true);
+
+        if (summary != null)
+        {
+            _user.TetrioRank = summary?.Rank;
+
+            await _context.SaveChangesAsync();
+        }
 
         if (records == null || expertRecords == null) return (200, "Could not fetch your recent records, please try again later");
 

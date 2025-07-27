@@ -153,7 +153,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             {
                 User = new
                 {
-                    Name = x.Username
+                    Name = x.Username,
+                    Rank = x.TetrioRank ?? "z"
                 },
                 NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
                 ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
@@ -185,6 +186,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         var leaderboardData = users.Select(x => new
             {
                 Username = x.User.Name,
+                Rank = x.User.Rank,
                 Score = Math.Round(x.NormalScore + x.ExpertScore + ( x.MasteryScore * 2 )  + (x.ReverseScore / 2d), 0),
                 EasyChallengesCompleted = x.EasyChallenges,
                 NormalChallengesCompleted = x.NormalChallenges,

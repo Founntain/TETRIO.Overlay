@@ -10,6 +10,8 @@ public class User : BaseEntity
 
     public bool IsRestricted { get; set; } = false;
 
+    public string? TetrioRank { get; set; }
+
     public string DiscordId { get; set; }
     public string? AccessToken { get; set; }
     public string? RefreshToken { get; set; }

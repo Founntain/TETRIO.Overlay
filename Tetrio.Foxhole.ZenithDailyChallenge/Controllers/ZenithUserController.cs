@@ -133,7 +133,13 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         return Ok(new
         {
-            UserInfo = userInfo,
+            UserInfo = new
+            {
+                Username = userInfo.Username,
+                Avatar = userInfo.Avatar,
+                Banner = userInfo.Banner,
+                TetrioRank = user.TetrioRank ?? "z",
+            },
             TetrioId = user.TetrioId,
             Runs = runCount,
             Splits = splitsCount,
