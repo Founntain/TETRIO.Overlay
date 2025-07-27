@@ -69,13 +69,14 @@ public class SubmitLogic
             if (string.IsNullOrWhiteSpace(run.Id)) continue;
 
             var stats = run.Results.Stats;
-            var clears = stats.Clears;
-            everyClear.Add(clears);
 
             var processResult = await ProcessRun(challenges, runValidator, run);
 
             // Run processing was aborted or canceled and therefore skipped
             if(processResult.Run == null) continue;
+
+            var clears = stats.Clears;
+            everyClear.Add(clears);
 
             if(processResult.Splits != null)
                 splitsToAdd.Add(processResult.Splits);
@@ -186,6 +187,7 @@ public class SubmitLogic
             Pps = record.Results.Aggregatestats.Pps ?? 0,
             Vs = record.Results.Aggregatestats.Vsscore ?? 0,
             Finesse = finesse,
+            Back2Back = (ushort?) stats.Topbtb ?? 0,
             SpeedrunSeen = stats.Zenith.SpeedrunSeen ?? false,
             SpeedrunCompleted = stats.Zenith.Speedrun ?? false,
             TotalTime = (int) Math.Round(stats.Finaltime ?? 0, 0)
@@ -227,7 +229,9 @@ public class SubmitLogic
             CommunityChallenge = communityChallenge,
         };
 
-        var validRuns = runs.Where(x => x.TotalTime > 60000 && x.PlayedAt >= communityChallenge.StartDate && !string.IsNullOrWhiteSpace(x.TetrioId)).ToList();
+        var validRuns = runs.Where(x => x.TotalTime > 60000 && x.PlayedAt >= communityChallenge.StartDate).ToList();
+
+        if(validRuns.Count == 0) return null;
 
         runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns, clears);
 

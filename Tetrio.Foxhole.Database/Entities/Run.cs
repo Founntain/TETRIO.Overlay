@@ -18,12 +18,11 @@ public class Run : BaseEntity
     public bool SpeedrunCompleted { get; set; } = false;
 
     //Other Stats
-    // TODO: Condition Ideas
-    // APM, PPS, Finesse, maybe Time?
     public double Apm { get; set; } = 0;
     public double Pps { get; set; } = 0;
     public double Vs { get; set; } = 0;
     public double Finesse { get; set; } = 0;
+    public ushort Back2Back { get; set; } = 0;
 
     public int TotalTime { get; set; } = 0;
 

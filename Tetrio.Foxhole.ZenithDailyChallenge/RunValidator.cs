@@ -62,6 +62,9 @@ public class RunValidator
                             case ConditionType.Finesse:
                                 isChallengeCompleted &= run.Finesse >= condition.Value;
                                 break;
+                            case ConditionType.BackToBack:
+                                isChallengeCompleted &= run.Back2Back >= condition.Value;
+                                break;
                             default:
                                 continue;
                         }
@@ -118,6 +121,9 @@ public class RunValidator
             case ConditionType.Finesse:
                 contribution.Amount = run.Finesse;
                 break;
+            case ConditionType.BackToBack:
+                contribution.Amount = run.Back2Back;
+                break;
             default:
                 // Do nothing
                 break;
@@ -144,6 +150,7 @@ public class RunValidator
                 break;
             case ConditionType.Spins:
                 var totalSpins = runs.Sum(x => x.Spins);
+
                 if (everyClear?.Count > 0)
                     communityContribution.Amount = CalculateSpinsFromClears(totalSpins, everyClear);
                 else
@@ -159,7 +166,10 @@ public class RunValidator
                 communityContribution.Amount = runs.Sum(x => x.Vs);
                 break;
             case ConditionType.Finesse:
-                communityContribution.Amount =runs.Sum(x => x.Finesse);
+                communityContribution.Amount = runs.Sum(x => x.Finesse);
+                break;
+            case ConditionType.BackToBack:
+                communityContribution.Amount = runs.Sum(x => x.Back2Back);
                 break;
             default:
                 // Do nothing
@@ -254,6 +264,9 @@ public class RunValidator
                         break;
                     case ConditionType.Finesse:
                         isChallengeCompleted &= run.Finesse >= condition.Value;
+                        break;
+                    case ConditionType.BackToBack:
+                        isChallengeCompleted &= run.Back2Back >= condition.Value;
                         break;
                     default:
                         continue;

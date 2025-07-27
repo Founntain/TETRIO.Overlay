@@ -194,6 +194,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     Pps = Math.Round(x.Pps, 2),
                     Vs = Math.Round(x.Vs, 2),
                     Finesse = Math.Round(x.Finesse,2),
+                    Back2Back = x.Back2Back,
                     SpeedrunSeen = x.SpeedrunSeen,
                     SpeedrunCompleted = x.SpeedrunCompleted
                 }).ToArrayAsync();

@@ -10,5 +10,6 @@ public enum ConditionType
     Apm,
     Pps,
     Vs,
-    Finesse
+    Finesse,
+    BackToBack
 }

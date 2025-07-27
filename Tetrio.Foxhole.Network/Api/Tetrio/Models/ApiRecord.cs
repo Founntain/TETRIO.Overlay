@@ -145,7 +145,7 @@ public class Results
 
     [JsonPropertyName("stats")] public Stats Stats { get; set; }
 
-    [JsonPropertyName("gameoverreason")] public string Gameoverreason { get; set; }
+    [JsonPropertyName("gameoverreason")] public string GameOverReason { get; set; }
 }
 
 public class Stats
