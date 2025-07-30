@@ -366,8 +366,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
 
-        if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
-        if (user.IsRestricted) return BadRequest("No bad person allowed, no submitting for you, ask founntain to unrestrict you");
+        if (user == null) return Ok($"User '{username}' not found");
 
         var utc = DateTime.UtcNow;
 
@@ -461,7 +460,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
 
-        if(user == null) return NotFound();
+        if(user == null) return NotFound($"User '{username}' not found");
 
         var contributions = await context.CommunityContributions
             .AsNoTracking()

@@ -36,6 +36,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                 Value = y.Value,
                 Type = y.Type,
             }).ToHashSet(),
+            Completions = x.Users.Count,
             Date = x.Date,
             Points = x.Points,
             Mods = x.Mods,

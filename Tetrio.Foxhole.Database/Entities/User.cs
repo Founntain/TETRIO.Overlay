@@ -5,7 +5,7 @@ public class User : BaseEntity
     public string TetrioId { get; set; }
     public string Username { get; set; }
 
-    public Guid SessionToken { get; set; }
+    public Guid? SessionToken { get; set; }
     public DateTime? LastSubmission { get; set; }
 
     public bool IsRestricted { get; set; } = false;

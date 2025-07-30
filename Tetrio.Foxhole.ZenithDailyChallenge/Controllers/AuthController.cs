@@ -220,4 +220,36 @@ public class AuthController : MinBaseController
             Banner = $"https://tetr.io/user-content/banners/{userInfo.Id}.jpg?rv={userInfo.Banner}",
         });
     }
+
+    [HttpPost]
+    [Route("logout")]
+    public async Task<ActionResult> Logout()
+    {
+        var authResult = await CheckIfAuthorized(_context);
+
+        if (!authResult.IsAuthorized)
+        {
+            ResetCookies();
+
+            return StatusCode(authResult.StatusCode, $"{authResult.StatusCode} - Unauthorized. Reason: {authResult.ResponseText}");
+        }
+
+        var user = authResult.User;
+
+        if (user == null)
+        {
+            ResetCookies();
+
+            return Ok("You are not authorized or user not found");
+        }
+
+        user.SessionToken = null;
+        user.AccessToken = null;
+        user.RefreshToken = null;
+        user.ExpiresAt = null;
+
+        await _context.SaveChangesAsync();
+
+        return Ok("Logged out successfully");
+    }
 }
