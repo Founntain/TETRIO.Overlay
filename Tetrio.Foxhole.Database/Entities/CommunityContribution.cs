@@ -1,6 +1,6 @@
 ﻿namespace Tetrio.Foxhole.Database.Entities;
 
-public class CommunityContribution : BaseEntity
+public class CommunityContribution : CreationTimeEntity
 {
     public double Amount { get; set; }
     public bool IsLate { get; set; } = false;

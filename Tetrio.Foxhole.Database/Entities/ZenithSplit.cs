@@ -1,6 +1,6 @@
 ﻿namespace Tetrio.Foxhole.Database.Entities;
 
-public class ZenithSplit : BaseEntity
+public class ZenithSplit : CreationTimeEntity
 {
     public string TetrioId { get; set; }
 
