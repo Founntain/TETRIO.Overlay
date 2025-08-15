@@ -104,10 +104,15 @@ public class SubmitLogic
                 await _context.AddAsync(contribution);
         }
 
-        var masteryAttempt = await runValidator.ValidateMasteryChallenge(_user, _day, _context, runsToAdd);
+        var todaysRuns = runsToAdd.Where(x => _day == DateOnly.FromDateTime(x.PlayedAt!.Value.Date));
 
-        if (masteryAttempt != null && !await _context.MasteryAttempts.AnyAsync(x => x.MasteryChallengeId == masteryAttempt.MasteryChallengeId && x.UserId == _user.Id))
-            await _context.AddAsync(masteryAttempt);
+        if (todaysRuns.Any())
+        {
+            var masteryAttempt = await runValidator.ValidateMasteryChallenge(_user, _day, _context, runsToAdd);
+
+            if (masteryAttempt != null && !await _context.MasteryAttempts.AnyAsync(x => x.MasteryChallengeId == masteryAttempt.MasteryChallengeId && x.UserId == _user.Id))
+                await _context.AddAsync(masteryAttempt);
+        }
 
         await _context.AddRangeAsync(splitsToAdd);
         await _context.AddRangeAsync(runsToAdd);
