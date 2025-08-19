@@ -27,7 +27,7 @@ public class SubmitLogic
         var now = DateTime.UtcNow;
         var nextSubmissionPossible = _user.LastSubmission?.AddMinutes(1) ?? DateTime.MinValue;
 
-        // if(nextSubmissionPossible > DateTime.UtcNow) return (400, "Please wait 1 minute before requesting submitting daily challenges again.");
+        if(nextSubmissionPossible > DateTime.UtcNow) return (400, "Please wait 1 minute before requesting submitting daily challenges again.");
 
         _day = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
