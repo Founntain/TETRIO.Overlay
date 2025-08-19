@@ -225,9 +225,9 @@ public class RunValidator
 
         foreach (var run in runs)
         {
-            if (run.Mods.Split(' ').Length != 1)
+            if (run.Mods.Split(' ').Length == 0)
             {
-                Console.WriteLine("\t- Only one mod is allowed for mastery validation... aborting mastery validation for this run");
+                Console.WriteLine("\t- There needs to be at least one mod selected... aborting mastery validation for this run");
 
                 continue;
             }
@@ -277,44 +277,47 @@ public class RunValidator
 
             if (!isChallengeCompleted) continue;
 
-            var mod = run.Mods.Split(' ').First();
+            var mods = run.Mods.Split(' ');
 
-            switch (mod)
+            foreach (var mod in mods)
             {
-                case "expert":
-                    Console.WriteLine("\t- Expert mastery finished for today");
-                    masteryAttempt.ExpertCompleted = true;
-                    break;
-                case "nohold":
-                    Console.WriteLine("\t- No Hold mastery finished for today");
-                    masteryAttempt.NoHoldCompleted = true;
-                    break;
-                case "messy":
-                    Console.WriteLine("\t- Messy mastery finished for today");
-                    masteryAttempt.MessyCompleted = true;
-                    break;
-                case "gravity":
-                    Console.WriteLine("\t- Gravity mastery finished for today");
-                    masteryAttempt.GravityCompleted = true;
-                    break;
-                case "volatile":
-                    Console.WriteLine("\t- Volatile mastery finished for today");
-                    masteryAttempt.VolatileCompleted = true;
-                    break;
-                case "doublehole":
-                    Console.WriteLine("\t- Double Hole mastery finished for today");
-                    masteryAttempt.DoubleHoleCompleted = true;
-                    break;
-                case "invisible":
-                    Console.WriteLine("\t- Invisible mastery finished for today");
-                    masteryAttempt.InvisibleCompleted = true;
-                    break;
-                case "allspin":
-                    Console.WriteLine("\t- All Spin mastery finished for today");
-                    masteryAttempt.AllSpinCompleted = true;
-                    break;
-                default:
-                    break;
+                switch (mod)
+                {
+                    case "expert":
+                        Console.WriteLine("\t- Expert mastery finished for today");
+                        masteryAttempt.ExpertCompleted = true;
+                        break;
+                    case "nohold":
+                        Console.WriteLine("\t- No Hold mastery finished for today");
+                        masteryAttempt.NoHoldCompleted = true;
+                        break;
+                    case "messy":
+                        Console.WriteLine("\t- Messy mastery finished for today");
+                        masteryAttempt.MessyCompleted = true;
+                        break;
+                    case "gravity":
+                        Console.WriteLine("\t- Gravity mastery finished for today");
+                        masteryAttempt.GravityCompleted = true;
+                        break;
+                    case "volatile":
+                        Console.WriteLine("\t- Volatile mastery finished for today");
+                        masteryAttempt.VolatileCompleted = true;
+                        break;
+                    case "doublehole":
+                        Console.WriteLine("\t- Double Hole mastery finished for today");
+                        masteryAttempt.DoubleHoleCompleted = true;
+                        break;
+                    case "invisible":
+                        Console.WriteLine("\t- Invisible mastery finished for today");
+                        masteryAttempt.InvisibleCompleted = true;
+                        break;
+                    case "allspin":
+                        Console.WriteLine("\t- All Spin mastery finished for today");
+                        masteryAttempt.AllSpinCompleted = true;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
