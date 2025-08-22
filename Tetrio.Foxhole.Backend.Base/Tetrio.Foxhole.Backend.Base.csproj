@@ -12,7 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="Microsoft.AspNetCore.Http.Abstractions" /><PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
+        <Reference Include="Microsoft.AspNetCore.Http.Abstractions" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
     </ItemGroup>
 
 </Project>

@@ -159,7 +159,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 Laboratory = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
                 Core = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Core ?? 0).ToString(@"mm\:ss\.fff"),
                 Corruption = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
-                PlatformOfTheGods = TimeSpan.FromMilliseconds(splitData?.SplitAverages.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
+                Potg = TimeSpan.FromMilliseconds(splitData?.SplitAverages.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
             },
             GoldSplits =  new
             {
@@ -171,7 +171,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 Laboratory = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
                 Core = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Core ?? 0).ToString(@"mm\:ss\.fff"),
                 Corruption = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
-                PlatformOfTheGods = TimeSpan.FromMilliseconds(splitData?.GoldSplits.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
+                Potg = TimeSpan.FromMilliseconds(splitData?.GoldSplits.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
             },
         });
     }
