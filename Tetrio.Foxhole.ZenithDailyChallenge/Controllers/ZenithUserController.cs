@@ -135,9 +135,10 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         {
             UserInfo = new
             {
-                Username = userInfo.Username,
-                Avatar = userInfo.Avatar,
-                Banner = userInfo.Banner,
+                UserId = user.TetrioId,
+                Username = user.Username,
+                Avatar = userInfo?.AvatarRevision,
+                Banner = userInfo?.BannerRevision,
                 TetrioRank = user.TetrioRank ?? "z",
             },
             TetrioId = user.TetrioId,

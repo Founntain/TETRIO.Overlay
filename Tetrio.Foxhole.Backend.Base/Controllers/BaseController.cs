@@ -34,7 +34,9 @@ public class BaseController(TetrioApi api) : MinBaseController(api)
         {
             Username = user.Username,
             Avatar = $"https://tetr.io/user-content/avatars/{user.Id}.jpg?rv={user.Avatar}",
+            AvatarRevision = user.Avatar,
             Banner = $"https://tetr.io/user-content/banners/{user.Id}.jpg?rv={user.Banner}",
+            BannerRevision = user.Banner,
         };
     }
 }

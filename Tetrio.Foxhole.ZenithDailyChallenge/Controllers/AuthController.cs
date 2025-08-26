@@ -216,8 +216,9 @@ public class AuthController : MinBaseController
         return Ok(new SlimUserInfo
         {
             Username = user.Username,
-            Avatar = $"https://tetr.io/user-content/avatars/{userInfo.Id}.jpg?rv={userInfo.Avatar}",
-            Banner = $"https://tetr.io/user-content/banners/{userInfo.Id}.jpg?rv={userInfo.Banner}",
+            UserId = user.TetrioId,
+            AvatarRevision = userInfo.Avatar,
+            BannerRevision = userInfo.Banner,
         });
     }
 
