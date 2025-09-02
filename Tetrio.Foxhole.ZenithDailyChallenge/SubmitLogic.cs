@@ -174,7 +174,9 @@ public class SubmitLogic
                 LaboratoryReachedAt = (uint)(stats.Zenith.Splits[5] ?? 0),
                 CoreReachedAt = (uint)(stats.Zenith.Splits[6] ?? 0),
                 CorruptionReachedAt = (uint)(stats.Zenith.Splits[7] ?? 0),
-                PlatformOfTheGodsReachedAt = (uint)(stats.Zenith.Splits[8] ?? 0)
+                PlatformOfTheGodsReachedAt = (uint)(stats.Zenith.Splits[8] ?? 0),
+
+                Mods = mods.Length == 0 ? null : string.Join(" ", mods)
             };
         }
 

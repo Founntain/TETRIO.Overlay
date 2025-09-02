@@ -14,5 +14,7 @@ public class ZenithSplit : CreationTimeEntity
     public uint CorruptionReachedAt { get; set; }
     public uint PlatformOfTheGodsReachedAt { get; set; }
 
+    public string? Mods { get; set; }
+
     public virtual User User { get; set; }
 }
