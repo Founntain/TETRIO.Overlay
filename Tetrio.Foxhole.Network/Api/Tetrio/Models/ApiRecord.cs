@@ -82,19 +82,19 @@ public class Finesse
 
 public class Garbage
 {
-    [JsonPropertyName("sent")] public double? Sent { get; set; }
+    [JsonPropertyName("sent")] public uint? Sent { get; set; }
 
-    [JsonPropertyName("sent_nomult")] public double? SentNomult { get; set; }
+    [JsonPropertyName("sent_nomult")] public uint? SentNomult { get; set; }
 
-    [JsonPropertyName("maxspike")] public double? Maxspike { get; set; }
+    [JsonPropertyName("maxspike")] public uint? Maxspike { get; set; }
 
-    [JsonPropertyName("maxspike_nomult")] public double? MaxspikeNomult { get; set; }
+    [JsonPropertyName("maxspike_nomult")] public uint? MaxspikeNomult { get; set; }
 
-    [JsonPropertyName("received")] public double? Received { get; set; }
+    [JsonPropertyName("received")] public uint? Received { get; set; }
 
-    [JsonPropertyName("attack")] public double? Attack { get; set; }
+    [JsonPropertyName("attack")] public uint? Attack { get; set; }
 
-    [JsonPropertyName("cleared")] public double? Cleared { get; set; }
+    [JsonPropertyName("cleared")] public uint? Cleared { get; set; }
 }
 
 public class P
@@ -150,16 +150,16 @@ public class Results
 
 public class Stats
 {
-    [JsonPropertyName("lines")] public double? Lines { get; set; }
+    [JsonPropertyName("lines")] public uint? Lines { get; set; }
 
     [JsonPropertyName("level_lines")] public double? LevelLines { get; set; }
 
     [JsonPropertyName("level_lines_needed")]
     public double? LevelLinesNeeded { get; set; }
 
-    [JsonPropertyName("inputs")] public double? Inputs { get; set; }
+    [JsonPropertyName("inputs")] public uint? Inputs { get; set; }
 
-    [JsonPropertyName("holds")] public double? Holds { get; set; }
+    [JsonPropertyName("holds")] public uint? Holds { get; set; }
 
     [JsonPropertyName("score")] public double? Score { get; set; }
 
@@ -171,7 +171,7 @@ public class Stats
 
     [JsonPropertyName("combo")] public double? Combo { get; set; }
 
-    [JsonPropertyName("topcombo")] public double? Topcombo { get; set; }
+    [JsonPropertyName("topcombo")] public uint? Topcombo { get; set; }
 
     [JsonPropertyName("combopower")] public double? Combopower { get; set; }
 

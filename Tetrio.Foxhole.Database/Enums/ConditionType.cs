@@ -11,5 +11,6 @@ public enum ConditionType
     Pps,
     Vs,
     Finesse,
-    BackToBack
+    BackToBack,
+    TotalBonus,
 }

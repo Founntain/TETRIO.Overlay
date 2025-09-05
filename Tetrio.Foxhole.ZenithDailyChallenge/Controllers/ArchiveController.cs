@@ -40,7 +40,7 @@ public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseCo
             }).ToListAsync();
 
         var previousChallenge = context.CommunityChallenges.AsNoTracking().Where(x => x.StartDate < communityChallenge.StartDate).OrderByDescending(x => x.StartDate).FirstOrDefault();
-        var nextChallenge = context.CommunityChallenges.AsNoTracking().Where(x => x.StartDate > communityChallenge.StartDate && x.EndDate < DateTime.UtcNow).OrderBy(x => x.StartDate).FirstOrDefault();
+        var nextChallenge = context.CommunityChallenges.AsNoTracking().Where(x => x.StartDate > communityChallenge.StartDate && x.EndDate < DateTime.UtcNow).OrderByDescending(x => x.StartDate).FirstOrDefault();
 
         var archiveData = new
         {

@@ -20,4 +20,8 @@
       <Folder Include="Migrations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Tetrio.Foxhole.Network\Tetrio.Foxhole.Network.csproj" />
+    </ItemGroup>
+
 </Project>

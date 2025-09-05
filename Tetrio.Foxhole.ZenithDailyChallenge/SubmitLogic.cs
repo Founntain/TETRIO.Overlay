@@ -187,26 +187,7 @@ public class SubmitLogic
             finesse = ((stats.Finesse!.Perfectpieces / stats.Piecesplaced ) * 100).Value;
         }
 
-        var run = new Run
-        {
-            User = _user,
-            TetrioId = record.Id,
-            PlayedAt = record.Ts,
-            Altitude = stats.Zenith.Altitude ?? 0,
-            KOs = (byte?)stats.Kills ?? 0,
-            AllClears = (ushort?)clears.AllClear ?? 0,
-            Quads = (ushort?)clears.Quads ?? 0,
-            Spins = (ushort?)totalSpins ?? 0,
-            Mods = string.Join(" ", mods),
-            Apm = record.Results.Aggregatestats.Apm ?? 0,
-            Pps = record.Results.Aggregatestats.Pps ?? 0,
-            Vs = record.Results.Aggregatestats.Vsscore ?? 0,
-            Finesse = finesse,
-            Back2Back = (ushort?) stats.Topbtb ?? 0,
-            SpeedrunSeen = stats.Zenith.SpeedrunSeen ?? false,
-            SpeedrunCompleted = stats.Zenith.Speedrun ?? false,
-            TotalTime = (int) Math.Round(stats.Finaltime ?? 0, 0)
-        };
+        var run = Run.Create(_user, record, stats, clears, finesse, totalSpins, mods);
 
         if (run.PlayedAt?.Date == null)
         {

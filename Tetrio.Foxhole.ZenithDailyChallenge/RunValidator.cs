@@ -65,6 +65,9 @@ public class RunValidator
                             case ConditionType.BackToBack:
                                 isChallengeCompleted &= run.Back2Back >= condition.Value;
                                 break;
+                            case ConditionType.TotalBonus:
+                                isChallengeCompleted &= run.TotalBonus >= condition.Value;
+                                break;
                             default:
                                 continue;
                         }
@@ -171,6 +174,9 @@ public class RunValidator
             case ConditionType.BackToBack:
                 communityContribution.Amount = runs.Sum(x => x.Back2Back);
                 break;
+            case ConditionType.TotalBonus:
+                communityContribution.Amount = runs.Sum(x => x.TotalBonus);
+                break;
             default:
                 // Do nothing
                 break;
@@ -267,6 +273,9 @@ public class RunValidator
                         break;
                     case ConditionType.BackToBack:
                         isChallengeCompleted &= run.Back2Back >= condition.Value;
+                        break;
+                    case ConditionType.TotalBonus:
+                        isChallengeCompleted &= run.TotalBonus >= condition.Value;
                         break;
                     default:
                         continue;

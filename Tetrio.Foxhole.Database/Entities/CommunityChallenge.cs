@@ -1,4 +1,5 @@
-﻿using Tetrio.Foxhole.Database.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using Tetrio.Foxhole.Database.Enums;
 
 namespace Tetrio.Foxhole.Database.Entities;
 
@@ -11,6 +12,11 @@ public class CommunityChallenge : BaseEntity
     public double TargetValue { get; set; }
     public double Value { get; set; } = 0;
     public bool Finished { get; set; }
+
+    [MaxLength(256)]
+    public string? Name { get; set; }
+    [MaxLength(4096)]
+    public string? Description { get; set; }
 
     public virtual ISet<CommunityContribution> Contributions { get; set; } = new HashSet<CommunityContribution>();
 }

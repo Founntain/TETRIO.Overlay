@@ -334,6 +334,7 @@ public class ChallengeGenerator
         allConditions.RemoveAt(0);
         // Removed finesse for challenge generator because of popular request
         allConditions.Remove(ConditionType.Finesse);
+        allConditions.Remove(ConditionType.TotalBonus); // Removed for now as balancing is not done yet
 
         // If no hold was selected as mod, remove all clears from the condition roll
         if(mods.Contains("nohold")) allConditions.Remove(ConditionType.AllClears);

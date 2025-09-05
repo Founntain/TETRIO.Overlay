@@ -215,6 +215,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         var communityChallenge = await context.CommunityChallenges.AsNoTracking().Select(x => new
         {
             Id = x.Id,
+            Name = x.Name,
+            Description = x.Description,
             StartDate = x.StartDate,
             EndDate = x.EndDate,
             ConditionType = x.ConditionType,
@@ -260,7 +262,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                 Amount = Math.Round(x.Amount,2),
                 ConditionType = x.CommunityChallenge.ConditionType,
                 IsLate = x.IsLate,
-            }).Take(5).ToListAsync();
+            }).Take(15).ToListAsync();
 
         return Ok(recentContributions);
     }
