@@ -25,7 +25,7 @@ public class ZenithSplitResult
 
     public string ToDateAchievedString()
     {
-        if (DateAchieved == null) return "A long time ago";
+        if (DateAchieved == null) return "a long time ago";
 
         var now = DateTime.UtcNow;
         var dt = DateAchieved.Value.Kind == DateTimeKind.Utc ? DateAchieved.Value : DateAchieved.Value.ToUniversalTime();

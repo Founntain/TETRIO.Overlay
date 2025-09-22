@@ -280,12 +280,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     Avg = x.Average(y => y.Vs),
                 }
 
-            })
-            // .GroupBy(x => new { x.Year, x.Month, x.Day })
-            // .OrderByDescending(g => g.Key.Year)
-            // .ThenByDescending(g => g.Key.Month)
-            // .ThenByDescending(g => g.Key.Day)
-            .ToArrayAsync();
+            }).ToArrayAsync();
 
         return Ok(runs);
     }
