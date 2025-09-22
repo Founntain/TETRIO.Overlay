@@ -166,6 +166,7 @@ public class SubmitLogic
             {
                 User = _user,
                 TetrioId = record.Id,
+                DatePlayed = record.Ts ?? DateTime.MinValue,
                 HotelReachedAt = (uint)(stats.Zenith.Splits[0] ?? 0),
                 CasinoReachedAt = (uint)(stats.Zenith.Splits[1] ?? 0),
                 ArenaReachedAt = (uint)(stats.Zenith.Splits[2] ?? 0),

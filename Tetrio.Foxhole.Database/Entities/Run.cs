@@ -1,4 +1,5 @@
-﻿using Tetrio.Foxhole.Network.Api.Tetrio.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Tetrio.Foxhole.Network.Api.Tetrio.Models;
 
 namespace Tetrio.Foxhole.Database.Entities;
 
@@ -50,6 +51,9 @@ public class Run : BaseEntity
     public int TotalTime { get; set; } = 0;
 
     public virtual ISet<Challenge>? Challenges { get; set; } = new HashSet<Challenge>();
+
+    [ForeignKey("UserId")]
+    public Guid UserId { get; set; }
     public virtual User User { get; set; }
 
     public static Run Create(User user, Record record, Stats stats, Clears clears, double finesse, double? totalSpins, string[] mods)

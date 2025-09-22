@@ -3,6 +3,7 @@
 public class ZenithSplit : CreationTimeEntity
 {
     public string TetrioId { get; set; }
+    public DateTime? DatePlayed { get; set; }
 
     public uint HotelReachedAt { get; set; }
     public uint CasinoReachedAt { get; set; }
@@ -17,4 +18,6 @@ public class ZenithSplit : CreationTimeEntity
     public string? Mods { get; set; }
 
     public virtual User User { get; set; }
+
+    public DateTime GetSplitDate() => DatePlayed ?? CreatedAt;
 }

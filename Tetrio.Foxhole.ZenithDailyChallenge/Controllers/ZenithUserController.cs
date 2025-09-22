@@ -4,6 +4,7 @@ using Tetrio.Foxhole.Backend.Base.Controllers;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
+using Tetrio.Zenith.DailyChallenge.Models;
 
 namespace Tetrio.Zenith.DailyChallenge.Controllers;
 
@@ -24,23 +25,36 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
     [HttpGet]
     [Route("{username}/daily")]
-    public async Task<ActionResult> GetDailyData(string? username)
+    public async Task<ActionResult> GetDailyData(string? username, string? mod = null, bool soloMods = false)
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+
+        mod ??= string.Empty;
 
         username = username.ToLower();
 
         var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
 
-        if(user == default) return NotFound();
+        if (user == default) return NotFound();
 
-        var splitData = await context.ZenithSplits
+        var splitsQuery = context.ZenithSplits
             .AsNoTracking()
-            .Where(x => x.User.Id == user.Id)
+            .Where(x => x.User.Id == user.Id);
+
+        if (!string.IsNullOrWhiteSpace(mod))
+        {
+            splitsQuery = splitsQuery.Where(x => x.Mods != null && x.Mods.Length > 0 && x.Mods.Contains(mod));
+
+            if (soloMods) splitsQuery = splitsQuery.Where(x => x.Mods == mod);
+        }
+
+        var splitData = await splitsQuery
             .GroupBy(x => x.User.Id)
             .Select(group => new
             {
-                SplitAverages = new {
+                Mods = mod,
+                SplitAverages = new
+                {
                     Hotel = group.Where(x => x.HotelReachedAt > 0).Average(x => (double?)x.HotelReachedAt) ?? 0,
                     Casino = group.Where(x => x.CasinoReachedAt > 0).Average(x => (double?)x.CasinoReachedAt) ?? 0,
                     Arena = group.Where(x => x.ArenaReachedAt > 0).Average(x => (double?)x.ArenaReachedAt) ?? 0,
@@ -49,7 +63,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).Average(x => (double?)x.LaboratoryReachedAt) ?? 0,
                     Core = group.Where(x => x.CoreReachedAt > 0).Average(x => (double?)x.CoreReachedAt) ?? 0,
                     Corruption = group.Where(x => x.CorruptionReachedAt > 0).Average(x => (double?)x.CorruptionReachedAt) ?? 0,
-                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Average(x => (double?)x.PlatformOfTheGodsReachedAt) ?? 0,
+                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Average(x => (double?)x.PlatformOfTheGodsReachedAt) ?? 0
                 },
                 GoldSplits = new
                 {
@@ -61,8 +75,31 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).Min(x => (int?)x.LaboratoryReachedAt) ?? 0,
                     Core = group.Where(x => x.CoreReachedAt > 0).Min(x => (int?)x.CoreReachedAt) ?? 0,
                     Corruption = group.Where(x => x.CorruptionReachedAt > 0).Min(x => (int?)x.CorruptionReachedAt) ?? 0,
-                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Min(x => (int?)x.PlatformOfTheGodsReachedAt) ?? 0,
+                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Min(x => (int?)x.PlatformOfTheGodsReachedAt) ?? 0
+                },
+                GoldAchievedDate = new
+                {
+                    Hotel = group.Where(x => x.HotelReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Casino = group.Where(x => x.CasinoReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Arena = group.Where(x => x.ArenaReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Museum = group.Where(x => x.MuseumReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Offices = group.Where(x => x.OfficesReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Core = group.Where(x => x.CoreReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault()
                 }
+            }).Select(x => new
+            {
+                Hotel = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Hotel, (uint)x.GoldSplits.Hotel, x.SplitAverages.Hotel),
+                Casino = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Casino, (uint)x.GoldSplits.Casino, x.SplitAverages.Casino),
+                Arena = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Arena, (uint)x.GoldSplits.Arena, x.SplitAverages.Arena),
+                Museum = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Museum, (uint)x.GoldSplits.Museum, x.SplitAverages.Museum),
+                Offices = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Offices, (uint)x.GoldSplits.Offices, x.SplitAverages.Offices),
+                Laboratory = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Laboratory, (uint)x.GoldSplits.Laboratory, x.SplitAverages.Laboratory),
+                Core = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Core, (uint)x.GoldSplits.Core, x.SplitAverages.Core),
+                Corruption = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Corruption, (uint)x.GoldSplits.Corruption, x.SplitAverages.Corruption),
+                PlatformOfTheGods = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.PlatformOfTheGods, (uint)x.GoldSplits.PlatformOfTheGods, x.SplitAverages.PlatformOfTheGods)
             }).SingleOrDefaultAsync();
 
         var masteryCompletions = await context.MasteryAttempts.AsNoTracking().Where(x => x.UserId == user.Id).GroupBy(x => x.UserId).Select(x => new
@@ -74,7 +111,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Volatile = x.Count(y => y.VolatileCompleted),
             DoubleHole = x.Count(y => y.DoubleHoleCompleted),
             Invisible = x.Count(y => y.InvisibleCompleted),
-            AllSpin = x.Count(y => y.AllSpinCompleted),
+            AllSpin = x.Count(y => y.AllSpinCompleted)
         }).FirstOrDefaultAsync();
 
         var altitudes = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).GroupBy(x => x.User.Id).Select(x => new
@@ -87,7 +124,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Volatile = Math.Round(x.Where(y => y.Mods.Contains("volatile")).Sum(y => y.Altitude), 2),
             DoubleHole = Math.Round(x.Where(y => y.Mods.Contains("doublehole")).Sum(y => y.Altitude), 2),
             Invisible = Math.Round(x.Where(y => y.Mods.Contains("invisible")).Sum(y => y.Altitude), 2),
-            AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2),
+            AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2)
         }).FirstOrDefaultAsync();
 
         var runCount = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
@@ -113,7 +150,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var scores = await context.Users.AsNoTracking().Where(x => x.Username == username).Select(x => new
         {
-
             NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
             ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
             ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
@@ -127,7 +163,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                                                 (y.DoubleHoleCompleted ? 1 : 0) +
                                                 (y.InvisibleCompleted ? 1 : 0) +
                                                 (y.AllSpinCompleted ? 1 : 0)
-
             }).Sum(y => y.MasteryChallengeModsCompleted)
         }).FirstOrDefaultAsync();
 
@@ -136,12 +171,12 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             UserInfo = new
             {
                 UserId = user.TetrioId,
-                Username = user.Username,
+                user.Username,
                 Avatar = userInfo?.AvatarRevision,
                 Banner = userInfo?.BannerRevision,
-                TetrioRank = user.TetrioRank ?? "z",
+                TetrioRank = user.TetrioRank ?? "z"
             },
-            TetrioId = user.TetrioId,
+            user.TetrioId,
             Runs = runCount,
             Splits = splitsCount,
             ChallengesCompleted = challengesCompleted,
@@ -149,32 +184,110 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             DaysParticipated = daysParticipated,
             Altitudes = altitudes,
             MasteryCompletions = masteryCompletions,
-            Score = scores == null ? 0 : Math.Round(scores.NormalScore + scores.ExpertScore + ( scores.MasteryScore * 2 )  + (scores.ReverseScore / 2d), 0),
-            SplitAverages = new
+            Score = scores == null ? 0 : Math.Round(scores.NormalScore + scores.ExpertScore + scores.MasteryScore * 2 + scores.ReverseScore / 2d, 0),
+            SplitTimes = new
             {
-                Hotel = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Hotel ?? 0).ToString(@"mm\:ss\.fff"),
-                Casino = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Casino ?? 0).ToString(@"mm\:ss\.fff"),
-                Arena = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Arena ?? 0).ToString(@"mm\:ss\.fff"),
-                Museum = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Museum ?? 0).ToString(@"mm\:ss\.fff"),
-                Offices = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Offices ?? 0).ToString(@"mm\:ss\.fff"),
-                Laboratory = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
-                Core = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Core ?? 0).ToString(@"mm\:ss\.fff"),
-                Corruption = TimeSpan.FromMilliseconds(splitData?.SplitAverages.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
-                Potg = TimeSpan.FromMilliseconds(splitData?.SplitAverages.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
-            },
-            GoldSplits =  new
-            {
-                Hotel = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Hotel ?? 0).ToString(@"mm\:ss\.fff"),
-                Casino = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Casino ?? 0).ToString(@"mm\:ss\.fff"),
-                Arena = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Arena ?? 0).ToString(@"mm\:ss\.fff"),
-                Museum = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Museum ?? 0).ToString(@"mm\:ss\.fff"),
-                Offices = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Offices ?? 0).ToString(@"mm\:ss\.fff"),
-                Laboratory = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Laboratory ?? 0).ToString(@"mm\:ss\.fff"),
-                Core = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Core ?? 0).ToString(@"mm\:ss\.fff"),
-                Corruption = TimeSpan.FromMilliseconds(splitData?.GoldSplits.Corruption ?? 0).ToString(@"mm\:ss\.fff"),
-                Potg = TimeSpan.FromMilliseconds(splitData?.GoldSplits.PlatformOfTheGods ?? 0).ToString(@"mm\:ss\.fff")
-            },
+                Hotel = new
+                {
+                    AverageTime = splitData?.Hotel.ToAverageTimeString(),
+                    BestTime = splitData?.Hotel.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Hotel.ToDateAchievedString()
+                },
+                Casino = new
+                {
+                    AverageTime = splitData?.Casino.ToAverageTimeString(),
+                    BestTime = splitData?.Casino.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Casino.ToDateAchievedString()
+                },
+                Arena = new
+                {
+                    AverageTime = splitData?.Arena.ToAverageTimeString(),
+                    BestTime = splitData?.Arena.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Arena.ToDateAchievedString()
+                },
+                Museum = new
+                {
+                    AverageTime = splitData?.Museum.ToAverageTimeString(),
+                    BestTime = splitData?.Museum.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Museum.ToDateAchievedString()
+                },
+                Offices = new
+                {
+                    AverageTime = splitData?.Offices.ToAverageTimeString(),
+                    BestTime = splitData?.Offices.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Offices.ToDateAchievedString()
+                },
+                Laboratory = new
+                {
+                    AverageTime = splitData?.Laboratory.ToAverageTimeString(),
+                    BestTime = splitData?.Laboratory.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Laboratory.ToDateAchievedString()
+                },
+                Core = new
+                {
+                    AverageTime = splitData?.Core.ToAverageTimeString(),
+                    BestTime = splitData?.Core.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Core.ToDateAchievedString()
+                },
+                Corruption = new
+                {
+                    AverageTime = splitData?.Corruption.ToAverageTimeString(),
+                    BestTime = splitData?.Corruption.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.Corruption.ToDateAchievedString()
+                },
+                Potg = new
+                {
+                    AverageTime = splitData?.PlatformOfTheGods.ToAverageTimeString(),
+                    BestTime = splitData?.PlatformOfTheGods.ToGoldTimeString(),
+                    BestTimeAchievedDate = splitData?.PlatformOfTheGods.ToDateAchievedString()
+                }
+            }
         });
+    }
+
+    [HttpGet]
+    [Route("{username}/dailyExtra")]
+    public async Task<ActionResult> GetDailyExtra(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+
+        username = username.ToLower();
+
+        var user = await context.Users.AsNoTracking().Where(x => x.Username == username).FirstOrDefaultAsync();
+
+        if (user == null) return NotFound();
+
+        var sevenDaysAgo = DateTime.UtcNow.AddDays(-14);
+
+        var runs = await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.PlayedAt >= sevenDaysAgo)
+            .GroupBy(x => x.PlayedAt!.Value.Date)
+            .Select(x => new
+            {
+                Date = x.Key.ToString("d. MMM"),
+                Altitude = new
+                {
+                    Max = x.Max(y => y.Altitude),
+                    Avg = x.Average(y => y.Altitude),
+                },
+                APM = new
+                {
+                    Max = x.Max(y => y.Apm),
+                    Avg = x.Average(y => y.Apm),
+                },
+                VS = new
+                {
+                    Max = x.Max(y => y.Vs),
+                    Avg = x.Average(y => y.Vs),
+                }
+
+            })
+            // .GroupBy(x => new { x.Year, x.Month, x.Day })
+            // .OrderByDescending(g => g.Key.Year)
+            // .ThenByDescending(g => g.Key.Month)
+            // .ThenByDescending(g => g.Key.Day)
+            .ToArrayAsync();
+
+        return Ok(runs);
     }
 
     [HttpGet]
@@ -189,22 +302,22 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .OrderByDescending(x => x.PlayedAt)
             .Skip(page * pageSize).Take(pageSize)
             .Select(x => new
-                {
-                    TetrioId = x.TetrioId,
-                    Mods = x.Mods,
-                    Altitude = Math.Round(x.Altitude, 2),
-                    Quads = x.Quads,
-                    Spins = x.Spins,
-                    AllClears = x.AllClears,
-                    KOs = x.KOs,
-                    Apm = Math.Round(x.Apm, 2),
-                    Pps = Math.Round(x.Pps, 2),
-                    Vs = Math.Round(x.Vs, 2),
-                    Finesse = Math.Round(x.Finesse,2),
-                    Back2Back = x.Back2Back,
-                    SpeedrunSeen = x.SpeedrunSeen,
-                    SpeedrunCompleted = x.SpeedrunCompleted
-                }).ToArrayAsync();
+            {
+                x.TetrioId,
+                x.Mods,
+                Altitude = Math.Round(x.Altitude, 2),
+                x.Quads,
+                x.Spins,
+                x.AllClears,
+                x.KOs,
+                Apm = Math.Round(x.Apm, 2),
+                Pps = Math.Round(x.Pps, 2),
+                Vs = Math.Round(x.Vs, 2),
+                Finesse = Math.Round(x.Finesse, 2),
+                x.Back2Back,
+                x.SpeedrunSeen,
+                x.SpeedrunCompleted
+            }).ToArrayAsync();
 
         return Ok(runs);
     }
@@ -264,17 +377,17 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .ThenByDescending(x => x.Points)
             .Skip(page * pageSize).Take(pageSize)
             .Select(x => new
+            {
+                x.Date,
+                Difficulty = x.Points,
+                x.Mods,
+                Conditions = x.Conditions.Select(a => new
                 {
-                    Date = x.Date,
-                    Difficulty = x.Points,
-                    Mods = x.Mods,
-                    Conditions = x.Conditions.Select( a => new
-                    {
-                        a.ChallengeId,
-                        a.Type,
-                        a.Value
-                    })
-                }).ToArrayAsync();
+                    a.ChallengeId,
+                    a.Type,
+                    a.Value
+                })
+            }).ToArrayAsync();
 
         return Ok(runs);
     }
@@ -286,25 +399,25 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
         var runs = (await context.Users
-            .AsNoTracking()
-            .Where(x => x.Username == username)
-            .SelectMany(x => x.Challenges)
-            .Select(x => new
+                .AsNoTracking()
+                .Where(x => x.Username == username)
+                .SelectMany(x => x.Challenges)
+                .Select(x => new
                 {
-                    Date = x.Date,
+                    x.Date,
                     Difficulty = x.Points,
-                    Mods = x.Mods,
-                    Conditions = x.Conditions.Select( a => new
+                    x.Mods,
+                    Conditions = x.Conditions.Select(a => new
                     {
                         a.ChallengeId,
                         a.Type,
                         a.Value
                     })
                 })
-            .GroupBy(x => x.Date)
-            .ToArrayAsync())
+                .GroupBy(x => x.Date)
+                .ToArrayAsync())
             .OrderByDescending(x => x.Key)
-            .Skip( page * pageSize).Take(pageSize);
+            .Skip(page * pageSize).Take(pageSize);
 
         context.ChangeTracker.LazyLoadingEnabled = true;
 
@@ -320,8 +433,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             var reverseCompleted = false;
 
             foreach (var challenge in x)
-            {
-                switch ((Difficulty) challenge.Difficulty)
+                switch ((Difficulty)challenge.Difficulty)
                 {
                     case Difficulty.VeryEasy:
                         veryEasyCompleted = true;
@@ -342,7 +454,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                         reverseCompleted = true;
                         break;
                 }
-            }
 
             return new
             {
@@ -352,7 +463,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 NormalCompleted = normalCompleted,
                 HardCompleted = hardCompleted,
                 ExpertCompleted = expertCompleted,
-                ReverseCompleted = reverseCompleted,
+                ReverseCompleted = reverseCompleted
             };
         }).OrderByDescending(x => x.Date).ToArray();
 
@@ -379,17 +490,17 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .SelectMany(x => x.Challenges)
             .Where(x => x.Date == date)
             .Select(x => new
+            {
+                x.Date,
+                Difficulty = x.Points,
+                x.Mods,
+                Conditions = x.Conditions.Select(a => new
                 {
-                    Date = x.Date,
-                    Difficulty = x.Points,
-                    Mods = x.Mods,
-                    Conditions = x.Conditions.Select( a => new
-                    {
-                        a.ChallengeId,
-                        a.Type,
-                        a.Value
-                    })
-                }).ToArrayAsync();
+                    a.ChallengeId,
+                    a.Type,
+                    a.Value
+                })
+            }).ToArrayAsync();
 
         var veryEasyCompleted = false;
         var easyCompleted = false;
@@ -399,7 +510,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         var reverseCompleted = false;
 
         foreach (var challenge in challenges)
-        {
             switch ((Difficulty)challenge.Difficulty)
             {
                 case Difficulty.VeryEasy:
@@ -421,7 +531,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     reverseCompleted = true;
                     break;
             }
-        }
 
         var masteryChallenge = await context.Users
             .AsNoTracking()
@@ -461,7 +570,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
 
-        if(user == null) return NotFound($"User '{username}' not found");
+        if (user == null) return NotFound($"User '{username}' not found");
 
         var contributions = await context.CommunityContributions
             .AsNoTracking()
@@ -470,12 +579,12 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .GroupBy(x => x.CommunityChallengeId)
             .Skip(page * pageSize).Take(pageSize)
             .Select(group => new
-                {
-                    Date = group.First().CommunityChallenge.StartDate,
-                    Challenge = $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}",
-                    TotalAmountContributed = Math.Round(group.Sum(x => x.Amount), 2),
-                    ConditionType = group.First().CommunityChallenge.ConditionType,
-                }).ToArrayAsync();
+            {
+                Date = group.First().CommunityChallenge.StartDate,
+                Challenge = $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}",
+                TotalAmountContributed = Math.Round(group.Sum(x => x.Amount), 2),
+                group.First().CommunityChallenge.ConditionType
+            }).ToArrayAsync();
 
         var contributionsCount = await context.CommunityContributions
             .AsNoTracking()
@@ -485,10 +594,10 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var returnValue = contributions.OrderByDescending(x => x.Date).Select(x => new
         {
-            Date = x.Date,
-            Challenge = x.Challenge,
-            TotalAmountContributed = x.TotalAmountContributed,
-            ConditionType = x.ConditionType,
+            x.Date,
+            x.Challenge,
+            x.TotalAmountContributed,
+            x.ConditionType,
             TotalContributions = contributionsCount
         });
 
