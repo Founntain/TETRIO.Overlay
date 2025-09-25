@@ -1,3 +1,4 @@
+using System.Formats.Asn1;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Backend.Base.Controllers;
@@ -25,82 +26,15 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
     [HttpGet]
     [Route("{username}/daily")]
-    public async Task<ActionResult> GetDailyData(string? username, string? mod = null, bool soloMods = false)
+    public async Task<ActionResult> GetDailyData(string? username)
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
-
-        mod ??= string.Empty;
 
         username = username.ToLower();
 
         var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
 
         if (user == default) return NotFound();
-
-        var splitsQuery = context.ZenithSplits
-            .AsNoTracking()
-            .Where(x => x.User.Id == user.Id);
-
-        if (!string.IsNullOrWhiteSpace(mod))
-        {
-            splitsQuery = splitsQuery.Where(x => x.Mods != null && x.Mods.Length > 0 && x.Mods.Contains(mod));
-
-            if (soloMods) splitsQuery = splitsQuery.Where(x => x.Mods == mod);
-        }
-
-        var splitData = await splitsQuery
-            .GroupBy(x => x.User.Id)
-            .Select(group => new
-            {
-                Mods = mod,
-                SplitAverages = new
-                {
-                    Hotel = group.Where(x => x.HotelReachedAt > 0).Average(x => (double?)x.HotelReachedAt) ?? 0,
-                    Casino = group.Where(x => x.CasinoReachedAt > 0).Average(x => (double?)x.CasinoReachedAt) ?? 0,
-                    Arena = group.Where(x => x.ArenaReachedAt > 0).Average(x => (double?)x.ArenaReachedAt) ?? 0,
-                    Museum = group.Where(x => x.MuseumReachedAt > 0).Average(x => (double?)x.MuseumReachedAt) ?? 0,
-                    Offices = group.Where(x => x.OfficesReachedAt > 0).Average(x => (double?)x.OfficesReachedAt) ?? 0,
-                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).Average(x => (double?)x.LaboratoryReachedAt) ?? 0,
-                    Core = group.Where(x => x.CoreReachedAt > 0).Average(x => (double?)x.CoreReachedAt) ?? 0,
-                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).Average(x => (double?)x.CorruptionReachedAt) ?? 0,
-                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Average(x => (double?)x.PlatformOfTheGodsReachedAt) ?? 0
-                },
-                GoldSplits = new
-                {
-                    Hotel = group.Where(x => x.HotelReachedAt > 0).Min(x => (int?)x.HotelReachedAt) ?? 0,
-                    Casino = group.Where(x => x.CasinoReachedAt > 0).Min(x => (int?)x.CasinoReachedAt) ?? 0,
-                    Arena = group.Where(x => x.ArenaReachedAt > 0).Min(x => (int?)x.ArenaReachedAt) ?? 0,
-                    Museum = group.Where(x => x.MuseumReachedAt > 0).Min(x => (int?)x.MuseumReachedAt) ?? 0,
-                    Offices = group.Where(x => x.OfficesReachedAt > 0).Min(x => (int?)x.OfficesReachedAt) ?? 0,
-                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).Min(x => (int?)x.LaboratoryReachedAt) ?? 0,
-                    Core = group.Where(x => x.CoreReachedAt > 0).Min(x => (int?)x.CoreReachedAt) ?? 0,
-                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).Min(x => (int?)x.CorruptionReachedAt) ?? 0,
-                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Min(x => (int?)x.PlatformOfTheGodsReachedAt) ?? 0
-                },
-                GoldAchievedDate = new
-                {
-                    Hotel = group.Where(x => x.HotelReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    Casino = group.Where(x => x.CasinoReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    Arena = group.Where(x => x.ArenaReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    Museum = group.Where(x => x.MuseumReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    Offices = group.Where(x => x.OfficesReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    Core = group.Where(x => x.CoreReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
-                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault()
-                }
-            }).Select(x => new
-            {
-                Hotel = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Hotel, (uint)x.GoldSplits.Hotel, x.SplitAverages.Hotel),
-                Casino = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Casino, (uint)x.GoldSplits.Casino, x.SplitAverages.Casino),
-                Arena = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Arena, (uint)x.GoldSplits.Arena, x.SplitAverages.Arena),
-                Museum = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Museum, (uint)x.GoldSplits.Museum, x.SplitAverages.Museum),
-                Offices = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Offices, (uint)x.GoldSplits.Offices, x.SplitAverages.Offices),
-                Laboratory = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Laboratory, (uint)x.GoldSplits.Laboratory, x.SplitAverages.Laboratory),
-                Core = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Core, (uint)x.GoldSplits.Core, x.SplitAverages.Core),
-                Corruption = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Corruption, (uint)x.GoldSplits.Corruption, x.SplitAverages.Corruption),
-                PlatformOfTheGods = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.PlatformOfTheGods, (uint)x.GoldSplits.PlatformOfTheGods, x.SplitAverages.PlatformOfTheGods)
-            }).SingleOrDefaultAsync();
 
         var masteryCompletions = await context.MasteryAttempts.AsNoTracking().Where(x => x.UserId == user.Id).GroupBy(x => x.UserId).Select(x => new
         {
@@ -185,63 +119,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Altitudes = altitudes,
             MasteryCompletions = masteryCompletions,
             Score = scores == null ? 0 : Math.Round(scores.NormalScore + scores.ExpertScore + scores.MasteryScore * 2 + scores.ReverseScore / 2d, 0),
-            SplitTimes = new
-            {
-                Hotel = new
-                {
-                    AverageTime = splitData?.Hotel.ToAverageTimeString(),
-                    BestTime = splitData?.Hotel.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Hotel.ToDateAchievedString()
-                },
-                Casino = new
-                {
-                    AverageTime = splitData?.Casino.ToAverageTimeString(),
-                    BestTime = splitData?.Casino.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Casino.ToDateAchievedString()
-                },
-                Arena = new
-                {
-                    AverageTime = splitData?.Arena.ToAverageTimeString(),
-                    BestTime = splitData?.Arena.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Arena.ToDateAchievedString()
-                },
-                Museum = new
-                {
-                    AverageTime = splitData?.Museum.ToAverageTimeString(),
-                    BestTime = splitData?.Museum.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Museum.ToDateAchievedString()
-                },
-                Offices = new
-                {
-                    AverageTime = splitData?.Offices.ToAverageTimeString(),
-                    BestTime = splitData?.Offices.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Offices.ToDateAchievedString()
-                },
-                Laboratory = new
-                {
-                    AverageTime = splitData?.Laboratory.ToAverageTimeString(),
-                    BestTime = splitData?.Laboratory.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Laboratory.ToDateAchievedString()
-                },
-                Core = new
-                {
-                    AverageTime = splitData?.Core.ToAverageTimeString(),
-                    BestTime = splitData?.Core.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Core.ToDateAchievedString()
-                },
-                Corruption = new
-                {
-                    AverageTime = splitData?.Corruption.ToAverageTimeString(),
-                    BestTime = splitData?.Corruption.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.Corruption.ToDateAchievedString()
-                },
-                Potg = new
-                {
-                    AverageTime = splitData?.PlatformOfTheGods.ToAverageTimeString(),
-                    BestTime = splitData?.PlatformOfTheGods.ToGoldTimeString(),
-                    BestTimeAchievedDate = splitData?.PlatformOfTheGods.ToDateAchievedString()
-                }
-            }
         });
     }
 
@@ -315,6 +192,151 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             }).ToArrayAsync();
 
         return Ok(runs);
+    }
+
+    [HttpGet]
+    [Route("{username}/bestSplits")]
+    public async Task<ActionResult> GetBestSplits(string username, string? mod = null, bool soloMod = false)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+
+        mod ??= string.Empty;
+
+        username = username.ToLower();
+
+        var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
+
+        if (user == default) return NotFound();
+
+        var splitsQuery = context.ZenithSplits
+            .AsNoTracking()
+            .Where(x => x.User.Id == user.Id);
+
+        if (!string.IsNullOrWhiteSpace(mod))
+        {
+            if (mod == "nomod")
+            {
+                splitsQuery = splitsQuery.Where(x => x.Mods == null || x.Mods.Length == 0);
+            }
+            else
+            {
+                splitsQuery = splitsQuery.Where(x => x.Mods != null && x.Mods.Length > 0 && x.Mods.Contains(mod));
+
+                if (soloMod) splitsQuery = splitsQuery.Where(x => x.Mods == mod);
+            }
+        }
+
+        var splitData = await splitsQuery
+            .GroupBy(x => x.User.Id)
+            .Select(group => new
+            {
+                Mods = mod,
+                SplitAverages = new
+                {
+                    Hotel = group.Where(x => x.HotelReachedAt > 0).Average(x => (double?)x.HotelReachedAt) ?? 0,
+                    Casino = group.Where(x => x.CasinoReachedAt > 0).Average(x => (double?)x.CasinoReachedAt) ?? 0,
+                    Arena = group.Where(x => x.ArenaReachedAt > 0).Average(x => (double?)x.ArenaReachedAt) ?? 0,
+                    Museum = group.Where(x => x.MuseumReachedAt > 0).Average(x => (double?)x.MuseumReachedAt) ?? 0,
+                    Offices = group.Where(x => x.OfficesReachedAt > 0).Average(x => (double?)x.OfficesReachedAt) ?? 0,
+                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).Average(x => (double?)x.LaboratoryReachedAt) ?? 0,
+                    Core = group.Where(x => x.CoreReachedAt > 0).Average(x => (double?)x.CoreReachedAt) ?? 0,
+                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).Average(x => (double?)x.CorruptionReachedAt) ?? 0,
+                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Average(x => (double?)x.PlatformOfTheGodsReachedAt) ?? 0
+                },
+                GoldSplits = new
+                {
+                    Hotel = group.Where(x => x.HotelReachedAt > 0).Min(x => (int?)x.HotelReachedAt) ?? 0,
+                    Casino = group.Where(x => x.CasinoReachedAt > 0).Min(x => (int?)x.CasinoReachedAt) ?? 0,
+                    Arena = group.Where(x => x.ArenaReachedAt > 0).Min(x => (int?)x.ArenaReachedAt) ?? 0,
+                    Museum = group.Where(x => x.MuseumReachedAt > 0).Min(x => (int?)x.MuseumReachedAt) ?? 0,
+                    Offices = group.Where(x => x.OfficesReachedAt > 0).Min(x => (int?)x.OfficesReachedAt) ?? 0,
+                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).Min(x => (int?)x.LaboratoryReachedAt) ?? 0,
+                    Core = group.Where(x => x.CoreReachedAt > 0).Min(x => (int?)x.CoreReachedAt) ?? 0,
+                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).Min(x => (int?)x.CorruptionReachedAt) ?? 0,
+                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Min(x => (int?)x.PlatformOfTheGodsReachedAt) ?? 0
+                },
+                GoldAchievedDate = new
+                {
+                    Hotel = group.Where(x => x.HotelReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Casino = group.Where(x => x.CasinoReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Arena = group.Where(x => x.ArenaReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Museum = group.Where(x => x.MuseumReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Offices = group.Where(x => x.OfficesReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Core = group.Where(x => x.CoreReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault(),
+                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).OrderBy(x => x.HotelReachedAt).Select(x => x.DatePlayed).FirstOrDefault()
+                }
+            }).Select(x => new
+            {
+                Hotel = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Hotel, (uint)x.GoldSplits.Hotel, x.SplitAverages.Hotel),
+                Casino = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Casino, (uint)x.GoldSplits.Casino, x.SplitAverages.Casino),
+                Arena = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Arena, (uint)x.GoldSplits.Arena, x.SplitAverages.Arena),
+                Museum = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Museum, (uint)x.GoldSplits.Museum, x.SplitAverages.Museum),
+                Offices = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Offices, (uint)x.GoldSplits.Offices, x.SplitAverages.Offices),
+                Laboratory = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Laboratory, (uint)x.GoldSplits.Laboratory, x.SplitAverages.Laboratory),
+                Core = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Core, (uint)x.GoldSplits.Core, x.SplitAverages.Core),
+                Corruption = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.Corruption, (uint)x.GoldSplits.Corruption, x.SplitAverages.Corruption),
+                PlatformOfTheGods = new ZenithSplitResult(x.Mods, x.GoldAchievedDate.PlatformOfTheGods, (uint)x.GoldSplits.PlatformOfTheGods, x.SplitAverages.PlatformOfTheGods)
+            }).SingleOrDefaultAsync();
+
+        return Ok(new
+        {
+            Hotel = new
+            {
+                AverageTime = splitData?.Hotel.ToAverageTimeString(),
+                BestTime = splitData?.Hotel.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Hotel.ToDateAchievedString()
+            },
+            Casino = new
+            {
+                AverageTime = splitData?.Casino.ToAverageTimeString(),
+                BestTime = splitData?.Casino.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Casino.ToDateAchievedString()
+            },
+            Arena = new
+            {
+                AverageTime = splitData?.Arena.ToAverageTimeString(),
+                BestTime = splitData?.Arena.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Arena.ToDateAchievedString()
+            },
+            Museum = new
+            {
+                AverageTime = splitData?.Museum.ToAverageTimeString(),
+                BestTime = splitData?.Museum.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Museum.ToDateAchievedString()
+            },
+            Offices = new
+            {
+                AverageTime = splitData?.Offices.ToAverageTimeString(),
+                BestTime = splitData?.Offices.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Offices.ToDateAchievedString()
+            },
+            Laboratory = new
+            {
+                AverageTime = splitData?.Laboratory.ToAverageTimeString(),
+                BestTime = splitData?.Laboratory.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Laboratory.ToDateAchievedString()
+            },
+            Core = new
+            {
+                AverageTime = splitData?.Core.ToAverageTimeString(),
+                BestTime = splitData?.Core.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Core.ToDateAchievedString()
+            },
+            Corruption = new
+            {
+                AverageTime = splitData?.Corruption.ToAverageTimeString(),
+                BestTime = splitData?.Corruption.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.Corruption.ToDateAchievedString()
+            },
+            Potg = new
+            {
+                AverageTime = splitData?.PlatformOfTheGods.ToAverageTimeString(),
+                BestTime = splitData?.PlatformOfTheGods.ToGoldTimeString(),
+                BestTimeAchievedDate = splitData?.PlatformOfTheGods.ToDateAchievedString()
+            }
+        });
     }
 
     [HttpGet]
