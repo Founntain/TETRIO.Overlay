@@ -136,7 +136,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var sevenDaysAgo = DateTime.UtcNow.AddDays(-14);
 
-        var runs = await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.PlayedAt >= sevenDaysAgo)
+        var recentDays = await context.Runs.AsNoTracking()
+            .Where(x => x.UserId == user.Id && x.PlayedAt >= sevenDaysAgo)
             .GroupBy(x => x.PlayedAt!.Value.Date)
             .Select(x => new
             {
@@ -156,10 +157,36 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                     Max = x.Max(y => y.Vs),
                     Avg = x.Average(y => y.Vs),
                 }
-
             }).ToArrayAsync();
 
-        return Ok(runs);
+        return Ok(new
+        {
+            RecentDays = recentDays,
+            ModProgression = new
+            {
+                NoMod      = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Length == 0)           .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                Expert     = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert"))    .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                NoHold     = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold"))    .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                Messy      = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy"))     .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                Gravity    = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity"))   .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                Volatile   = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile"))  .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                DoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                Invisible  = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible")) .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+                AllSpin    = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin"))   .Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(500).ToArrayAsync()).OrderBy(x => x),
+            },
+            RecentGames = new
+            {
+                NoMod      = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Length == 0)           .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                Expert     = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert"))    .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                NoHold     = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold"))    .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                Messy      = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy"))     .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                Gravity    = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity"))   .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                Volatile   = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile"))  .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                DoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole")).OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                Invisible  = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible")) .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+                AllSpin    = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin"))   .OrderByDescending(x => x.PlayedAt).GroupBy(x => x.PlayedAt.Value.Date).Select(x => Math.Round(x.Max(y => y.Altitude), 2)).Take(10).ToArrayAsync()),
+            }
+        });
     }
 
     [HttpGet]
