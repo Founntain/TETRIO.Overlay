@@ -28,8 +28,7 @@ public class ZenithSplitResult
         if (DateAchieved == null) return "a long time ago";
 
         var now = DateTime.UtcNow;
-        var dt = DateAchieved.Value.Kind == DateTimeKind.Utc ? DateAchieved.Value : DateAchieved.Value.ToUniversalTime();
-        var span = now - dt;
+        var span = now - DateAchieved.Value;
 
         if (span.TotalSeconds < 0) span = TimeSpan.Zero;
 
