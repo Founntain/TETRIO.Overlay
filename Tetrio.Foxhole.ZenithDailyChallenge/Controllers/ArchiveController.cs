@@ -21,7 +21,7 @@ public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseCo
 
         var communityChallenge = await baseQuery
             .OrderByDescending(x => x.StartDate)
-            .Select(x => new { x.Id, x.StartDate, x.EndDate, x.Value, x.TargetValue, x.ConditionType })
+            .Select(x => new { x.Id, x.StartDate, x.EndDate, x.Value, x.TargetValue, x.ConditionType, x.Name, x.Description })
             .FirstOrDefaultAsync();
 
         if (communityChallenge == null) return NotFound();
@@ -40,15 +40,17 @@ public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseCo
             }).ToListAsync();
 
         var previousChallenge = context.CommunityChallenges.AsNoTracking().Where(x => x.StartDate < communityChallenge.StartDate).OrderByDescending(x => x.StartDate).FirstOrDefault();
-        var nextChallenge = context.CommunityChallenges.AsNoTracking().Where(x => x.StartDate > communityChallenge.StartDate && x.EndDate < DateTime.UtcNow).OrderByDescending(x => x.StartDate).FirstOrDefault();
+        var nextChallenge = context.CommunityChallenges.AsNoTracking().Where(x => x.StartDate > communityChallenge.StartDate && x.EndDate < DateTime.UtcNow && x.Id != communityChallenge.Id).OrderBy(x => x.StartDate).FirstOrDefault();
 
         var archiveData = new
         {
             CommunityChallengeId = communityChallenge.Id,
             PreviousChallengeId = previousChallenge?.Id,
-            NextChallengeId = nextChallenge?.Id == communityChallenge.Id ? null : nextChallenge?.Id,
+            NextChallengeId = nextChallenge?.Id,
             StartDate = communityChallenge.StartDate.ToLongDateString(),
             EndDate = communityChallenge.EndDate.ToLongDateString(),
+            Name = communityChallenge.Name,
+            Description = communityChallenge.Description,
             Value = Math.Round(communityChallenge.Value, 2),
             TargetValue = Math.Round(communityChallenge.TargetValue, 2),
             ConditionType = communityChallenge.ConditionType,

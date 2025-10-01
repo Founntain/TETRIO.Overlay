@@ -83,6 +83,8 @@ public class ZenithController(TetrioApi api, TetrioContext context) : BaseContro
     [Route("splits/{username}/stats")]
     public async Task<ActionResult> GetSplitStats(string username, bool expert = false)
     {
+        return BadRequest("This Endpoint is currently disabled");
+
         var stats = await Api.GetRecentZenithRecords(username, expert);
         var careerBest = await Api.GetZenithStats(username, expert);
 
