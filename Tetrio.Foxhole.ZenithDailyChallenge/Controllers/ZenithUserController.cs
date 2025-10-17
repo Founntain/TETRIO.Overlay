@@ -465,7 +465,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         context.ChangeTracker.LazyLoadingEnabled = true;
 
-        var a = runs.Select(x =>
+        var data = runs.Select(x =>
         {
             var date = x.Key;
 
@@ -511,7 +511,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             };
         }).OrderByDescending(x => x.Date).ToArray();
 
-        return Ok(a);
+        return Ok(data);
     }
 
     [HttpGet]

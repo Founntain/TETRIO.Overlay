@@ -3,7 +3,7 @@ using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 
-namespace Tetrio.Zenith.DailyChallenge;
+namespace Tetrio.Zenith.DailyChallenge.ChallengeGeneration.Community;
 
 public class CommunityChallengeGenerator
 {

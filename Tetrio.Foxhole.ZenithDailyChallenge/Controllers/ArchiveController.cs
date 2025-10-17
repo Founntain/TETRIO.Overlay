@@ -4,7 +4,7 @@ using Tetrio.Foxhole.Backend.Base.Controllers;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Network.Api.Tetrio;
 
-namespace Tetrio.Zenith.DailyChallenge;
+namespace Tetrio.Zenith.DailyChallenge.Controllers;
 
 public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseController(api)
 {

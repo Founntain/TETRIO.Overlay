@@ -5,6 +5,7 @@ using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
+using Tetrio.Zenith.DailyChallenge.ChallengeGeneration.Daily;
 
 namespace Tetrio.Zenith.DailyChallenge.Controllers;
 
@@ -109,7 +110,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         if (!masteryChallengeExists)
         {
-            var masteryChallenge = await generator.GenerateMasteryChallenge(context);
+            var masteryChallenge = await generator.GenerateMasteryChallengesForDay(context);
+
             await context.AddAsync(masteryChallenge);
         }
 
@@ -196,8 +198,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                 ReverseChallengesCompleted = x.ReverseChallengesCompleted,
                 MasteryChallengesCompleted = x.MasteryScore,
             }).OrderByDescending(x => x.Score)
-              .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted))
-              .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted)).ToArray();
+              .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted + x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
+              .ToArray();
 
         return Ok(new
         {
@@ -350,7 +352,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         var random = new Random();
 
-        var c = new ChallengeGenerator(random.Next(1, 100000000));
+        var c = new DailyChallengeGeneator(random, DateTime.Now);
 
         var challenges = new List<Challenge>();
 
