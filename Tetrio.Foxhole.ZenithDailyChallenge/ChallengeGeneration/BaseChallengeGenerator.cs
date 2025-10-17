@@ -76,7 +76,8 @@ public abstract class BaseChallengeGenerator
                 vsAdjustment = 0.9d;
                 apmAdjustment = 0.9d;
             }
-            else if (modCount == 2)
+
+            if (modCount == 2)
             {
                 // Base Adjustment | 15% reduction
                 altitudeAdjustment = 0.85d;
@@ -98,12 +99,14 @@ public abstract class BaseChallengeGenerator
                     if(vsAdjustment > 0.8d) vsAdjustment = 0.8d;
                     if(apmAdjustment > 0.8d) apmAdjustment = 0.8d;
                 }
-            }else if (modCount >= 3)
+            }
+
+            if (modCount >= 3)
             {
                 // 25% reduction
-                altitudeAdjustment = 0.75d;
-                vsAdjustment = 0.75d;
-                apmAdjustment = 0.75d;
+                if(altitudeAdjustment > 0.75d) altitudeAdjustment = 0.75d;
+                if(vsAdjustment > 0.75d) vsAdjustment = 0.75d;
+                if(apmAdjustment > 0.75d) apmAdjustment = 0.75d;
             }
         }
 
