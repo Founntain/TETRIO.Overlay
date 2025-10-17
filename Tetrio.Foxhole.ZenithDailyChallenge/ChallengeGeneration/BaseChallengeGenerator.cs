@@ -98,7 +98,7 @@ public abstract class BaseChallengeGenerator
                     if(vsAdjustment > 0.8d) vsAdjustment = 0.8d;
                     if(apmAdjustment > 0.8d) apmAdjustment = 0.8d;
                 }
-            }else if (modCount == 3)
+            }else if (modCount >= 3)
             {
                 // 25% reduction
                 altitudeAdjustment = 0.75d;
