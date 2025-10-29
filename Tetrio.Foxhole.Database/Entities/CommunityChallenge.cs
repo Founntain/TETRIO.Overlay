@@ -13,6 +13,9 @@ public class CommunityChallenge : BaseEntity
     public double Value { get; set; } = 0;
     public bool Finished { get; set; }
 
+    public string? Mods { get; set; } = null;
+    public bool ShowMods { get; set; } = true;
+
     [MaxLength(256)]
     public string? Name { get; set; }
     [MaxLength(4096)]

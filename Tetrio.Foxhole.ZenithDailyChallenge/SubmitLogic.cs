@@ -230,6 +230,16 @@ public class SubmitLogic
 
         if(validRuns.Count == 0) return null;
 
+        // Check if all required mods are used if they exist
+        if (communityChallenge.Mods?.Length > 0)
+        {
+            var requiredMods = string.IsNullOrWhiteSpace(communityChallenge.Mods) ? [] : communityChallenge.Mods.Split(" ");
+
+            validRuns = validRuns.Where(x => !string.IsNullOrWhiteSpace(x.Mods) && x.Mods.Length > 0 && requiredMods.All(mod => x.Mods.Contains(mod))).ToList();
+        }
+
+        if(validRuns.Count == 0) return null;
+
         runValidator.UpdateAmountAccordingToRuns(ref contribution, communityChallenge.ConditionType, validRuns, clears);
 
         if (contribution.Amount <= 0) return null;
@@ -244,6 +254,8 @@ public class SubmitLogic
         // If Value is equal or bigger than TargetValue, set finished to true
         communityChallenge.Value += contribution.Amount;
         communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
+        // If the community challenge is finished, we also want to show the mods to the user in case they did not solved it so far.
+        communityChallenge.ShowMods = communityChallenge.Finished;
 
         Console.WriteLine($"[CC] Added {contribution.Amount} from {_user.Username}. With runs: {string.Join(' ', runs.Select(x => x.TetrioId))}");
 

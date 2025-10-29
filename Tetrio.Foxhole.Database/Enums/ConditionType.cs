@@ -2,6 +2,7 @@
 
 public enum ConditionType
 {
+    Special = -1,
     Height,
     KOs,
     Quads,

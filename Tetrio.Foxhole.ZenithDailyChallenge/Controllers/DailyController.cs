@@ -226,7 +226,10 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             TargetValue = x.TargetValue,
             Finished = x.Finished,
             TotalContributions = x.Contributions.Count(),
-            Participants = x.Contributions.Where(y => !y.IsLate).GroupBy(y => y.UserId).Count()
+            Participants = x.Contributions.Where(y => !y.IsLate).GroupBy(y => y.UserId).Count(),
+            Mods = x.ShowMods ?
+                            ! string.IsNullOrWhiteSpace(x.Mods) ? x.Mods.Split(" ", StringSplitOptions.None) : null
+                        : null,
         }).FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
 
         if(communityChallenge == null) return Ok(new { Finished = false });
