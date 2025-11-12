@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>Tetrio.Zenith.DailyChallenge</RootNamespace>
@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <ProjectReference Include="..\Tetrio.Foxhole.Backend.Base\Tetrio.Foxhole.Backend.Base.csproj" />
       <ProjectReference Include="..\Tetrio.Foxhole.Database\Tetrio.Foxhole.Database.csproj" />
