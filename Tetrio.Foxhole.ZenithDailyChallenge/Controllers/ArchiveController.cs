@@ -21,7 +21,7 @@ public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseCo
 
         var communityChallenge = await baseQuery
             .OrderByDescending(x => x.StartDate)
-            .Select(x => new { x.Id, x.StartDate, x.EndDate, x.Value, x.TargetValue, x.ConditionType, x.Name, x.Description })
+            .Select(x => new { x.Id, x.StartDate, x.EndDate, x.Value, x.TargetValue, x.ConditionType, x.Name, x.Description, x.Mods })
             .FirstOrDefaultAsync();
 
         if (communityChallenge == null) return NotFound();
@@ -52,6 +52,8 @@ public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseCo
             Name = communityChallenge.Name,
             Description = communityChallenge.Description,
             Value = Math.Round(communityChallenge.Value, 2),
+            Mods = communityChallenge.Mods?.Split(" ", StringSplitOptions.RemoveEmptyEntries),
+
             TargetValue = Math.Round(communityChallenge.TargetValue, 2),
             ConditionType = communityChallenge.ConditionType,
             Participants = groupedContributions
