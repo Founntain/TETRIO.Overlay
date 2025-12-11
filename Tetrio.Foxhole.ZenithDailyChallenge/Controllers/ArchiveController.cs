@@ -97,7 +97,7 @@ public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseCo
                 Runs = x.Runs.Select(r => new { r.User.Username, r.PlayedAt })
             }).ToListAsync();
 
-        if (rawData.Count == 0) return NotFound();
+        if (rawData.Count == 0) return NotFound($"Nothing found on the given date {date.Value.ToLongDateString()}");
 
         var archiveData = rawData.Select(x => new
         {
