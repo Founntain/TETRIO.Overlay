@@ -64,4 +64,58 @@ public class ArchiveController(TetrioApi api, TetrioContext context) : MinBaseCo
 
         return Ok(archiveData);
     }
+
+    [HttpGet]
+    [Route("daily")]
+    public async Task<ActionResult> GetPastDailyChallenges(DateOnly? date = null)
+    {
+        if (date == null)
+        {
+            // If no date is provided, find the most recent date with challenges
+            var latest = await context.Challenges.AsNoTracking()
+                .OrderByDescending(x => x.Date)
+                .Select(x => new { x.Date })
+                .FirstOrDefaultAsync();
+
+            if (latest == null) return NotFound();
+
+            date = latest.Date;
+        }
+
+        var minDate = await context.Challenges.AsNoTracking().MinAsync(x => x.Date);
+        var maxDate = await context.Challenges.AsNoTracking().MaxAsync(x => x.Date);
+
+        var rawData = await context.Challenges.AsNoTracking()
+            .Where(x => x.Date == date)
+            .OrderBy(x => x.Points)
+            .Select(x => new
+            {
+                x.Date,
+                x.Points,
+                x.Mods,
+                Conditions = x.Conditions.Select(y => new { y.Type, y.Value }),
+                Runs = x.Runs.Select(r => new { r.User.Username, r.PlayedAt })
+            }).ToListAsync();
+
+        if (rawData.Count == 0) return NotFound($"Nothing found on the given date {date.Value.ToLongDateString()}");
+
+        var archiveData = rawData.Select(x => new
+        {
+            MinDate = minDate,
+            MaxDate = maxDate,
+            Date = x.Date.ToString("D"),
+            Points = x.Points,
+            Mods = x.Mods?.Split(" ", StringSplitOptions.RemoveEmptyEntries),
+            Conditions = x.Conditions.OrderBy ( x=> x.Type),
+            Users = x.Runs
+                .GroupBy(r => r.Username)
+                .Select(g => new
+                {
+                    Username = g.Key,
+                    CompletedAt = g.Select(r => r.PlayedAt).Min()?.ToString("HH:m:s")
+                }).OrderBy(y => y.CompletedAt)
+        });
+
+        return Ok(archiveData);
+    }
 }
