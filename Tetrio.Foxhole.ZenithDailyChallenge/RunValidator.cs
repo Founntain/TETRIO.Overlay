@@ -226,6 +226,8 @@ public class RunValidator
             MasteryChallengeId = masteryChallenge.Id,
             UserId = user.Id
         };
+        
+        ulong scoreToAdd = 0;
 
         foreach (var run in runs)
         {
@@ -292,41 +294,76 @@ public class RunValidator
                 {
                     case "expert":
                         Console.WriteLine("\t- Expert mastery finished for today");
+                        
+                        if (masteryAttempt.ExpertCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.ExpertCompleted = true;
+                        
                         break;
                     case "nohold":
                         Console.WriteLine("\t- No Hold mastery finished for today");
+                        
+                        if (masteryAttempt.NoHoldCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.NoHoldCompleted = true;
+                        
                         break;
                     case "messy":
                         Console.WriteLine("\t- Messy mastery finished for today");
+                        
+                        if (masteryAttempt.MessyCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.MessyCompleted = true;
+                        
                         break;
                     case "gravity":
                         Console.WriteLine("\t- Gravity mastery finished for today");
+                        
+                        if (masteryAttempt.GravityCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.GravityCompleted = true;
+                        
                         break;
                     case "volatile":
                         Console.WriteLine("\t- Volatile mastery finished for today");
+                        
+                        if (masteryAttempt.VolatileCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.VolatileCompleted = true;
+                        
                         break;
                     case "doublehole":
                         Console.WriteLine("\t- Double Hole mastery finished for today");
+                        
+                        if (masteryAttempt.DoubleHoleCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.DoubleHoleCompleted = true;
+                        
                         break;
                     case "invisible":
                         Console.WriteLine("\t- Invisible mastery finished for today");
+                        
+                        if (masteryAttempt.InvisibleCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.InvisibleCompleted = true;
+                        
                         break;
                     case "allspin":
                         Console.WriteLine("\t- All Spin mastery finished for today");
+                        
+                        if (masteryAttempt.AllSpinCompleted == false) scoreToAdd += 2;
+                        
                         masteryAttempt.AllSpinCompleted = true;
+                        
                         break;
                     default:
                         break;
                 }
             }
         }
+        
+        
+        if (scoreToAdd > 0) user.Score += scoreToAdd;
 
         return masteryAttempt;
     }
