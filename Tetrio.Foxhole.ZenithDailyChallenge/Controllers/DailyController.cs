@@ -157,11 +157,9 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                 User = new
                 {
                     Name = x.Username,
+                    Score = x.Score,
                     Rank = x.TetrioRank ?? "z"
                 },
-                NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
-                ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
-                ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
                 EasyChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Easy),
                 NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
                 HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
@@ -179,7 +177,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                                                         (y.AllSpinCompleted ? 1 : 0)
 
                     }).Sum(y => y.MasteryChallengeModsCompleted)
-            }).OrderByDescending(x => x.NormalScore + x.ExpertScore + x.ReverseScore)
+            }).OrderByDescending(x => x.User.Score)
                 .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
                 .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
                 .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
@@ -187,19 +185,17 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         var validUserCount = await context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).CountAsync();
 
         var leaderboardData = users.Select(x => new
-            {
-                Username = x.User.Name,
-                Rank = x.User.Rank,
-                Score = Math.Round(x.NormalScore + x.ExpertScore + ( x.MasteryScore * 2 )  + (x.ReverseScore / 2d), 0),
-                EasyChallengesCompleted = x.EasyChallenges,
-                NormalChallengesCompleted = x.NormalChallenges,
-                HardChallengesCompleted = x.HardChallenges,
-                ExpertChallengesCompleted = x.ExpertChallengesCompleted,
-                ReverseChallengesCompleted = x.ReverseChallengesCompleted,
-                MasteryChallengesCompleted = x.MasteryScore,
-            }).OrderByDescending(x => x.Score)
-              .ThenByDescending( x => (x.EasyChallengesCompleted + x.NormalChallengesCompleted + x.HardChallengesCompleted + x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
-              .ToArray();
+        {
+            Username = x.User.Name,
+            Rank = x.User.Rank,
+            Score = x.User.Score,
+            EasyChallengesCompleted = x.EasyChallenges,
+            NormalChallengesCompleted = x.NormalChallenges,
+            HardChallengesCompleted = x.HardChallenges,
+            ExpertChallengesCompleted = x.ExpertChallengesCompleted,
+            ReverseChallengesCompleted = x.ReverseChallengesCompleted,
+            MasteryChallengesCompleted = x.MasteryScore,
+        });
 
         return Ok(new
         {

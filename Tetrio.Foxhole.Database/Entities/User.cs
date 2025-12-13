@@ -37,12 +37,12 @@ public class User : BaseEntity
     /// <summary>
     /// The users ZDC Score
     /// </summary>
-    public ulong Score { get; set; } = 0;
+    public uint Score { get; set; } = 0;
 
     /// <summary>
     /// The users ZDC Score before it got replaced by new scoring
     /// </summary>
-    public ulong LegacyScore { get; set; } = 0;
+    public uint LegacyScore { get; set; } = 0;
 
     #region Discord Auth related Stuff
 

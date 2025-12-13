@@ -81,22 +81,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             totalChallengesCompleted += masteryCompletions.AllSpin;
         }
 
-        var scores = await context.Users.AsNoTracking().Where(x => x.Username == username).Select(x => new
-        {
-            NormalScore = x.Score,
-            MasteryScore = (ulong) x.MasteryAttempts.Select(y => new
-            {
-                MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
-                                                (y.NoHoldCompleted ? 1 : 0) +
-                                                (y.MessyCompleted ? 1 : 0) +
-                                                (y.GravityCompleted ? 1 : 0) +
-                                                (y.VolatileCompleted ? 1 : 0) +
-                                                (y.DoubleHoleCompleted ? 1 : 0) +
-                                                (y.InvisibleCompleted ? 1 : 0) +
-                                                (y.AllSpinCompleted ? 1 : 0)
-            }).Sum(y => y.MasteryChallengeModsCompleted)
-        }).FirstOrDefaultAsync();
-
         return Ok(new
         {
             UserInfo = new
@@ -115,7 +99,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             DaysParticipated = daysParticipated,
             Altitudes = altitudes,
             MasteryCompletions = masteryCompletions,
-            Score = scores == null ? 0 : scores.NormalScore + scores.MasteryScore * 2
+            Score = user.Score
         });
     }
 
@@ -658,7 +642,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         return Ok(foundUsers);
     }
-    
+
     #if DEBUG
     [HttpGet]
     [Route("convertLegacyScore")]
@@ -696,18 +680,19 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         }).OrderByDescending(x => x.Score);
 
         int rowsUpdated = 0;
-        
+
         foreach (var userData in userScores.Where(x => x.Score > 0))
         {
             var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userData.UserId);
-            
+
             if(user == null) continue;
 
-            user.Score = (ulong) userData.Score;
+            user.Score = (uint) userData.Score;
+            user.LegacyScore = user.Score;
 
             rowsUpdated += await context.SaveChangesAsync();
         }
-        
+
         return Ok(rowsUpdated);
     }
     #endif

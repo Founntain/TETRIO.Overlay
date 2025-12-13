@@ -211,15 +211,13 @@ public class SubmitLogic
 
             foreach (var challenge in completedChallengesSet)
             {
-                // Only add the challenge if it wasn't already completed by the user
-                if (_user.Challenges.FirstOrDefault(x => x.Id == challenge.Id) == null)
-                {
-                    _user.Challenges.Add(challenge);
-                    
-                    var scoreToAdd = CalculateScoreFromChallenge(challenge);
-                    
-                    _user.Score += scoreToAdd;
-                }
+                // Only add the challenge if it wasn't already completed by the user, if not ignore it
+                if (_user.Challenges.FirstOrDefault(x => x.Id == challenge.Id) != null) continue;
+
+                _user.Challenges.Add(challenge);
+
+                var scoreToAdd = CalculateScoreFromChallenge(challenge);
+                _user.Score += scoreToAdd;
             }
         }
         else
@@ -230,7 +228,7 @@ public class SubmitLogic
         return (run, splits);
     }
 
-    private ulong CalculateScoreFromChallenge(Challenge challenge)
+    private uint CalculateScoreFromChallenge(Challenge challenge)
     {
         switch ((Difficulty) challenge.Points)
         {
@@ -240,7 +238,7 @@ public class SubmitLogic
             case Difficulty.Expert:
                 return challenge.Points;
             case Difficulty.Reverse:
-                return (ulong) (challenge.Points / 2);
+                return (uint) (challenge.Points / 2);
                 break;
             default: return 0;
         }
