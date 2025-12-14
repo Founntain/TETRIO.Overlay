@@ -15,6 +15,8 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
 
     public async Task<MasteryChallenge> GenerateMasteryChallenge(TetrioContext context)
     {
+        #region Normal Master Challenge
+
         var conditions = GetRandomConditionsWithoutAllClears();
 
         var masteryChallengeConditions = new List<MasteryChallengeCondition>();
@@ -47,12 +49,30 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
                 var masteryChallengeCondition = new MasteryChallengeCondition()
                 {
                     Type = condition,
-                    Value = value
+                    Value = value,
+                    IsReverse = false,
                 };
 
                 masteryChallengeConditions.Add(masteryChallengeCondition);
             }
         }
+
+        #endregion
+
+        #region Reverse Mastery Challenge
+
+        var reverseHeight = _random.Next(100, 200);
+
+        var reverseMasteryChallengeCondition = new MasteryChallengeCondition()
+        {
+            Type = ConditionType.Height,
+            Value = reverseHeight,
+            IsReverse = true,
+        };
+
+        masteryChallengeConditions.Add(reverseMasteryChallengeCondition);
+
+        #endregion
 
         return new MasteryChallenge
         {

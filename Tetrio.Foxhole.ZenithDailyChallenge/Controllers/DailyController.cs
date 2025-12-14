@@ -43,16 +43,34 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             Mods = x.Mods,
         }).ToListAsync();
 
-        var masteryChallenge = await context.MasteryChallenges.AsNoTracking().Where(x => x.Date == day).Select(x => new
+        var normalMasteryChallenge = await context.MasteryChallenges.AsNoTracking().Where(x => x.Date == day).Select(x => new
         {
             Id = x.Id,
             IsMasteryChallenge = true,
-            Conditions = x.Conditions.OrderBy(y => y.Type).Select(y => new MasteryChallengeCondition()
+            IsReverse = false,
+            Conditions = x.Conditions.OrderBy(y => y.Type).Where(y => !y.IsReverse).Select(y => new MasteryChallengeCondition()
             {
                 Id = y.Id,
                 ChallengeId = y.ChallengeId,
                 Value = y.Value,
                 Type = y.Type,
+                IsReverse = y.IsReverse
+            }).ToHashSet(),
+            Date = x.Date
+        }).FirstOrDefaultAsync();
+
+        var reverseMasteryChallenge = await context.MasteryChallenges.AsNoTracking().Where(x => x.Date == day).Select(x => new
+        {
+            Id = x.Id,
+            IsMasteryChallenge = true,
+            IsReverse = true,
+            Conditions = x.Conditions.OrderBy(y => y.Type).Where(y => y.IsReverse).Select(y => new MasteryChallengeCondition()
+            {
+                Id = y.Id,
+                ChallengeId = y.ChallengeId,
+                Value = y.Value,
+                Type = y.Type,
+                IsReverse = y.IsReverse
             }).ToHashSet(),
             Date = x.Date
         }).FirstOrDefaultAsync();
@@ -61,8 +79,11 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         allChallenges.AddRange(challenges);
 
-        if(masteryChallenge != null)
-            allChallenges.AddRange(masteryChallenge);
+        if(normalMasteryChallenge != null)
+            allChallenges.AddRange(normalMasteryChallenge);
+
+        if(reverseMasteryChallenge != null)
+            allChallenges.AddRange(reverseMasteryChallenge);
 
         return Ok(allChallenges);
     }

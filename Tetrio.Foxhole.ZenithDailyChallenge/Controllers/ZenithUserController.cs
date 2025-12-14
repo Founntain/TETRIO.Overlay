@@ -572,7 +572,16 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 x.VolatileCompleted,
                 x.DoubleHoleCompleted,
                 x.InvisibleCompleted,
-                x.AllSpinCompleted
+                x.AllSpinCompleted,
+
+                x.ExpertReversedCompleted,
+                x.NoHoldReversedCompleted,
+                x.MessyReversedCompleted,
+                x.GravityReversedCompleted,
+                x.VolatileReversedCompleted,
+                x.DoubleHoleReversedCompleted,
+                x.InvisibleReversedCompleted,
+                x.AllSpinReversedCompleted,
             }).FirstOrDefaultAsync();
 
         return Ok(new
