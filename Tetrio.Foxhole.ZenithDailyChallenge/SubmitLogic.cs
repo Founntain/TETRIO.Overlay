@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
+using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
 using Tetrio.Foxhole.Network.Api.Tetrio.Models;
 
@@ -108,10 +109,12 @@ public class SubmitLogic
 
         if (todaysRuns.Any())
         {
-            var masteryAttempt = await runValidator.ValidateMasteryChallenge(_user, _day, _context, todaysRuns);
+            var masteryAttempt= await runValidator.ValidateMasteryChallenge(_user, _day, _context, todaysRuns);
 
             if (masteryAttempt != null && !await _context.MasteryAttempts.AnyAsync(x => x.MasteryChallengeId == masteryAttempt.MasteryChallengeId && x.UserId == _user.Id))
+            {
                 await _context.AddAsync(masteryAttempt);
+            }
         }
 
         await _context.AddRangeAsync(splitsToAdd);
@@ -208,7 +211,13 @@ public class SubmitLogic
 
             foreach (var challenge in completedChallengesSet)
             {
+                // Only add the challenge if it wasn't already completed by the user, if not ignore it
+                if (_user.Challenges.FirstOrDefault(x => x.Id == challenge.Id) != null) continue;
+
                 _user.Challenges.Add(challenge);
+
+                var scoreToAdd = CalculateScoreFromChallenge(challenge);
+                _user.Score += scoreToAdd;
             }
         }
         else
@@ -217,6 +226,22 @@ public class SubmitLogic
         }
 
         return (run, splits);
+    }
+
+    private uint CalculateScoreFromChallenge(Challenge challenge)
+    {
+        switch ((Difficulty) challenge.Points)
+        {
+            case Difficulty.Easy:
+            case Difficulty.Normal:
+            case Difficulty.Hard:
+            case Difficulty.Expert:
+                return challenge.Points;
+            case Difficulty.Reverse:
+                return (uint) (challenge.Points / 2);
+                break;
+            default: return 0;
+        }
     }
 
     private CommunityContribution? ProcessCommunityContribution(RunValidator runValidator, CommunityChallenge communityChallenge, List<Run> runs, List<Clears> clears)

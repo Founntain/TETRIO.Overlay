@@ -81,24 +81,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             totalChallengesCompleted += masteryCompletions.AllSpin;
         }
 
-        var scores = await context.Users.AsNoTracking().Where(x => x.Username == username).Select(x => new
-        {
-            NormalScore = x.Challenges.Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse).Sum(y => y.Points),
-            ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
-            ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
-            MasteryScore = x.MasteryAttempts.Select(y => new
-            {
-                MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
-                                                (y.NoHoldCompleted ? 1 : 0) +
-                                                (y.MessyCompleted ? 1 : 0) +
-                                                (y.GravityCompleted ? 1 : 0) +
-                                                (y.VolatileCompleted ? 1 : 0) +
-                                                (y.DoubleHoleCompleted ? 1 : 0) +
-                                                (y.InvisibleCompleted ? 1 : 0) +
-                                                (y.AllSpinCompleted ? 1 : 0)
-            }).Sum(y => y.MasteryChallengeModsCompleted)
-        }).FirstOrDefaultAsync();
-
         return Ok(new
         {
             UserInfo = new
@@ -117,7 +99,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             DaysParticipated = daysParticipated,
             Altitudes = altitudes,
             MasteryCompletions = masteryCompletions,
-            Score = scores == null ? 0 : Math.Round(scores.NormalScore + scores.ExpertScore + scores.MasteryScore * 2 + scores.ReverseScore / 2d, 0)
+            Score = user.Score
         });
     }
 
@@ -590,7 +572,16 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 x.VolatileCompleted,
                 x.DoubleHoleCompleted,
                 x.InvisibleCompleted,
-                x.AllSpinCompleted
+                x.AllSpinCompleted,
+
+                x.ExpertReversedCompleted,
+                x.NoHoldReversedCompleted,
+                x.MessyReversedCompleted,
+                x.GravityReversedCompleted,
+                x.VolatileReversedCompleted,
+                x.DoubleHoleReversedCompleted,
+                x.InvisibleReversedCompleted,
+                x.AllSpinReversedCompleted,
             }).FirstOrDefaultAsync();
 
         return Ok(new
@@ -660,4 +651,58 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         return Ok(foundUsers);
     }
+
+    #if DEBUG
+    [HttpGet]
+    [Route("convertLegacyScore")]
+    public async Task<ActionResult> ConvertLegacyScore()
+    {
+        var legacyUsersWithScore = await context.Users.AsNoTracking().Select(x => new
+        {
+            UserId = x.Id,
+            Username = x.Username,
+            NormalScore = x.Challenges
+                .Where(y => y.Points != (byte)Difficulty.Expert && y.Points != (byte)Difficulty.Reverse)
+                .Sum(y => y.Points),
+            ExpertScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Expert).Sum(y => y.Points),
+            ReverseScore = x.Challenges.Where(y => y.Points == (byte)Difficulty.Reverse).Sum(y => y.Points),
+            MasteryScore = x.MasteryAttempts.Select(y => new
+            {
+                MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
+                                                (y.NoHoldCompleted ? 1 : 0) +
+                                                (y.MessyCompleted ? 1 : 0) +
+                                                (y.GravityCompleted ? 1 : 0) +
+                                                (y.VolatileCompleted ? 1 : 0) +
+                                                (y.DoubleHoleCompleted ? 1 : 0) +
+                                                (y.InvisibleCompleted ? 1 : 0) +
+                                                (y.AllSpinCompleted ? 1 : 0)
+            }).Sum(y => y.MasteryChallengeModsCompleted)
+        }).ToArrayAsync();
+
+        var userScores = legacyUsersWithScore.Select(x => new
+        {
+            UserId = x.UserId,
+            Username = x.Username,
+            Score = x == null
+                ? 0
+                : Math.Round(x.NormalScore + x.ExpertScore + x.MasteryScore * 2 + x.ReverseScore / 2d, 0)
+        }).OrderByDescending(x => x.Score);
+
+        int rowsUpdated = 0;
+
+        foreach (var userData in userScores.Where(x => x.Score > 0))
+        {
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userData.UserId);
+
+            if(user == null) continue;
+
+            user.Score = (uint) userData.Score;
+            user.LegacyScore = user.Score;
+
+            rowsUpdated += await context.SaveChangesAsync();
+        }
+
+        return Ok(rowsUpdated);
+    }
+    #endif
 }

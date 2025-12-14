@@ -39,18 +39,12 @@ public abstract class ChallengeConditionBase : BaseEntity
 
 public class ChallengeCondition : ChallengeConditionBase
 {
-    public Guid ChallengeId { get; set; }
-    public ConditionType Type { get; set; }
-    public double Value { get; set; }
-
     public virtual Challenge? Challenge { get; set; }
 }
 
 public class MasteryChallengeCondition : ChallengeConditionBase
 {
-    public Guid ChallengeId { get; set; }
-    public ConditionType Type { get; set; }
-    public double Value { get; set; }
+    public bool IsReverse { get; set; } = false;
 
     public virtual MasteryChallenge? MasteryChallenge { get; set; }
 }

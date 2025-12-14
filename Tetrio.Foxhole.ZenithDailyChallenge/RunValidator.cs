@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.Immutable;
+using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
@@ -227,6 +228,8 @@ public class RunValidator
             UserId = user.Id
         };
 
+        uint scoreToAdd = 0;
+
         foreach (var run in runs)
         {
             if (run.Mods.Split(' ').Length == 0)
@@ -236,98 +239,196 @@ public class RunValidator
                 continue;
             }
 
-            var isChallengeCompleted = true;
+            var isChallengeCompleted = EvaluateRunConditions(masteryChallenge.Conditions.Where(x => !x.IsReverse).ToImmutableArray(), run);
+            var isReverseChallengeCompleted = EvaluateRunConditions(masteryChallenge.Conditions.Where(x => x.IsReverse).ToImmutableArray(), run);
 
-            foreach (var condition in masteryChallenge.Conditions.ToArray())
-            {
-                switch (condition.Type)
-                {
-                    case ConditionType.Height:
-                        isChallengeCompleted &= run.Altitude >= condition.Value;
-                        break;
-                    case ConditionType.KOs:
-                        isChallengeCompleted &= run.KOs >= condition.Value;
-                        break;
-                    case ConditionType.AllClears:
-                        isChallengeCompleted &= run.AllClears >= condition.Value;
-                        break;
-                    case ConditionType.Quads:
-                        isChallengeCompleted &= run.Quads >= condition.Value;
-                        break;
-                    case ConditionType.Spins:
-                        isChallengeCompleted &= run.Spins >= condition.Value;
-                        break;
-                    case ConditionType.Apm:
-                        isChallengeCompleted &= run.Apm >= condition.Value;
-                        break;
-                    case ConditionType.Pps:
-                        isChallengeCompleted &= run.Pps >= condition.Value;
-                        break;
-                    case ConditionType.Vs:
-                        isChallengeCompleted &= run.Vs >= condition.Value;
-                        break;
-                    case ConditionType.Finesse:
-                        isChallengeCompleted &= run.Finesse >= condition.Value;
-                        break;
-                    case ConditionType.BackToBack:
-                        isChallengeCompleted &= run.Back2Back >= condition.Value;
-                        break;
-                    case ConditionType.TotalBonus:
-                        isChallengeCompleted &= run.TotalBonus >= condition.Value;
-                        break;
-                    default:
-                        continue;
-                }
-
-                if (!isChallengeCompleted) break;
-            }
-
-            if (!isChallengeCompleted) continue;
+            // If both are not completed we skip
+            if (!isChallengeCompleted && !isReverseChallengeCompleted) continue;
 
             var mods = run.Mods.Split(' ');
 
             foreach (var mod in mods)
             {
-                switch (mod)
+                #region Normal mods
+
+                if (isChallengeCompleted)
                 {
-                    case "expert":
-                        Console.WriteLine("\t- Expert mastery finished for today");
-                        masteryAttempt.ExpertCompleted = true;
-                        break;
-                    case "nohold":
-                        Console.WriteLine("\t- No Hold mastery finished for today");
-                        masteryAttempt.NoHoldCompleted = true;
-                        break;
-                    case "messy":
-                        Console.WriteLine("\t- Messy mastery finished for today");
-                        masteryAttempt.MessyCompleted = true;
-                        break;
-                    case "gravity":
-                        Console.WriteLine("\t- Gravity mastery finished for today");
-                        masteryAttempt.GravityCompleted = true;
-                        break;
-                    case "volatile":
-                        Console.WriteLine("\t- Volatile mastery finished for today");
-                        masteryAttempt.VolatileCompleted = true;
-                        break;
-                    case "doublehole":
-                        Console.WriteLine("\t- Double Hole mastery finished for today");
-                        masteryAttempt.DoubleHoleCompleted = true;
-                        break;
-                    case "invisible":
-                        Console.WriteLine("\t- Invisible mastery finished for today");
-                        masteryAttempt.InvisibleCompleted = true;
-                        break;
-                    case "allspin":
-                        Console.WriteLine("\t- All Spin mastery finished for today");
-                        masteryAttempt.AllSpinCompleted = true;
-                        break;
-                    default:
-                        break;
+                    switch (mod)
+                    {
+                        case "expert":
+                            Console.WriteLine("\t- Expert mastery finished for today");
+                            if (masteryAttempt.ExpertCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.ExpertCompleted = true;
+
+                            break;
+                        case "nohold":
+                            Console.WriteLine("\t- No Hold mastery finished for today");
+                            if (masteryAttempt.NoHoldCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.NoHoldCompleted = true;
+
+                            break;
+                        case "messy":
+                            Console.WriteLine("\t- Messy mastery finished for today");
+                            if (masteryAttempt.MessyCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.MessyCompleted = true;
+
+                            break;
+                        case "gravity":
+                            Console.WriteLine("\t- Gravity mastery finished for today");
+                            if (masteryAttempt.GravityCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.GravityCompleted = true;
+
+                            break;
+                        case "volatile":
+                            Console.WriteLine("\t- Volatile mastery finished for today");
+                            if (masteryAttempt.VolatileCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.VolatileCompleted = true;
+
+                            break;
+                        case "doublehole":
+                            Console.WriteLine("\t- Double Hole mastery finished for today");
+                            if (masteryAttempt.DoubleHoleCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.DoubleHoleCompleted = true;
+
+                            break;
+                        case "invisible":
+                            Console.WriteLine("\t- Invisible mastery finished for today");
+                            if (masteryAttempt.InvisibleCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.InvisibleCompleted = true;
+
+                            break;
+                        case "allspin":
+                            Console.WriteLine("\t- All Spin mastery finished for today");
+                            if (masteryAttempt.AllSpinCompleted == false) scoreToAdd += 2;
+                            masteryAttempt.AllSpinCompleted = true;
+
+                            break;
+
+                        default:
+                            break;
+                    }
                 }
+
+                #endregion
+
+                #region Reversed Mods
+
+                if (isReverseChallengeCompleted)
+                {
+                    switch (mod)
+                    {
+                        case "expert_reversed":
+                            Console.WriteLine("\t- The Tyrant mastery finished for today");
+                            if (masteryAttempt.ExpertReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.ExpertReversedCompleted = true;
+
+                            break;
+                        case "nohold_reversed":
+                            Console.WriteLine("\t- Asceticism mastery finished for today");
+                            if (masteryAttempt.NoHoldReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.NoHoldReversedCompleted = true;
+
+                            break;
+                        case "messy_reversed":
+                            Console.WriteLine("\t- Loaded Dice reversed mastery finished for today");
+                            if (masteryAttempt.MessyReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.MessyReversedCompleted = true;
+
+                            break;
+                        case "gravity_reversed":
+                            Console.WriteLine("\t- Freefall mastery finished for today");
+                            if (masteryAttempt.GravityReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.GravityReversedCompleted = true;
+
+                            break;
+                        case "volatile_reversed":
+                            Console.WriteLine("\t- Last Stand mastery finished for today");
+                            if (masteryAttempt.VolatileReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.VolatileReversedCompleted = true;
+
+                            break;
+                        case "doublehole_reversed":
+                            Console.WriteLine("\t- Damnation mastery finished for today");
+                            if (masteryAttempt.DoubleHoleReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.DoubleHoleReversedCompleted = true;
+
+                            break;
+                        case "invisible_reversed":
+                            Console.WriteLine("\t- The Exile mastery finished for today");
+                            if (masteryAttempt.InvisibleReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.InvisibleReversedCompleted = true;
+
+                            break;
+                        case "allspin_reversed":
+                            Console.WriteLine("\t- The Warlock reversed mastery finished for today");
+                            if (masteryAttempt.AllSpinReversedCompleted == false) scoreToAdd += 4;
+                            masteryAttempt.AllSpinReversedCompleted = true;
+
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                #endregion
             }
         }
 
+
+        if (scoreToAdd > 0) user.Score += scoreToAdd;
+
         return masteryAttempt;
+    }
+
+    private bool EvaluateRunConditions(ICollection<MasteryChallengeCondition> conditions, Run run)
+    {
+        var isChallengeCompleted = true;
+
+        if (conditions.Count == 0) return false;
+
+        foreach (var condition in conditions)
+        {
+            switch (condition.Type)
+            {
+                case ConditionType.Height:
+                    isChallengeCompleted &= run.Altitude >= condition.Value;
+                    break;
+                case ConditionType.KOs:
+                    isChallengeCompleted &= run.KOs >= condition.Value;
+                    break;
+                case ConditionType.AllClears:
+                    isChallengeCompleted &= run.AllClears >= condition.Value;
+                    break;
+                case ConditionType.Quads:
+                    isChallengeCompleted &= run.Quads >= condition.Value;
+                    break;
+                case ConditionType.Spins:
+                    isChallengeCompleted &= run.Spins >= condition.Value;
+                    break;
+                case ConditionType.Apm:
+                    isChallengeCompleted &= run.Apm >= condition.Value;
+                    break;
+                case ConditionType.Pps:
+                    isChallengeCompleted &= run.Pps >= condition.Value;
+                    break;
+                case ConditionType.Vs:
+                    isChallengeCompleted &= run.Vs >= condition.Value;
+                    break;
+                case ConditionType.Finesse:
+                    isChallengeCompleted &= run.Finesse >= condition.Value;
+                    break;
+                case ConditionType.BackToBack:
+                    isChallengeCompleted &= run.Back2Back >= condition.Value;
+                    break;
+                case ConditionType.TotalBonus:
+                    isChallengeCompleted &= run.TotalBonus >= condition.Value;
+                    break;
+                default:
+                    return true;
+            }
+        }
+
+        return isChallengeCompleted;
     }
 }

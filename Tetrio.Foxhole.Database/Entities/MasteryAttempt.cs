@@ -11,6 +11,15 @@ public class MasteryAttempt : BaseEntity
     public bool InvisibleCompleted { get; set; } = false;
     public bool AllSpinCompleted { get; set; } = false;
 
+    public bool ExpertReversedCompleted { get; set; } = false;
+    public bool NoHoldReversedCompleted { get; set; } = false;
+    public bool MessyReversedCompleted { get; set; } = false;
+    public bool GravityReversedCompleted { get; set; } = false;
+    public bool VolatileReversedCompleted { get; set; } = false;
+    public bool DoubleHoleReversedCompleted { get; set; } = false;
+    public bool InvisibleReversedCompleted { get; set; } = false;
+    public bool AllSpinReversedCompleted { get; set; } = false;
+
     public Guid UserId { get; set; }
     public Guid MasteryChallengeId { get; set; }
 
