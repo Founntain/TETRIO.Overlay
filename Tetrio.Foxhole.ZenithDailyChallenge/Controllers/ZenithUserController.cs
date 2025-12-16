@@ -78,6 +78,27 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                             + x.Where(y => y.Mods.Contains("allspin_reversed")).Sum(y => y.Altitude), 2)
         }).FirstOrDefaultAsync();
 
+        var totalAltitude = 0d;
+        var percentages = new double[9];
+
+        if(altitudes != null)
+        {
+            totalAltitude = altitudes.NoMod + altitudes.Expert + altitudes.NoHold + altitudes.Messy + altitudes.Gravity + altitudes.Volatile + altitudes.DoubleHole + altitudes.Invisible + altitudes.AllSpin;
+            percentages =
+            [
+                Math.Round(altitudes.NoMod / totalAltitude * 100, 2),
+                Math.Round(altitudes.Expert / totalAltitude * 100, 2),
+                Math.Round(altitudes.NoHold / totalAltitude * 100, 2),
+                Math.Round(altitudes.Messy / totalAltitude * 100, 2),
+                Math.Round(altitudes.Gravity / totalAltitude * 100, 2),
+                Math.Round(altitudes.Volatile / totalAltitude * 100, 2),
+                Math.Round(altitudes.DoubleHole / totalAltitude * 100, 2),
+                Math.Round(altitudes.Invisible / totalAltitude * 100, 2),
+                Math.Round(altitudes.AllSpin / totalAltitude * 100, 2)
+            ];
+        }
+
+
         var runCount = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
         var splitsCount = await context.ZenithSplits.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
         var daysParticipated = await context.Users.AsNoTracking().Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
@@ -118,6 +139,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             TotalChallengesCompleted = totalChallengesCompleted,
             DaysParticipated = daysParticipated,
             Altitudes = altitudes,
+            AltitudePercentages = percentages,
             MasteryCompletions = masteryCompletions,
             Score = user.Score
         });
