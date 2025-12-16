@@ -195,7 +195,15 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                                                         (y.VolatileCompleted ? 1 : 0) +
                                                         (y.DoubleHoleCompleted ? 1 : 0) +
                                                         (y.InvisibleCompleted ? 1 : 0) +
-                                                        (y.AllSpinCompleted ? 1 : 0)
+                                                        (y.AllSpinCompleted ? 1 : 0) +
+                                                        (y.ExpertReversedCompleted ? 1 : 0) +
+                                                        (y.NoHoldReversedCompleted ? 1 : 0) +
+                                                        (y.MessyReversedCompleted ? 1 : 0) +
+                                                        (y.GravityReversedCompleted ? 1 : 0) +
+                                                        (y.VolatileReversedCompleted ? 1 : 0) +
+                                                        (y.DoubleHoleReversedCompleted ? 1 : 0) +
+                                                        (y.InvisibleReversedCompleted ? 1 : 0) +
+                                                        (y.AllSpinReversedCompleted ? 1 : 0)
 
                     }).Sum(y => y.MasteryChallengeModsCompleted)
             }).OrderByDescending(x => x.User.Score)
@@ -311,7 +319,15 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                                             (y.VolatileCompleted ? 1 : 0) +
                                             (y.DoubleHoleCompleted ? 1 : 0) +
                                             (y.InvisibleCompleted ? 1 : 0) +
-                                            (y.AllSpinCompleted ? 1 : 0)
+                                            (y.AllSpinCompleted ? 1 : 0) +
+                                            (y.ExpertReversedCompleted ? 1 : 0) +
+                                            (y.NoHoldReversedCompleted ? 1 : 0) +
+                                            (y.MessyReversedCompleted ? 1 : 0) +
+                                            (y.GravityReversedCompleted ? 1 : 0) +
+                                            (y.VolatileReversedCompleted ? 1 : 0) +
+                                            (y.DoubleHoleReversedCompleted ? 1 : 0) +
+                                            (y.InvisibleReversedCompleted ? 1 : 0) +
+                                            (y.AllSpinReversedCompleted ? 1 : 0)
 
         }).SumAsync(y => y.MasteryChallengeModsCompleted) * 2;
 

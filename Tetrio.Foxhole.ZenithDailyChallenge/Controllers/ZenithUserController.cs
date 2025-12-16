@@ -44,7 +44,16 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Volatile = x.Count(y => y.VolatileCompleted),
             DoubleHole = x.Count(y => y.DoubleHoleCompleted),
             Invisible = x.Count(y => y.InvisibleCompleted),
-            AllSpin = x.Count(y => y.AllSpinCompleted)
+            AllSpin = x.Count(y => y.AllSpinCompleted),
+
+            Reverse =   x.Count(y => y.ExpertReversedCompleted)
+                      + x.Count(y => y.NoHoldReversedCompleted)
+                      + x.Count(y => y.MessyReversedCompleted)
+                      + x.Count(y => y.GravityReversedCompleted)
+                      + x.Count(y => y.VolatileReversedCompleted)
+                      + x.Count(y => y.DoubleHoleReversedCompleted)
+                      + x.Count(y => y.InvisibleReversedCompleted)
+                      + x.Count(y => y.AllSpinReversedCompleted)
         }).FirstOrDefaultAsync();
 
         var altitudes = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).GroupBy(x => x.User.Id).Select(x => new
@@ -57,7 +66,16 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Volatile = Math.Round(x.Where(y => y.Mods.Contains("volatile")).Sum(y => y.Altitude), 2),
             DoubleHole = Math.Round(x.Where(y => y.Mods.Contains("doublehole")).Sum(y => y.Altitude), 2),
             Invisible = Math.Round(x.Where(y => y.Mods.Contains("invisible")).Sum(y => y.Altitude), 2),
-            AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2)
+            AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2),
+
+            Reverse =   Math.Round(x.Where(y => y.Mods.Contains("expert_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("nohold_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("messy_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("gravity_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("volatile_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("doublehole_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("invisible_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("allspin_reversed")).Sum(y => y.Altitude), 2)
         }).FirstOrDefaultAsync();
 
         var runCount = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
@@ -79,6 +97,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             totalChallengesCompleted += masteryCompletions.DoubleHole;
             totalChallengesCompleted += masteryCompletions.Invisible;
             totalChallengesCompleted += masteryCompletions.AllSpin;
+
+            totalChallengesCompleted += masteryCompletions.Reverse;
         }
 
         return Ok(new
@@ -447,9 +467,35 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         context.ChangeTracker.LazyLoadingEnabled = true;
 
+        var woms = await context.MasteryAttempts.AsNoTracking().Where(x => x.User.Username == username && runs.Select(y => y.Key).Contains(x.MasteryChallenge.Date))
+            .Select(x => new
+            {
+                Date = x.MasteryChallenge.Date,
+
+                x.ExpertCompleted,
+                x.NoHoldCompleted,
+                x.MessyCompleted,
+                x.GravityCompleted,
+                x.VolatileCompleted,
+                x.DoubleHoleCompleted,
+                x.InvisibleCompleted,
+                x.AllSpinCompleted,
+
+                x.ExpertReversedCompleted,
+                x.NoHoldReversedCompleted,
+                x.MessyReversedCompleted,
+                x.GravityReversedCompleted,
+                x.VolatileReversedCompleted,
+                x.DoubleHoleReversedCompleted,
+                x.InvisibleReversedCompleted,
+                x.AllSpinReversedCompleted,
+            }).ToArrayAsync();
+
         var data = runs.Select(x =>
         {
             var date = x.Key;
+
+            var wom = woms.FirstOrDefault(y => y.Date == date);
 
             var veryEasyCompleted = false;
             var easyCompleted = false;
@@ -489,7 +535,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 NormalCompleted = normalCompleted,
                 HardCompleted = hardCompleted,
                 ExpertCompleted = expertCompleted,
-                ReverseCompleted = reverseCompleted
+                ReverseCompleted = reverseCompleted,
+                Mastery = wom
             };
         }).OrderByDescending(x => x.Date).ToArray();
 
