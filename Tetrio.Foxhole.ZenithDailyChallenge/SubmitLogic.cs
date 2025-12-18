@@ -280,7 +280,7 @@ public class SubmitLogic
         communityChallenge.Value += contribution.Amount;
         communityChallenge.Finished = communityChallenge.Value >= communityChallenge.TargetValue;
         // If the community challenge is finished, we also want to show the mods to the user in case they did not solved it so far.
-        communityChallenge.ShowMods = communityChallenge.Finished;
+        if(communityChallenge.ShowMods == false) communityChallenge.ShowMods = communityChallenge.Finished;
 
         Console.WriteLine($"[CC] Added {contribution.Amount} from {_user.Username}. With runs: {string.Join(' ', runs.Select(x => x.TetrioId))}");
 
