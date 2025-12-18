@@ -161,6 +161,15 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
         var selectedMods = new List<Mod>();
         var mods = await context.Mods.ToListAsync();
 
+        mods.Add(new Mod
+        {
+            Id = Guid.Parse("11111111-1111-1111-1111-111111111010"),
+            MinDifficulty = Difficulty.Easy,
+            Name = "snowman",
+            Scaling = 0.75,
+            Weight = 10
+        });
+
         mods = mods.OrderBy(_ => _random.NextInt64()).ToList();
 
         int maxMods;
