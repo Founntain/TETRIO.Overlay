@@ -260,7 +260,10 @@ public class SubmitLogic
         {
             var requiredMods = string.IsNullOrWhiteSpace(communityChallenge.Mods) ? [] : communityChallenge.Mods.Split(" ");
 
-            validRuns = validRuns.Where(x => !string.IsNullOrWhiteSpace(x.Mods) && x.Mods.Length > 0 && requiredMods.All(mod => x.Mods.Contains(mod))).ToList();
+            if(communityChallenge.RequireAllMods)
+                validRuns = validRuns.Where(x => !string.IsNullOrWhiteSpace(x.Mods) && x.Mods.Length > 0 && requiredMods.All(mod => x.Mods.Contains(mod))).ToList();
+            else
+                validRuns = validRuns.Where(x => !string.IsNullOrWhiteSpace(x.Mods) && x.Mods.Length > 0 && requiredMods.Any(mod => x.Mods.Contains(mod))).ToList();
         }
 
         if(validRuns.Count == 0) return null;

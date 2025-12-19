@@ -14,6 +14,7 @@ public class CommunityChallenge : BaseEntity
     public bool Finished { get; set; }
 
     public string? Mods { get; set; } = null;
+    public bool RequireAllMods { get; set; } = true;
     public bool ShowMods { get; set; } = true;
 
     [MaxLength(256)]
