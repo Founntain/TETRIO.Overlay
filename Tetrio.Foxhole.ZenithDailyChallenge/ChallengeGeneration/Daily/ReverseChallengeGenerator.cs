@@ -45,7 +45,7 @@ public class ReverseChallengeGenerator : BaseChallengeGenerator
         {
             tries++;
 
-            var mod = _random.Next(0, 8);
+            var mod = _random.Next(0, 9);
 
             switch (mod)
             {
@@ -65,6 +65,8 @@ public class ReverseChallengeGenerator : BaseChallengeGenerator
                     selectedMod = ("invisible_reversed", _random.Next(0, 50)); break;
                 case 7:
                     selectedMod = ("allspin_reversed", _random.Next(0, 200)); break;
+                case 8:
+                    selectedMod = ("snowman_reversed", _random.Next(0, 150)); break;
                 // We default to reverse volatile, as it is the easiest for most.
                 // However, the default case should never trigger.
                 default: selectedMod = ("volatile_reversed", _random.Next(0, 400)); break;
