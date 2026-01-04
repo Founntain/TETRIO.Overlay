@@ -263,6 +263,9 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .AsNoTracking()
             .Where(x => x.User.Id == user.Id);
 
+        // Remove event mods from splits
+        splitsQuery = splitsQuery.Where(x => !(x.Mods != null && x.Mods.Contains("snowman")));
+
         if (!string.IsNullOrWhiteSpace(mod))
         {
             if (mod == "nomod")
