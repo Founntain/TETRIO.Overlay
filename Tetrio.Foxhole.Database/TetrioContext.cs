@@ -17,6 +17,8 @@ public class TetrioContext : DbContext
     public DbSet<MasteryChallenge> MasteryChallenges { get; set; }
     public DbSet<Mod> Mods { get; set; }
     public DbSet<Run> Runs { get; set; }
+    public DbSet<Leaderboard> Leaderboards { get; set; }
+    public DbSet<LeaderboardEntry> LeaderboardEntries { get; set; }
 
     public TetrioContext()
     {
@@ -50,5 +52,7 @@ public class TetrioContext : DbContext
         builder.ApplyConfiguration(new CommunityContributionConfiguration());
         builder.ApplyConfiguration(new MasteryChallengeConfiguration());
         builder.ApplyConfiguration(new MasteryAttemptConfiguration());
+        builder.ApplyConfiguration(new LeaderboardConfiguration());
+        builder.ApplyConfiguration(new LeaderboardEntryConfiguration());
     }
 }

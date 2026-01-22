@@ -30,8 +30,6 @@ public class SubmitLogic
 
         if(nextSubmissionPossible > DateTime.UtcNow) return (400, "Please wait 1 minute before requesting submitting daily challenges again.");
 
-        _day = DateOnly.FromDateTime(DateTime.UtcNow.Date);
-
         var challenges = await _context.Challenges.Where(x => x.Date == _day).OrderByDescending(x => x.Points).ToListAsync();
 
         if (challenges.Count == 0) return (200, "No daily challenges found, submission canceled");
@@ -64,6 +62,28 @@ public class SubmitLogic
 
         var existingTetrioIds = new HashSet<string>(await _context.Runs.Where(x => tetrioIds.Contains(x.TetrioId)).Select(x => x.TetrioId).ToListAsync());
 
+        // Load current leaderboard data
+        var leaderboard = await _context.Leaderboards.FirstOrDefaultAsync(x => x.StartDate <= now && (x.EndDate == null || x.EndDate >= now));
+
+        LeaderboardEntry? leaderboardUserEntry = null;
+
+        if (leaderboard != null)
+        {
+            leaderboardUserEntry = await _context.LeaderboardEntries.FirstOrDefaultAsync(x => x.User.Id == _user.Id && x.Leaderboard.Id == leaderboard.Id);
+
+            if (leaderboardUserEntry == null)
+            {
+                leaderboardUserEntry = new LeaderboardEntry
+                {
+                    User = _user,
+                    Leaderboard = leaderboard,
+                    Score = 0,
+                };
+
+                await _context.AddAsync(leaderboardUserEntry);
+            }
+        }
+
         var sw = new Stopwatch();
         sw.Restart();
 
@@ -79,7 +99,7 @@ public class SubmitLogic
 
             var stats = run.Results.Stats;
 
-            var processResult = await ProcessRun(challenges, runValidator, run);
+            var processResult = await ProcessRun(challenges, runValidator, run, leaderboardUserEntry);
 
             // Run processing was aborted or canceled and therefore skipped
             if(processResult.Run == null) continue;
@@ -109,7 +129,7 @@ public class SubmitLogic
 
         if (todaysRuns.Any())
         {
-            var masteryAttempt= await runValidator.ValidateMasteryChallenge(_user, _day, _context, todaysRuns);
+            var masteryAttempt= await runValidator.ValidateMasteryChallenge(_user, _day, _context, todaysRuns, leaderboardUserEntry);
 
             if (masteryAttempt != null && !await _context.MasteryAttempts.AnyAsync(x => x.MasteryChallengeId == masteryAttempt.MasteryChallengeId && x.UserId == _user.Id))
             {
@@ -134,7 +154,7 @@ public class SubmitLogic
         });
     }
 
-    private async Task<(Run? Run, ZenithSplit? Splits)> ProcessRun(List<Challenge> challenges, RunValidator runValidator, Record record)
+    private async Task<(Run? Run, ZenithSplit? Splits)> ProcessRun(List<Challenge> challenges, RunValidator runValidator, Record record, LeaderboardEntry? leaderboardEntry)
     {
         var stats = record.Results.Stats;
         var clears = stats.Clears;
@@ -218,6 +238,8 @@ public class SubmitLogic
 
                 var scoreToAdd = CalculateScoreFromChallenge(challenge);
                 _user.Score += scoreToAdd;
+
+                if(leaderboardEntry != null) leaderboardEntry.Score += scoreToAdd;
             }
         }
         else

@@ -776,5 +776,32 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         return Ok(rowsUpdated);
     }
+
+    [HttpGet]
+    [Route("convertNewLegacyScore")]
+    public async Task<ActionResult> ConvertNewLegacyScore()
+    {
+        var usersWithScore = await context.Users.AsNoTracking().Where(x => x.Score > 0).Select(x => new
+                {
+                    UserId = x.Id,
+                    Username = x.Username,
+                    Score = x.Score
+                }).OrderByDescending(x => x.Score).ToArrayAsync();
+
+        int rowsUpdated = 0;
+
+        foreach (var userData in usersWithScore)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userData.UserId);
+
+            if(user == null) continue;
+
+            user.LegacyScore = user.Score;
+
+            rowsUpdated += await context.SaveChangesAsync();
+        }
+
+        return Ok(rowsUpdated);
+    }
     #endif
 }

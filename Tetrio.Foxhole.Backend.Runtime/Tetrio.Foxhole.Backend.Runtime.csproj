@@ -11,8 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
         <PackageReference Include="SkiaSharp" Version="3.119.1" />
         <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
