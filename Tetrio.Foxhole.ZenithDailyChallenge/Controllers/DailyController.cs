@@ -170,8 +170,8 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
     }
 
     [HttpGet]
-    [Route("getLeaderboard")]
-    public async Task<IActionResult> GetLeaderboard(int page = 1, int pageSize = 30)
+    [Route("getGlobalLeaderboard")]
+    public async Task<IActionResult> GetGlobalLeaderboard(int page = 1, int pageSize = 30)
     {
         var users = await context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).Select(x => new
             {

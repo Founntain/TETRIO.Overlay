@@ -204,7 +204,7 @@ public class RunValidator
         return Math.Round(spins + miniSpins, 0);
     }
 
-    public async Task<MasteryAttempt?> ValidateMasteryChallenge(User user, DateOnly day, TetrioContext context, List<Run> runs)
+    public async Task<MasteryAttempt?> ValidateMasteryChallenge(User user, DateOnly day, TetrioContext context, List<Run> runs, LeaderboardEntry? leaderboardEntry)
     {
         if (runs.Count == 0) return null;
 
@@ -376,7 +376,12 @@ public class RunValidator
         }
 
 
-        if (scoreToAdd > 0) user.Score += scoreToAdd;
+        if (scoreToAdd > 0)
+        {
+            user.Score += scoreToAdd;
+
+            if(leaderboardEntry != null) leaderboardEntry.Score += scoreToAdd;
+        }
 
         return masteryAttempt;
     }
