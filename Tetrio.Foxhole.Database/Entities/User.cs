@@ -73,4 +73,5 @@ public class User : BaseEntity
     public virtual ISet<Run> Runs { get; set; } = new HashSet<Run>();
     public virtual ISet<CommunityContribution> CommunityContributions { get; set; } = new HashSet<CommunityContribution>();
     public virtual ISet<MasteryAttempt> MasteryAttempts { get; set; } = new HashSet<MasteryAttempt>();
+    public virtual ISet<LeaderboardEntry> LeaderboardEntries { get; set; } = new HashSet<LeaderboardEntry>();
 }
