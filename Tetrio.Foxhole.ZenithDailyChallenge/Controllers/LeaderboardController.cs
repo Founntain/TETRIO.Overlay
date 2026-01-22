@@ -46,7 +46,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
     }
 
     [HttpGet]
-    [Route("getLeaderboardPosition/{username}")]
+    [Route("{username}")]
     public async Task<IActionResult> GetLeaderboardPosition(string username, DateTime? date = null)
     {
         username = username.ToLower();
@@ -57,16 +57,22 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
 
         var leaderboardDate = date ?? DateTime.UtcNow;
 
-        var leaderboardId = (await context.Leaderboards.Select(x => new {x.StartDate, x.EndDate, x.Id}).FirstOrDefaultAsync(x => x.StartDate <= leaderboardDate && (x.EndDate == null || x.EndDate >= leaderboardDate)))?.Id;
+        var leaderboard = (await context.Leaderboards
+            .Select(x => new {x.StartDate, x.EndDate, x.Id, x.Name})
+            .FirstOrDefaultAsync(x => x.StartDate <= leaderboardDate && (x.EndDate == null || x.EndDate >= leaderboardDate)));
 
-        if (leaderboardId == null) return NotFound($"Leaderboard not found for timestamp {leaderboardDate} not found");
+        if (leaderboard == null) return NotFound($"Leaderboard not found for timestamp {leaderboardDate} not found");
 
-        var userEntry = await context.LeaderboardEntries.FirstOrDefaultAsync(x => x.Leaderboard.Id == leaderboardId && x.User.Id == user.Id);
+        var userEntry = await context.LeaderboardEntries.FirstOrDefaultAsync(x => x.Leaderboard.Id == leaderboard.Id && x.User.Id == user.Id);
 
         if (userEntry == null) return NotFound("User is not placed on this leaderboard");
 
-        var position = await context.LeaderboardEntries.CountAsync(x => x.Leaderboard.Id == leaderboardId && x.Score > userEntry.Score) + 1;
+        var position = await context.LeaderboardEntries.CountAsync(x => x.Leaderboard.Id == leaderboard.Id && x.Score > userEntry.Score) + 1;
 
-        return Ok(position);
+        return Ok(new
+        {
+            Placement = position,
+            SeasonName = leaderboard.Name
+        });
     }
 }
