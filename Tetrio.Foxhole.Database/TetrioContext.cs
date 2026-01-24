@@ -19,6 +19,7 @@ public class TetrioContext : DbContext
     public DbSet<Run> Runs { get; set; }
     public DbSet<Leaderboard> Leaderboards { get; set; }
     public DbSet<LeaderboardEntry> LeaderboardEntries { get; set; }
+    public DbSet<UserXp> UserXps { get; set; }
 
     public TetrioContext()
     {

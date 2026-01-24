@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Backend.Base.Controllers;
 using Tetrio.Foxhole.Database;
+using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
 using Tetrio.Zenith.DailyChallenge.Models;
@@ -98,13 +100,16 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             ];
         }
 
-
         var runCount = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
         var splitsCount = await context.ZenithSplits.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
         var daysParticipated = await context.Users.AsNoTracking().Where(x => x.Username == username).SelectMany(x => x.Challenges).OrderByDescending(x => x.Date).Select(x => x.Date).GroupBy(x => x).CountAsync();
 
         var totalChallengesCompleted = await context.Users.AsNoTracking().Where(x => x.Username == username).SelectMany(x => x.Challenges).CountAsync();
         var challengesCompleted = await context.Users.AsNoTracking().Where(x => x.Username == username).SelectMany(x => x.Challenges).GroupBy(x => x.Date).CountAsync();
+
+        var userXp = await context.UserXps.Where(x => x.User.Id == user.Id).ToArrayAsync();
+
+        var lifetimeXp = userXp.FirstOrDefault(x => x.Type == XpType.Lifetime);
 
         var userInfo = await GetTetrioUserInformation(username);
 
@@ -130,7 +135,9 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 user.Username,
                 Avatar = userInfo?.AvatarRevision,
                 Banner = userInfo?.BannerRevision,
-                TetrioRank = user.TetrioRank ?? "z"
+                TetrioRank = user.TetrioRank ?? "z",
+                TotalXP = lifetimeXp?.TotalXp ?? 0,
+                Level = lifetimeXp?.CalculateLevel() ?? 1
             },
             user.TetrioId,
             Runs = runCount,
@@ -802,6 +809,64 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         }
 
         return Ok(rowsUpdated);
+    }
+
+    [HttpGet]
+    [Route("calculateXpForAllUsersWithoutXP")]
+    public async Task<IActionResult> CalculateXpForAllUsersWithoutXP()
+    {
+        var userIds = await context.Users.AsNoTracking().Where(x => x.Xp.Count == 0 && x.Runs.Count > 0).Select(x => x.Id).ToArrayAsync();
+
+        Console.WriteLine($"[XP CALC] Users without XP: {userIds.Length}");
+
+        var entriesSaved = 0;
+
+        var totalSw = new Stopwatch();
+        totalSw.Restart();
+
+        foreach (var userId in userIds)
+        {
+            var sw = new Stopwatch();
+            sw.Restart();
+
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            var runs = await context.Runs.AsNoTracking().Where(x => x.UserId == userId).ToArrayAsync();
+
+            if (user == null) continue;
+            if (runs.Length == 0) continue;
+
+            Console.WriteLine($"[XP CALC] [#{userIds.IndexOf(userId) + 1}/{userIds.Length}] Calculating XP for user {user.Username}");
+
+            var normalRuns = runs.Where(x => !x.Mods.Contains("expert")).ToArray();
+            var expertRuns = runs.Where(x => x.Mods.Contains("expert")).ToArray();
+
+            var totalAltitudeXp = (long)normalRuns.Sum(x => x.Altitude) * 1;
+            var totalExpertAltitudeXp = (long)(expertRuns.Sum(x => x.Altitude) * 1.5);
+            var totalTimeXp = (long)(TimeSpan.FromMilliseconds(normalRuns.Sum(x => x.TotalTime)).TotalMinutes * 100);
+            var totalExpertTimeXp = (long)(TimeSpan.FromMilliseconds(expertRuns.Sum(x => x.TotalTime)).TotalMinutes * 150);
+
+            var totalXp = (totalAltitudeXp + totalTimeXp + totalExpertAltitudeXp + totalExpertTimeXp);
+
+            var xp = new UserXp
+            {
+                TotalXp = totalXp,
+                User = user,
+                Type = XpType.Lifetime,
+            };
+
+            sw.Stop();
+            Console.WriteLine($"[XP CALC] Calculated XP: {totalXp} -> Level: {UserXp.CalculateLevelFromTotalXp(totalXp)} | Took: {sw.ElapsedMilliseconds}ms");
+
+            await context.UserXps.AddAsync(xp);
+            var saveAmount = await context.SaveChangesAsync();
+
+
+            entriesSaved += saveAmount;
+        }
+
+        Console.WriteLine($"[XP CALC] Saved {entriesSaved} entries in database. Took {totalSw.Elapsed:g}");
+
+        return Ok(entriesSaved);
     }
     #endif
 }

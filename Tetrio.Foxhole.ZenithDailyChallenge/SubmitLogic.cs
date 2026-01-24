@@ -159,7 +159,7 @@ public class SubmitLogic
         var stats = record.Results.Stats;
         var clears = stats.Clears;
 
-        // If the altitude is lower than 10M we ignore these runs, they dont have any meaning full data
+        // If the altitude is lower than 10M we ignore these runs, they dont have any meaningful data
         if ((stats.Zenith.Altitude ?? 0) < 10)
         {
             return (null, null);
@@ -246,6 +246,41 @@ public class SubmitLogic
         {
             Console.WriteLine($"Run {run.TetrioId} was played on a different day, added but its not counted for daily challenge");
         }
+
+        #region Add XP
+
+        var userXp = await _context.UserXps.FirstOrDefaultAsync(x => x.Type == XpType.Lifetime && x.User.Id == _user.Id);
+
+        if (userXp == null)
+        {
+            userXp = new UserXp()
+            {
+                Type = XpType.Lifetime,
+                Level = 0,
+                TotalXp = 0,
+                User = _user
+            };
+
+            _context.UserXps.Add(userXp);
+        }
+
+        var altitudeModifier = 1.0;
+        var timeModifier = 100;
+
+        if (!run.Mods.Contains("expert"))
+        {
+            altitudeModifier = 1.5;
+            timeModifier = 150;
+        }
+
+        var totalAltitudeXp = (long) run.Altitude * altitudeModifier;
+        var totalTimeXp = (long)(TimeSpan.FromMilliseconds(run.TotalTime).TotalMinutes * timeModifier);
+
+        var totalXpToAdd = (long) (totalAltitudeXp + totalTimeXp);
+
+        userXp.TotalXp += totalXpToAdd;
+
+        #endregion
 
         return (run, splits);
     }
