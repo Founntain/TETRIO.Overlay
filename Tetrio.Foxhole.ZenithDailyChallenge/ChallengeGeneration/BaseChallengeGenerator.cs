@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Enums;
+using Tetrio.Foxhole.Network.Api.Tetrio;
 
 namespace Tetrio.Zenith.DailyChallenge.ChallengeGeneration;
 
@@ -60,56 +61,32 @@ public abstract class BaseChallengeGenerator
         return (range.Min, range.Max);
     }
 
-    protected (double Alitude, double Vs, double Apm) CalculateNerfAdjustmentFactors(string[] mods)
+    protected (double Alitude, double Vs, double Apm) CalculateNerfAdjustmentFactors(ConditionType type, string[] mods)
     {
-        var modCount = mods.Length;
-        var altitudeAdjustment = 1d;
-        var vsAdjustment = 1d;
-        var apmAdjustment = 1d;
+        var scaling = 1d;
 
-        if (mods.Contains("nohold"))
+
+    }
+
+    protected async Task<double> GetWorldRecordOfMod(Mods? mod = null)
+    {
+        var tetrioApi = new TetrioApi();
+
+        var achievementId = mod switch
         {
-            if (modCount == 1)
-            {
-                // 10% reduction
-                altitudeAdjustment = 0.9d;
-                vsAdjustment = 0.9d;
-                apmAdjustment = 0.9d;
-            }
+            Mods.Expert => ModAchievements.Expert,
+            Mods.NoHold => ModAchievements.NoHold,
+            Mods.Messy => ModAchievements.Messy,
+            Mods.Gravity => ModAchievements.Gravity,
+            Mods.Volatile => ModAchievements.Volatile,
+            Mods.DoubleHole => ModAchievements.DoubleHole,
+            Mods.Invisible => ModAchievements.Invisible,
+            Mods.AllSpin => ModAchievements.AllSpin,
+            _ => ModAchievements.NoMod
+        };
 
-            if (modCount == 2)
-            {
-                // Base Adjustment | 15% reduction
-                altitudeAdjustment = 0.85d;
-                vsAdjustment = 0.85d;
-                apmAdjustment = 0.85d;
+        var achievementData = await tetrioApi.GetAchievement(achievementId);
 
-                if (mods.Contains("doublehole"))
-                {
-                    // 20% reduction for altitude and APM | 30% reduction for VS
-                    if(altitudeAdjustment > 0.8d) altitudeAdjustment = 0.8d;
-                    if(vsAdjustment > 0.70d) vsAdjustment = 0.70d;
-                    if(apmAdjustment > 0.8d) apmAdjustment = 0.8d;
-                }
-
-                if (mods.Contains("gravity"))
-                {
-                    // 15% reduction for altitude | 20% reduction for APM & VS
-                    if(altitudeAdjustment > 0.8d) altitudeAdjustment = 0.85d;
-                    if(vsAdjustment > 0.8d) vsAdjustment = 0.8d;
-                    if(apmAdjustment > 0.8d) apmAdjustment = 0.8d;
-                }
-            }
-
-            if (modCount >= 3)
-            {
-                // 25% reduction
-                if(altitudeAdjustment > 0.75d) altitudeAdjustment = 0.75d;
-                if(vsAdjustment > 0.75d) vsAdjustment = 0.75d;
-                if(apmAdjustment > 0.75d) apmAdjustment = 0.75d;
-            }
-        }
-
-        return (altitudeAdjustment, vsAdjustment, apmAdjustment);
+        return achievementData?.Leaderboard?.OrderByDescending(x => x.Value).FirstOrDefault()?.Value ?? -1;
     }
 }

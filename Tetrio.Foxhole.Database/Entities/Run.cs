@@ -50,6 +50,9 @@ public class Run : BaseEntity
 
     public int TotalTime { get; set; } = 0;
 
+    // Calculated Stats
+    public double App { get; set; } = 0;
+
     public virtual ISet<Challenge>? Challenges { get; set; } = new HashSet<Challenge>();
 
     [ForeignKey("UserId")]

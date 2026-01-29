@@ -14,4 +14,6 @@ public enum ConditionType
     Finesse,
     BackToBack,
     TotalBonus,
+    App,
+    Lines,
 }
