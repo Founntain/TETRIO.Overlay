@@ -121,7 +121,7 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
                 var range = await GetRangeForConditionAndDifficulty(context, condition, difficulty);
                 double value;
 
-                if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs)
+                if (condition is ConditionType.Pps or ConditionType.Apm or ConditionType.Vs or ConditionType.App)
                 {
                     value = range.min + _random.NextDouble() * (range.max - range.min);
 

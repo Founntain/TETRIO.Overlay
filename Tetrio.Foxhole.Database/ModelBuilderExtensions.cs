@@ -38,7 +38,7 @@ public static class ModelBuilderExtensions
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111109"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Finesse,    Min = 35,   Max = 50});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111110"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.BackToBack, Min = 3,    Max = 7});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111111"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.App,        Min = 0.2,  Max = 0.4});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111112"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Lines,      Min = 10,   Max = 50});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111112"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Lines,      Min = 40,   Max = 150});
 
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111201"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Height,     Min = 350, Max = 650});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111202"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.KOs,        Min = 1,   Max = 2});

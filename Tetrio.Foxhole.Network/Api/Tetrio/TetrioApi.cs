@@ -70,9 +70,12 @@ public class TetrioApi : ApiBase
 
                 return data.Item2;
             }
+            Console.WriteLine($"[SUMMARY] Cache expired, fetching again...");
         }
-
-        Console.WriteLine($"[SUMMARY] Getting league stats for {username}, as nothing was found in the cache");
+        else
+        {
+            Console.WriteLine($"[SUMMARY] Getting summary for {username}, as nothing was found in the cache");
+        }
 
         try
         {
@@ -136,9 +139,12 @@ public class TetrioApi : ApiBase
 
                 return data.Item2;
             }
+            Console.WriteLine($"[USER] Cache expired, fetching again...");
         }
-
-        Console.WriteLine($"[USER] Getting user information for {username}, as nothing was found in the cache");
+        else
+        {
+            Console.WriteLine($"[USER] Getting User stats for {username}, as nothing was found in the cache");
+        }
 
         try
         {
@@ -187,7 +193,7 @@ public class TetrioApi : ApiBase
         }
     }
 
-    public async Task<Models.TetraLeague?> GetTetraLeagueStats(string username)
+    public async Task<TetraLeague?> GetTetraLeagueStats(string username)
     {
         // Let's check the cache first
         if (LeagueCache.TryGetValue(username, out var data))
@@ -201,9 +207,13 @@ public class TetrioApi : ApiBase
 
                 return data.Item2;
             }
-        }
 
-        Console.WriteLine($"[TL] Getting league stats for {username}, as nothing was found in the cache");
+            Console.WriteLine($"[TL] Cache expired, fetching again...");
+        }
+        else
+        {
+            Console.WriteLine($"[TL] Getting TL stats for {username}, as nothing was found in the cache");
+        }
 
         try
         {
@@ -267,9 +277,12 @@ public class TetrioApi : ApiBase
 
                 return data.Item2;
             }
+            Console.WriteLine($"[40L] Cache expired, fetching again...");
         }
-
-        Console.WriteLine($"[40L] Getting 40L stats for {username}, as nothing was found in the cache");
+        else
+        {
+            Console.WriteLine($"[40L] Getting 40L stats for {username}, as nothing was found in the cache");
+        }
 
         try
         {
@@ -332,9 +345,13 @@ public class TetrioApi : ApiBase
 
                 return data.Item2;
             }
-        }
 
-        Console.WriteLine($"[BLITZ] Getting Blitz stats for {username}, as nothing was found in the cache");
+            Console.WriteLine($"[BLITZ] Cache expired, fetching again...");
+        }
+        else
+        {
+            Console.WriteLine($"[BLITZ] Getting Blitz stats for {username}, as nothing was found in the cache");
+        }
 
         try
         {
@@ -399,9 +416,10 @@ public class TetrioApi : ApiBase
 
                 return normalData.Item2;
             }
-        }
 
-        if (expert && ZenithExpertCache.TryGetValue(username, out var expertData))
+            Console.WriteLine($"[{prefix}] Cache expired, fetching again...");
+        }
+        else if (expert && ZenithExpertCache.TryGetValue(username, out var expertData))
         {
             Console.WriteLine($"[{prefix}] Found {username} in cache");
 
@@ -412,9 +430,13 @@ public class TetrioApi : ApiBase
 
                 return expertData.Item2;
             }
-        }
 
-        Console.WriteLine($"[{prefix}] Getting Zenith stats for {username}, as nothing was found in the cache");
+            Console.WriteLine($"[{prefix}] Cache expired, fetching again...");
+        }
+        else
+        {
+            Console.WriteLine($"[{prefix}] Getting Zenith stats for {username}, as nothing was found in the cache");
+        }
 
         try
         {
@@ -503,9 +525,10 @@ public class TetrioApi : ApiBase
 
                 return normalData.Item2;
             }
-        }
 
-        if (expert && RecentZenithExpertCache.TryGetValue(username, out var expertData))
+            Console.WriteLine($"[{prefix}] Cache expired, fetching again...");
+        }
+        else if (expert && RecentZenithExpertCache.TryGetValue(username, out var expertData))
         {
             Console.WriteLine($"[{prefix}] Found {username} in cache");
 
@@ -517,8 +540,10 @@ public class TetrioApi : ApiBase
                 return expertData.Item2;
             }
         }
-
-        Console.WriteLine($"[{prefix}] Getting Zenith stats for {username}, as nothing was found in the cache");
+        else
+        {
+            Console.WriteLine($"[{prefix}] Getting Zenith stats for {username}, as nothing was found in the cache");
+        }
 
         try
         {
@@ -605,9 +630,13 @@ public class TetrioApi : ApiBase
 
                 return data.Item2;
             }
-        }
 
-        Console.WriteLine($"[ACHIEVEMENT] Getting achievement stats for achievement {achievement}, as nothing was found in the cache");
+            Console.WriteLine($"[ACHIEVEMENT] Cache expired, fetching again...");
+        }
+        else
+        {
+            Console.WriteLine($"[ACHIEVEMENT] Getting achievement stats for achievement {achievement}, as nothing was found in the cache");
+        }
 
         try
         {

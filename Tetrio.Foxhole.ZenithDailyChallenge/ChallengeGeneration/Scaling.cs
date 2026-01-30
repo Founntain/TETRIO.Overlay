@@ -33,7 +33,7 @@ public static class Scaling
     {
         //Type,                      Multiplicative scaling
         { ConditionType.Pps,         1    },
-        { ConditionType.Apm,         0.85 },
+        { ConditionType.Apm,         0.9  },
         { ConditionType.Vs,          0.85 },
         { ConditionType.Quads,       0.9  },
         { ConditionType.Spins,       1    },
@@ -69,7 +69,7 @@ public static class Scaling
     {
         //Type,                      Multiplicative scaling
         { ConditionType.Pps,         1    },
-        { ConditionType.Apm,         0.75 },
+        { ConditionType.Apm,         0.85 },
         { ConditionType.Vs,          0.75 },
         { ConditionType.Quads,       0.8  },
         { ConditionType.Spins,       0.9  },

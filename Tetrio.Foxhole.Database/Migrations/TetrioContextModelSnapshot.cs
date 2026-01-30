@@ -375,8 +375,8 @@ namespace Tetrio.Overlay.Database.Migrations
                             Id = new Guid("11111111-1111-1111-1111-111111111112"),
                             ConditionType = 12,
                             Difficulty = 2,
-                            Max = 50.0,
-                            Min = 10.0
+                            Max = 150.0,
+                            Min = 40.0
                         },
                         new
                         {
