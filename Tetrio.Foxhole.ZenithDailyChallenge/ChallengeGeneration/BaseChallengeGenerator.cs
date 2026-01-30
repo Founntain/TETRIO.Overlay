@@ -117,6 +117,8 @@ public abstract class BaseChallengeGenerator
 
             Console.WriteLine($"\t- {mod} WR: {modRecord}");
 
+            // Apply multiplicative scaling
+            // Formular: [Mod WR] / [Zenith Explorer WR] * 0.25 + 0.75
             scaling *= modRecord / noModRecord * 0.25 + 0.75;
         }
 
