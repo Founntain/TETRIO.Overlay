@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio;
@@ -16,7 +17,7 @@ public abstract class BaseChallengeGenerator
         _day = day;
     }
 
-    protected List<ConditionType> GetRandomConditions(string mods)
+    protected List<ConditionType> GetRandomConditions(Mods[] mods)
     {
         var allConditions = Enum.GetValues<ConditionType>().ToList();
 
@@ -26,7 +27,7 @@ public abstract class BaseChallengeGenerator
         allConditions.Remove(ConditionType.TotalBonus); // Removed for now as balancing is not done yet
 
         // If no hold was selected as mod, remove all clears from the condition roll
-        if(mods.Contains("nohold")) allConditions.Remove(ConditionType.AllClears);
+        if(mods.Contains(Mods.NoHold)) allConditions.Remove(ConditionType.AllClears);
 
         allConditions = allConditions.OrderBy(_ => _random.Next()).ToList();
 
@@ -61,11 +62,67 @@ public abstract class BaseChallengeGenerator
         return (range.Min, range.Max);
     }
 
-    protected (double Alitude, double Vs, double Apm) CalculateNerfAdjustmentFactors(ConditionType type, string[] mods)
+    protected async Task<double> CalculateScalingFactors(ConditionType type, Mods[] mods)
     {
+        if(type == ConditionType.Height) return await CalculateAltitudeScaling(mods);
+
         var scaling = 1d;
 
+        // Types to ignore, because they have no scaling
+        if (type is ConditionType.KOs
+            or ConditionType.AllClears
+            or ConditionType.Finesse
+            or ConditionType.Special
+            or ConditionType.TotalBonus
+            or ConditionType.Lines) return scaling;
 
+        foreach (var mod in mods)
+        {
+            scaling *= Math.Round(mod switch
+            {
+                Mods.NoMod => 1d,
+                Mods.Expert => 1d,
+                Mods.NoHold => Scaling.NoHoldScaling[type],
+                Mods.Messy => Scaling.MessyScaling[type],
+                Mods.Gravity => Scaling.GravityScaling[type],
+                Mods.Volatile => Scaling.VolatileScaling[type],
+                Mods.DoubleHole => Scaling.DoubleHoleScaling[type],
+                Mods.Invisible => Scaling.InvisibleScaling[type],
+                Mods.AllSpin => Scaling.AllSpinScaling[type],
+                _ => 1d
+            }, 3);
+        }
+
+        Console.WriteLine($"\t- Scaling factor for {type} is {scaling}");
+
+        return scaling;
+    }
+
+    private async Task<double> CalculateAltitudeScaling(Mods[] mods)
+    {
+        // Scaling is based on the world record of a mod and nomod world record
+
+        var scaling = 1d;
+
+        // When there are mods, we don't need to apply any scaling for altitude
+        if (mods.Length == 0 || mods.All(m => m == Mods.NoMod)) return scaling;
+
+        var noModRecord = await GetWorldRecordOfMod(Mods.NoMod);
+
+        Console.WriteLine($"\t- NoMod WR: {noModRecord}");
+
+        foreach (var mod in mods)
+        {
+            var modRecord = await GetWorldRecordOfMod(mod);
+
+            Console.WriteLine($"\t- {mod} WR: {modRecord}");
+
+            scaling *= modRecord / noModRecord * 0.25 + 0.75;
+        }
+
+        Console.WriteLine($"\t- Scaling factor for Altitude is {scaling}");
+
+        return scaling;
     }
 
     protected async Task<double> GetWorldRecordOfMod(Mods? mod = null)
@@ -74,6 +131,7 @@ public abstract class BaseChallengeGenerator
 
         var achievementId = mod switch
         {
+            Mods.NoMod => ModAchievements.NoMod,
             Mods.Expert => ModAchievements.Expert,
             Mods.NoHold => ModAchievements.NoHold,
             Mods.Messy => ModAchievements.Messy,

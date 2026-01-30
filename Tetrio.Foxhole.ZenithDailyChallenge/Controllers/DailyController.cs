@@ -306,7 +306,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         var challenges = new List<Challenge>();
 
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < amount; i++)
         {
             challenges.Add(await c.GenerateChallenge(dif, context));
         }

@@ -89,11 +89,19 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
         var heightRange = await GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
         var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
 
-        var mods = await GenerateModsForChallenge(context, difficulty);
+        var modsString = await GenerateModsForChallenge(context, difficulty);
+        var mods = modsString.Split(' ').ToModsArray();
 
-        var scalingFactors = CalculateNerfAdjustmentFactors(mods.Split(' '));
+        Console.WriteLine($"[CHALLENGE GENERATION] Generating {difficulty} challenge with mods {modsString}");
 
-        height = (int) Math.Round(height * scalingFactors.Alitude, 0);
+        var heightScaling = await CalculateScalingFactors(ConditionType.Height, mods);
+
+        if (heightScaling != 1)
+        {
+            Console.WriteLine($"\t- Scaling Altitude from {height} -> {(int) Math.Round(height * heightScaling, 0)}");
+        }
+
+        height = (int) Math.Round(height * heightScaling, 0);
 
         challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
 
@@ -117,26 +125,30 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
                 {
                     value = range.min + _random.NextDouble() * (range.max - range.min);
 
-                    value = Math.Round(value, 2);
+                    var oldValue = Math.Round(value, 2);
+
+                    value = Math.Round(await CalculateScalingFactors(condition, mods) * value, 2);
+
+                    if(value > 0 && value != oldValue) Console.WriteLine($"\t\t- Scaling {condition} from {oldValue} -> {value}");
                 }
                 else
                 {
-                    value = _random.Next((int) range.min, (int) range.max);
-                }
+                    value = (int) _random.Next((int) range.min, (int) range.max);
 
-                value = condition switch
-                {
-                    // Apply scaling factors if needed
-                    ConditionType.Apm => Math.Round(value * scalingFactors.Apm, 2),
-                    ConditionType.Vs => Math.Round(value * scalingFactors.Vs, 2),
-                    _ => value
-                };
+                    var oldValue = value;
+
+                    value = (int) Math.Round(await CalculateScalingFactors(condition, mods) * value, 0);
+
+                    if(value > 0 && value != oldValue) Console.WriteLine($"\t\t- Scaling {condition} from {oldValue} -> {value}");
+                }
 
                 // Make sure the value is within the range, it cant be lower than the minimum
                 if (value < range.min) value = range.min;
 
                 if (value > 0)
                 {
+                    Console.WriteLine($"\t- Adding {condition} with value {value}");
+
                     challengeConditions.Add(new ChallengeCondition
                     {
                         Type = condition,
@@ -150,7 +162,7 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
         {
             Date = DateOnly.FromDateTime(_day.Date),
             Points = (byte)difficulty,
-            Mods = mods,
+            Mods = modsString,
             Conditions = challengeConditions.ToHashSet()
         };
     }

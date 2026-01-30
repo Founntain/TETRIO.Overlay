@@ -2,6 +2,17 @@
 
 namespace Tetrio.Zenith.DailyChallenge.ChallengeGeneration;
 
+public class ChallengeScaling
+{
+    public double Pps { get; set; } = 1;
+    public double Apm { get; set; } = 1;
+    public double Vs { get; set; } = 1;
+    public double Quads { get; set; } = 1;
+    public double Spins { get; set; } = 1;
+    public double BackToBack { get; set; } = 1;
+    public double App { get; set; } = 1;
+}
+
 public static class Scaling
 {
     // Height doesn't have a constant scaling percentage, as this is based on the current world record

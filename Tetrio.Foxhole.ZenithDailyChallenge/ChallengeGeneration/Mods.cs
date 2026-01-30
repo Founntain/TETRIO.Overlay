@@ -56,6 +56,20 @@ public static class ModUtils
             _ => Mods.NoMod,
         };
     }
+
+    public static Mods ToMod(this string[] modStrings)
+    {
+        var result = Mods.NoMod;
+
+        foreach (var modString in modStrings)
+        {
+            result |= modString.ToMod();
+        }
+
+        return result;
+    }
+
+    public static Mods[] ToModsArray(this string[] modStrings) => modStrings.Select(x => x.ToMod()).ToArray();
 }
 
 /// <summary>

@@ -622,18 +622,18 @@ public class TetrioApi : ApiBase
 
             if (apiResponse.Cache.Status == "hit")
             {
-                Console.WriteLine("[40L] Cache hit... returning cache");
+                Console.WriteLine("[ACHIEVEMENT] Cache hit... returning cache");
 
                 AchievementCache.TryGetValue(achievement, out var result);
 
                 if (result.Item2 != null) return result.Item2;
 
-                Console.WriteLine("[40L] Cache hit, but nothing in there, fetching data again...");
+                Console.WriteLine("[ACHIEVEMENT] Cache hit, but nothing in there, fetching data again...");
             }
 
             if (apiResponse.Data == default) return default;
 
-            Console.WriteLine("[40L] Updating cache and returning");
+            Console.WriteLine("[ACHIEVEMENT] Updating cache and returning");
 
             var cacheValidUntil = DateTimeOffset.FromUnixTimeMilliseconds(apiResponse.Cache.CacheUntil);
 
