@@ -85,25 +85,42 @@ public class DailyChallengeGeneator : BaseChallengeGenerator
     {
         var challengeConditions = new List<ChallengeCondition>();
 
-        // Always add Height as a base condition
-        var heightRange = await GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
-        var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
-
         var modsString = await GenerateModsForChallenge(context, difficulty);
         var mods = modsString.Split(' ').ToModsArray();
 
         Console.WriteLine($"[CHALLENGE GENERATION] Generating {difficulty} challenge with mods {modsString}");
 
-        var heightScaling = await CalculateScalingFactors(ConditionType.Height, mods);
-
-        if (heightScaling != 1)
+        // Always add altitude as a base condition
+        // Unless it is easy, then we add lines instead with a 50% chance
+        if (difficulty == Difficulty.Easy && Chance(0.5))
         {
-            Console.WriteLine($"\t- Scaling Altitude from {height} -> {(int) Math.Round(height * heightScaling, 0)}");
+            var linesRange = await GetRangeForConditionAndDifficulty(context, ConditionType.Lines, difficulty);
+            var lines = _random.Next((int)linesRange.min, (int)linesRange.max + 1);
+
+            challengeConditions.Add(new () { Type = ConditionType.Lines, Value = lines});
+
+            Console.WriteLine($"\t- Adding Lines condition with value {lines}");
         }
+        else
+        {
+            var heightRange = await GetRangeForConditionAndDifficulty(context, ConditionType.Height, difficulty);
+            var height = _random.Next((int)heightRange.min, (int)heightRange.max + 1);
 
-        height = (int) Math.Round(height * heightScaling, 0);
+            var heightScaling = await CalculateScalingFactors(ConditionType.Height, mods);
 
-        challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
+            if (heightScaling != 1)
+            {
+                Console.WriteLine($"\t- Scaling Altitude from {height} -> {(int) Math.Round(height * heightScaling, 0)}");
+            }
+            else
+            {
+                Console.WriteLine($"\t- Adding Altitude with value {height}");
+            }
+
+            height = (int) Math.Round(height * heightScaling, 0);
+
+            challengeConditions.Add(new () { Type = ConditionType.Height, Value = height});
+        }
 
         var tries = 0;
 

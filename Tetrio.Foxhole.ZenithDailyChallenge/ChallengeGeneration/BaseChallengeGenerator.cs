@@ -17,6 +17,13 @@ public abstract class BaseChallengeGenerator
         _day = day;
     }
 
+    protected bool Chance(double probability)
+    {
+        if (probability <= 0) return false;
+        if (probability >= 1) return true;
+        return _random.NextDouble() < probability; // probability01 in [0..1]
+    }
+
     protected List<ConditionType> GetRandomConditions(Mods[] mods)
     {
         var allConditions = Enum.GetValues<ConditionType>().ToList();
