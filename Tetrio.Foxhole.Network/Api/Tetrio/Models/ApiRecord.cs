@@ -69,6 +69,10 @@ public class Extras
 public class ZenithExtra
 {
     [JsonPropertyName("mods")] public string[] Mods { get; set; }
+    [JsonPropertyName("peakPos")] public ushort PeakPos { get; set; }
+    [JsonPropertyName("peakCount")] public ushort PeakCount { get; set; }
+    [JsonPropertyName("finalPos")] public ushort FinalPos { get; set; }
+    [JsonPropertyName("finalCount")] public ushort FinalCount { get; set; }
 }
 
 public class Finesse

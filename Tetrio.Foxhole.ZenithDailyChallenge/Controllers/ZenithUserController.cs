@@ -221,6 +221,22 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
     }
 
     [HttpGet]
+    [Route("{username}/run/{runId}")]
+    public async Task<ActionResult> GetRun(string username, string runId)
+    {
+        context.ChangeTracker.LazyLoadingEnabled = false;
+
+        var run = await context.Runs.AsNoTracking().Where(x => x.TetrioId == runId && x.User.Username == username).FirstOrDefaultAsync();
+        var split = await context.ZenithSplits.AsNoTracking().Where(x => x.TetrioId == runId).FirstOrDefaultAsync();
+
+        return Ok(new
+        {
+            Run = run,
+            Split = split
+        });
+    }
+
+    [HttpGet]
     [Route("{username}/runs")]
     public async Task<ActionResult> GetRuns(string username, int page = 0, int pageSize = 25)
     {
