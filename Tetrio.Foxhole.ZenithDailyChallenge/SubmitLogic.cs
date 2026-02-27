@@ -37,6 +37,8 @@ public class SubmitLogic
         var summary = await Api.GetTetraLeagueStats(_user.Username);
         var records = await Api.GetRecentZenithRecords(_user.Username);
         var expertRecords = await Api.GetRecentZenithRecords(_user.Username, true);
+        var topRecords = await Api.GetTopZenithRecords(_user.Username);
+        var topExpertRecords = await Api.GetTopZenithRecords(_user.Username, true);
 
         if (summary != null)
         {
@@ -45,12 +47,14 @@ public class SubmitLogic
             await _context.SaveChangesAsync();
         }
 
-        if (records == null || expertRecords == null) return (200, "Could not fetch your recent records, please try again later");
+        if (records == null || expertRecords == null || topRecords == null || topExpertRecords == null) return (200, "Could not fetch your recent records, please try again later");
 
         var totalRuns = new List<Record>();
 
         totalRuns.AddRange(records.Entries);
         totalRuns.AddRange(expertRecords.Entries);
+        totalRuns.AddRange(topRecords.Entries);
+        totalRuns.AddRange(topExpertRecords.Entries);
 
         totalRuns = totalRuns.DistinctBy(x => x.Id).ToList();
 
