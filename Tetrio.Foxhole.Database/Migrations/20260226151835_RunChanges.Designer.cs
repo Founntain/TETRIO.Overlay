@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tetrio.Foxhole.Database;
 
@@ -10,9 +11,11 @@ using Tetrio.Foxhole.Database;
 namespace Tetrio.Overlay.Database.Migrations
 {
     [DbContext(typeof(TetrioContext))]
-    partial class TetrioContextModelSnapshot : ModelSnapshot
+    [Migration("20260226151835_RunChanges")]
+    partial class RunChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -992,7 +995,7 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.Property<double>("PeakRank")
                         .HasColumnType("REAL");
 
-                    b.Property<uint>("PiecesPlaced")
+                    b.Property<uint>("PiecesPlaces")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("PlayedAt")

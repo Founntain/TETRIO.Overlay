@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tetrio.Foxhole.Database;
 
@@ -10,9 +11,11 @@ using Tetrio.Foxhole.Database;
 namespace Tetrio.Overlay.Database.Migrations
 {
     [DbContext(typeof(TetrioContext))]
-    partial class TetrioContextModelSnapshot : ModelSnapshot
+    [Migration("20260130165606_NewScaling")]
+    partial class NewScaling
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -931,20 +934,8 @@ namespace Tetrio.Overlay.Database.Migrations
                     b.Property<ushort>("Back2Back")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ushort>("FinalPlayerCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ushort>("FinalPosition")
-                        .HasColumnType("INTEGER");
-
                     b.Property<double>("Finesse")
                         .HasColumnType("REAL");
-
-                    b.Property<byte>("Floor")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("GameOverReason")
-                        .HasColumnType("TEXT");
 
                     b.Property<uint>("GarbageAttack")
                         .HasColumnType("INTEGER");
@@ -983,17 +974,8 @@ namespace Tetrio.Overlay.Database.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<ushort>("PeakPlayerCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ushort>("PeakPosition")
-                        .HasColumnType("INTEGER");
-
                     b.Property<double>("PeakRank")
                         .HasColumnType("REAL");
-
-                    b.Property<uint>("PiecesPlaced")
-                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("PlayedAt")
                         .HasColumnType("TEXT");
@@ -1006,9 +988,6 @@ namespace Tetrio.Overlay.Database.Migrations
 
                     b.Property<double>("Rank")
                         .HasColumnType("REAL");
-
-                    b.Property<uint>("Score")
-                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("SpeedrunCompleted")
                         .HasColumnType("INTEGER");

@@ -33,32 +33,38 @@ public static class ModelBuilderExtensions
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111104"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Quads,      Min = 3,    Max = 10});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111105"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Spins,      Min = 0,    Max = 0});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111106"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Apm,        Min = 10,   Max = 20});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111107"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Pps,        Min = 0.75, Max = 1});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111108"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Vs,         Min = 30,   Max = 40});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111107"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Pps,        Min = 0.6,  Max = 1});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111108"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Vs,         Min = 20,   Max = 40});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111109"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Finesse,    Min = 35,   Max = 50});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111110"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.BackToBack, Min = 3,    Max = 7});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111111"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.App,        Min = 0.2,  Max = 0.4});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111112"), Difficulty = Difficulty.Easy, ConditionType = ConditionType.Lines,      Min = 40,   Max = 150});
 
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111201"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Height,     Min = 350, Max = 650});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111202"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.KOs,        Min = 1,   Max = 2});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111203"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.AllClears,  Min = 0,   Max = 1});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111204"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Quads,      Min = 5,   Max = 15});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111205"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Spins,      Min = 5,   Max = 30});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111206"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Apm,        Min = 20,  Max = 55});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111207"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Pps,        Min = 1,   Max = 1.65});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111206"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Apm,        Min = 20,  Max = 50});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111207"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Pps,        Min = 1,   Max = 1.6});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111208"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Vs,         Min = 40,  Max = 95});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111209"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Finesse,    Min = 50,  Max = 65});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111210"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.BackToBack, Min = 7,   Max = 25});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111211"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.App,        Min = 0.4, Max = 0.6});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111212"), Difficulty = Difficulty.Normal, ConditionType = ConditionType.Lines,      Min = 0,   Max = 0});
 
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111301"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Height,     Min = 650,  Max = 1350});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111302"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.KOs,        Min = 2,    Max = 5});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111303"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.AllClears,  Min = 1,    Max = 3});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111304"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Quads,      Min = 15,   Max = 30});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111304"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Quads,      Min = 15,   Max = 40});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111305"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Spins,      Min = 30,   Max = 75});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111306"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Apm,        Min = 55,   Max = 100});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111307"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Pps,        Min = 1.65, Max = 2.1});
-        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111308"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Vs,         Min = 80,   Max = 175});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111306"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Apm,        Min = 50,   Max = 100});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111307"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Pps,        Min = 1.6,  Max = 2.2});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111308"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Vs,         Min = 90,   Max = 190});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111309"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Finesse,    Min = 65,   Max = 80});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111310"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.BackToBack, Min = 25,   Max = 50});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111311"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.App,        Min = 0.6,  Max = 0.8});
+        ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111312"), Difficulty = Difficulty.Hard, ConditionType = ConditionType.Lines,      Min = 0,    Max = 0});
 
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111401"), Difficulty = Difficulty.Expert, ConditionType = ConditionType.Height,     Min = 650,  Max = 1100});
         ranges.Add(new () {Id = new Guid("11111111-1111-1111-1111-111111111402"), Difficulty = Difficulty.Expert, ConditionType = ConditionType.KOs,        Min = 2,    Max = 5});
