@@ -711,25 +711,57 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Skip(page * pageSize).Take(pageSize)
             .Select(group => new
             {
+                CommunityChallengeId = group.Key,
                 Date = group.First().CommunityChallenge.StartDate,
                 Challenge = string.IsNullOrWhiteSpace(group.First().CommunityChallenge.Name) ? $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}" : group.First().CommunityChallenge.Name,
                 TotalAmountContributed = Math.Round(group.Sum(x => x.Amount), 2),
                 group.First().CommunityChallenge.ConditionType
-            }).ToArrayAsync();
+            })
+            .ToArrayAsync();
 
         var contributionsCount = await context.CommunityContributions
             .AsNoTracking()
             .OrderByDescending(x => x.CommunityChallenge.StartDate)
             .Where(x => x.UserId == user.Id && !x.IsLate)
-            .GroupBy(x => x.CommunityChallengeId).CountAsync();
+            .GroupBy(x => x.CommunityChallengeId)
+            .CountAsync();
 
-        var returnValue = contributions.OrderByDescending(x => x.Date).Select(x => new
+        var challengeIds = contributions.Select(x => x.CommunityChallengeId).ToArray();
+
+        var participantStats = await context.CommunityContributions
+            .AsNoTracking()
+            .Where(x => challengeIds.Contains(x.CommunityChallengeId) && !x.IsLate)
+            .GroupBy(x => new { x.CommunityChallengeId, x.UserId })
+            .Select(g => new
+            {
+                g.Key.CommunityChallengeId,
+                g.Key.UserId,
+                TotalAmountContributed = g.Sum(x => x.Amount)
+            })
+            .ToArrayAsync();
+
+        var returnValue = contributions.OrderByDescending(x => x.Date).Select(x =>
         {
-            x.Date,
-            x.Challenge,
-            x.TotalAmountContributed,
-            x.ConditionType,
-            TotalContributions = contributionsCount
+            var participants = participantStats
+                .Where(p => p.CommunityChallengeId == x.CommunityChallengeId)
+                .ToArray();
+
+            var placement = participants
+                .OrderByDescending(p => p.TotalAmountContributed)
+                .ThenBy(p => p.UserId)
+                .Select((p, index) => new { p.UserId, Placement = index + 1 })
+                .FirstOrDefault(p => p.UserId == user.Id)?.Placement ?? 0;
+
+            return new
+            {
+                x.Date,
+                x.Challenge,
+                x.TotalAmountContributed,
+                x.ConditionType,
+                Placement = placement,
+                ParticipantCount = participants.Length,
+                TotalContributions = contributionsCount
+            };
         });
 
         return Ok(returnValue);
