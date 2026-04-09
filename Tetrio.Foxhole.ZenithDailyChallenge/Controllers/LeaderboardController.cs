@@ -30,7 +30,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
                     Username = y.User.Username,
                     UserId = y.User.Id,
                     Score = y.Score
-                }).OrderByDescending(y => y.Score).ToList()
+                }).Where(x => x.Score > 0).OrderByDescending(y => y.Score).ToList()
             }).FirstOrDefaultAsync();
 
         if (leaderboard == null) return NotFound($"No leaderboard found for timestamp {leaderboardDate}");
