@@ -1,2 +1,2 @@
-﻿call docker-build.bat
+call docker-build.bat
 call docker-push.bat

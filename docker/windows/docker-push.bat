@@ -1,1 +1,1 @@
-﻿docker image push founntain/tetrio.overlay.api:latest
+docker image push founntain/tetrio.overlay.api:latest
