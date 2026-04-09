@@ -70,7 +70,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Invisible = Math.Round(x.Where(y => y.Mods.Contains("invisible")).Sum(y => y.Altitude), 2),
             AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2),
 
-            Reverse =   Math.Round(x.Where(y => y.Mods.Contains("expert_reversed")).Sum(y => y.Altitude)
+            Reverse = Math.Round(x.Where(y => y.Mods.Contains("expert_reversed")).Sum(y => y.Altitude)
                             + x.Where(y => y.Mods.Contains("nohold_reversed")).Sum(y => y.Altitude)
                             + x.Where(y => y.Mods.Contains("messy_reversed")).Sum(y => y.Altitude)
                             + x.Where(y => y.Mods.Contains("gravity_reversed")).Sum(y => y.Altitude)
@@ -85,7 +85,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         if(altitudes != null)
         {
-            totalAltitude = altitudes.NoMod + altitudes.Expert + altitudes.NoHold + altitudes.Messy + altitudes.Gravity + altitudes.Volatile + altitudes.DoubleHole + altitudes.Invisible + altitudes.AllSpin;
+            totalAltitude = altitudes.NoMod + altitudes.Expert + altitudes.NoHold + altitudes.Messy + altitudes.Gravity + altitudes.Volatile + altitudes.DoubleHole + altitudes.Invisible + altitudes.AllSpin + altitudes.Reverse;
             percentages =
             [
                 Math.Round(altitudes.NoMod / totalAltitude * 100, 2),
@@ -96,7 +96,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 Math.Round(altitudes.Volatile / totalAltitude * 100, 2),
                 Math.Round(altitudes.DoubleHole / totalAltitude * 100, 2),
                 Math.Round(altitudes.Invisible / totalAltitude * 100, 2),
-                Math.Round(altitudes.AllSpin / totalAltitude * 100, 2)
+                Math.Round(altitudes.AllSpin / totalAltitude * 100, 2),
+                Math.Round(altitudes.Reverse / totalAltitude * 100, 2)
             ];
         }
 
@@ -711,7 +712,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Select(group => new
             {
                 Date = group.First().CommunityChallenge.StartDate,
-                Challenge = $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}",
+                Challenge = string.IsNullOrWhiteSpace(group.First().CommunityChallenge.Name) ? $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}" : group.First().CommunityChallenge.Name,
                 TotalAmountContributed = Math.Round(group.Sum(x => x.Amount), 2),
                 group.First().CommunityChallenge.ConditionType
             }).ToArrayAsync();
