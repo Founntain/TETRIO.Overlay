@@ -323,5 +323,23 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
 
         return Ok(a);
     }
+
+    [HttpPost]
+    [Route("submitalt")]
+    public async Task<IActionResult> SubmitDailyChallenge(string username)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username.ToLower());
+
+        if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
+        if (user.IsRestricted) return BadRequest("No bad person, no submitting for you, ask founntain to unrestrict you");
+
+        var day = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+
+        var submitLogic = new SubmitLogic(context, Api, user, day);
+
+        var response = await submitLogic.ProcessSubmissions();
+
+        return response.ResponseCode != 200 ? StatusCode(response.ResponseCode, response.ResultObject) : Ok(response.ResultObject);
+    }
 #endif
 }

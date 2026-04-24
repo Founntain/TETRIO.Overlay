@@ -148,7 +148,24 @@ public class RunValidator
                 communityContribution.Amount = runs.Sum(x => x.Altitude);
                 break;
             case ConditionType.KOs:
-                communityContribution.Amount = runs.Sum(x => x.KOs);
+                communityContribution.Amount = runs.Sum(x =>
+                {
+
+                    // TEMPORARY
+                    var kos = x.KOs;
+                    var mods = x.Mods.Split(' ');
+
+                    var modMultiplier = 1;
+
+                    modMultiplier = mods.Length;
+
+                    if (mods.Contains("_reversed"))
+                    {
+                        modMultiplier = 2;
+                    }
+
+                    return (int) (kos * modMultiplier);
+                });
                 break;
             case ConditionType.AllClears:
                 communityContribution.Amount = runs.Sum(x => x.AllClears);
