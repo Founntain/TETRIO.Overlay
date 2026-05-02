@@ -790,7 +790,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         if(user == null) return NotFound($"User '{username}' not found");
 
-        var leaderboards = await context.Leaderboards.AsNoTracking().Select(x => new
+        var leaderboards = await context.Leaderboards.AsNoTracking().OrderByDescending(x => x.StartDate).Select(x => new
         {
             x.Id,
             x.Name,
