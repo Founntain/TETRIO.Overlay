@@ -1,4 +1,6 @@
-﻿namespace Tetrio.Foxhole.Database.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Tetrio.Foxhole.Database.Entities;
 
 public class Leaderboard : CreationTimeEntity
 {
@@ -14,6 +16,11 @@ public class Leaderboard : CreationTimeEntity
 public class LeaderboardEntry : CreationTimeEntity
 {
     public long Score { get; set; } = 0;
+
+    [ForeignKey("LeaderboardId")]
+    public Guid LeaderboardId { get; set; }
+    [ForeignKey("UserId")]
+    public Guid UserId { get; set; }
 
     public virtual Leaderboard Leaderboard { get; set; }
     public virtual User User { get; set; }

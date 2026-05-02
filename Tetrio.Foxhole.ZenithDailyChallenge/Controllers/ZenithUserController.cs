@@ -780,6 +780,46 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         return Ok(foundUsers);
     }
 
+    [HttpGet]
+    [Route("{username}/seasonalHistory")]
+    public async Task<ActionResult> GetSeasonalHistory(string username)
+    {
+        username = username.ToLower();
+
+        var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
+
+        if(user == null) return NotFound($"User '{username}' not found");
+
+        var leaderboards = await context.Leaderboards.AsNoTracking().Select(x => new
+        {
+            x.Id,
+            x.Name,
+        }).ToArrayAsync();
+
+        List<dynamic> result = new();
+
+        foreach (var leaderboard in leaderboards)
+        {
+            var entry = await context.LeaderboardEntries.AsNoTracking().FirstOrDefaultAsync(x => x.LeaderboardId == leaderboard.Id && x.UserId == user.Id);
+
+            if(entry == null) continue;
+
+            var participants = await context.LeaderboardEntries.CountAsync(x => x.LeaderboardId == leaderboard.Id);
+            // calculate position of user in leaderboard
+            var position = await context.LeaderboardEntries.AsNoTracking().CountAsync(x => x.LeaderboardId == leaderboard.Id && x.Score > entry.Score) + 1;
+
+            result.Add(new
+            {
+                SeasonName = leaderboard.Name,
+                SeasonPlacement = position,
+                SeasonParticipants = participants,
+                SeasonScore = entry.Score
+            });
+        }
+
+        return Ok(result);
+    }
+
     #if DEBUG
     [HttpGet]
     [Route("convertLegacyScore")]
