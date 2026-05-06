@@ -1,4 +1,4 @@
-﻿namespace Tetrio.Zenith.DailyChallenge.ChallengeGeneration;
+﻿namespace Tetrio.Foxhole.Base.Enums;
 
 [Flags]
 public enum Mods : byte

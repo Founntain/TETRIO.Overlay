@@ -20,6 +20,10 @@ public class TetrioContext : DbContext
     public DbSet<Leaderboard> Leaderboards { get; set; }
     public DbSet<LeaderboardEntry> LeaderboardEntries { get; set; }
     public DbSet<UserXp> UserXps { get; set; }
+    public DbSet<WeeklyChallenge> WeeklyChallenges { get; set; }
+    public DbSet<WeeklyChallengeCondition> WeeklyChallengeConditions { get; set; }
+    public DbSet<WeeklyProgress> WeeklyProgresses { get; set; }
+    public DbSet<WeeklyConditionProgress> WeeklyConditionProgresses { get; set; }
 
     public TetrioContext()
     {
@@ -55,5 +59,10 @@ public class TetrioContext : DbContext
         builder.ApplyConfiguration(new MasteryAttemptConfiguration());
         builder.ApplyConfiguration(new LeaderboardConfiguration());
         builder.ApplyConfiguration(new LeaderboardEntryConfiguration());
+        builder.ApplyConfiguration(new UserXpConfiguration());
+        builder.ApplyConfiguration(new WeeklyChallengeConfiguration());
+        builder.ApplyConfiguration(new WeeklyChallengeConditionConfiguration());
+        builder.ApplyConfiguration(new WeeklyProgressConfiguration());
+        builder.ApplyConfiguration(new WeeklyConditionProgressConfiguration());
     }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
@@ -57,8 +58,6 @@ public class SubmitLogic
         totalRuns.AddRange(topExpertRecords.Entries);
 
         totalRuns = totalRuns.DistinctBy(x => x.Id).ToList();
-
-        var communityChallenge = await _context.CommunityChallenges.FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
 
         Console.WriteLine($"[DAILY SUBMIT] {_user.Username} submitted {totalRuns.Count} run(s)]");
 
@@ -121,12 +120,24 @@ public class SubmitLogic
 
         _user.LastSubmission = DateTime.UtcNow;
 
+        var communityChallenge = await _context.CommunityChallenges.FirstOrDefaultAsync(x => x.StartDate <= now && x.EndDate >= now);
+
         if (communityChallenge != null)
         {
             var contribution = ProcessCommunityContribution(runValidator, communityChallenge, runsToAdd, everyClear);
 
             if (contribution != null)
                 await _context.AddAsync(contribution);
+        }
+
+        //get current week
+        var week = (byte) ISOWeek.GetWeekOfYear(_day.ToDateTime(TimeOnly.MinValue));
+
+        var weeklyChallenge = await _context.WeeklyChallenges.FirstOrDefaultAsync(x => x.Week == week);
+
+        if (weeklyChallenge != null && runsToAdd.Count > 0)
+        {
+            await ProcessWeeklyProgress(weeklyChallenge, _user, runsToAdd);
         }
 
         var todaysRuns = runsToAdd.Where(x => _day == DateOnly.FromDateTime(x.PlayedAt!.Value.Date)).ToList();
@@ -349,5 +360,104 @@ public class SubmitLogic
         Console.WriteLine($"[CC] Added {contribution.Amount} from {_user.Username}. With runs: {string.Join(' ', runs.Select(x => x.TetrioId))}");
 
         return contribution;
+    }
+
+    private async Task ProcessWeeklyProgress(WeeklyChallenge weeklyChallenge, User user, List<Run> runsToAdd)
+    {
+        var isNewWeeklyProgress = false;
+
+        var weeklyProgress = weeklyChallenge.WeeklyProgressions.FirstOrDefault(x => x.UserId == user.Id);
+
+        if(weeklyProgress == null)
+        {
+            weeklyProgress = new WeeklyProgress()
+            {
+                UserId = user.Id,
+                WeeklyChallengeId = weeklyChallenge.Id,
+            };
+
+            isNewWeeklyProgress = true;
+        }
+
+        foreach (var condition in weeklyChallenge.Conditions)
+        {
+            var isNewConditionProgress = false;
+
+            var conditionProgress = weeklyProgress.ConditionProgresses.FirstOrDefault(x => x.ConditionId == condition.Id);
+
+            if (conditionProgress == null)
+            {
+                conditionProgress = new WeeklyConditionProgress()
+                {
+                    WeeklyProgress = weeklyProgress,
+                    WeeklyChallengeCondition = condition,
+                    ConditionId = condition.Id,
+                    CurrentProgress = 0,
+                };
+
+                isNewConditionProgress = true;
+            }
+
+            double progressToAdd = 0;
+
+            switch (condition.Type)
+            {
+                case WeeklyConditionType.Height:
+                    progressToAdd = runsToAdd.Sum(x => x.Altitude);
+                    break;
+                case WeeklyConditionType.KOs:
+                    progressToAdd = runsToAdd.Sum(x => x.KOs);
+                    break;
+                case WeeklyConditionType.Quads:
+                    progressToAdd = runsToAdd.Sum(x => x.Quads);
+                    break;
+                case WeeklyConditionType.Spins:
+                    progressToAdd = runsToAdd.Sum(x => x.Spins);
+                    break;
+                case WeeklyConditionType.AllClears:
+                    progressToAdd = runsToAdd.Sum(x => x.AllClears);
+                    break;
+                case WeeklyConditionType.BackToBack:
+                    progressToAdd = runsToAdd.Sum(x => x.Back2Back);
+                    break;
+                case WeeklyConditionType.TotalBonus:
+                    progressToAdd = runsToAdd.Sum(x => x.TotalBonus);
+                    break;
+                case WeeklyConditionType.LinesCleared:
+                    progressToAdd = runsToAdd.Sum(x => x.LinesCleared);
+                    break;
+                case WeeklyConditionType.GarbageSent:
+                    progressToAdd = runsToAdd.Sum(x => x.GarbageSent);
+                    break;
+                case WeeklyConditionType.GarbageCleared:
+                    progressToAdd = runsToAdd.Sum(x => x.GarbageCleared);
+                    break;
+                default:
+                    progressToAdd = 0;
+                    break;
+            }
+
+            conditionProgress.CurrentProgress += progressToAdd;
+
+            if(conditionProgress.CurrentProgress >= condition.Value && !conditionProgress.IsCompleted)
+            {
+                conditionProgress.IsCompleted = true;
+
+                _user.Score += 10;
+            }
+
+            if(isNewConditionProgress) await _context.AddAsync(conditionProgress);
+        }
+
+        if(!weeklyProgress.IsCompleted && weeklyProgress.ConditionProgresses.All(x => x.IsCompleted))
+        {
+            weeklyProgress.IsCompleted = true;
+
+            _user.Score += (uint) (weeklyChallenge.Conditions.Count * 10);
+        }
+
+        if(isNewWeeklyProgress) await _context.AddAsync(weeklyProgress);
+
+        await _context.SaveChangesAsync();
     }
 }

@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Tetrio.Foxhole.Base\Tetrio.Foxhole.Base.csproj" />
       <ProjectReference Include="..\Tetrio.Foxhole.Network\Tetrio.Foxhole.Network.csproj" />
     </ItemGroup>
 

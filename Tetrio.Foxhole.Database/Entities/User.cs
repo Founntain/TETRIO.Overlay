@@ -75,4 +75,5 @@ public class User : BaseEntity
     public virtual ISet<MasteryAttempt> MasteryAttempts { get; set; } = new HashSet<MasteryAttempt>();
     public virtual ISet<LeaderboardEntry> LeaderboardEntries { get; set; } = new HashSet<LeaderboardEntry>();
     public virtual ISet<UserXp> Xp { get; set; } = new HashSet<UserXp>();
+    public virtual ISet<WeeklyProgress> WeeklyProgressions { get; set; } = new HashSet<WeeklyProgress>();
 }
