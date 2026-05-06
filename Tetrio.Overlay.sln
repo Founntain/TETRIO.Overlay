@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Foxhole.Overlay", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Foxhole.Backend.Base", "Tetrio.Foxhole.Backend.Base\Tetrio.Foxhole.Backend.Base.csproj", "{03D76D8F-FA28-4989-A3FA-710BD8470FCD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tetrio.Foxhole.Base", "Tetrio.Foxhole.Base\Tetrio.Foxhole.Base.csproj", "{1D7DF4BB-4295-46CD-8979-0829BFB3E095}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,10 @@ Global
 		{03D76D8F-FA28-4989-A3FA-710BD8470FCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03D76D8F-FA28-4989-A3FA-710BD8470FCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03D76D8F-FA28-4989-A3FA-710BD8470FCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D7DF4BB-4295-46CD-8979-0829BFB3E095}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D7DF4BB-4295-46CD-8979-0829BFB3E095}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D7DF4BB-4295-46CD-8979-0829BFB3E095}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D7DF4BB-4295-46CD-8979-0829BFB3E095}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
