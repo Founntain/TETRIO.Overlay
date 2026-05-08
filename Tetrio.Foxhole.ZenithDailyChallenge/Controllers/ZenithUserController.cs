@@ -112,6 +112,12 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var lifetimeXp = userXp.FirstOrDefault(x => x.Type == XpType.Lifetime);
 
+        var leaderboardDate = DateTime.UtcNow;
+
+        var leaderboard = await context.Leaderboards.AsNoTracking().FirstOrDefaultAsync(x => x.StartDate <= leaderboardDate && (x.EndDate == null || x.EndDate >= leaderboardDate));
+
+        var seasonalScore = await context.LeaderboardEntries.FirstOrDefaultAsync(x => x.LeaderboardId == leaderboard.Id && x.User.Id == user.Id);
+
         var userInfo = await GetTetrioUserInformation(username);
 
         if (masteryCompletions != null)
@@ -149,7 +155,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Altitudes = altitudes,
             AltitudePercentages = percentages,
             MasteryCompletions = masteryCompletions,
-            Score = user.Score
+            Score = user.Score,
+            SeasonalScore = seasonalScore?.Score ?? 0,
         });
     }
 
