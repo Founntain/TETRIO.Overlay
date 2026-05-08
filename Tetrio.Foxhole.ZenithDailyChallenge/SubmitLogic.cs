@@ -137,7 +137,7 @@ public class SubmitLogic
 
         if (weeklyChallenge != null && runsToAdd.Count > 0)
         {
-            await ProcessWeeklyProgress(weeklyChallenge, _user, runsToAdd);
+            await ProcessWeeklyProgress(weeklyChallenge, _user, runsToAdd, leaderboardUserEntry);
         }
 
         var todaysRuns = runsToAdd.Where(x => _day == DateOnly.FromDateTime(x.PlayedAt!.Value.Date)).ToList();
@@ -362,7 +362,7 @@ public class SubmitLogic
         return contribution;
     }
 
-    private async Task ProcessWeeklyProgress(WeeklyChallenge weeklyChallenge, User user, List<Run> runsToAdd)
+    private async Task ProcessWeeklyProgress(WeeklyChallenge weeklyChallenge, User user, List<Run> runsToAdd, LeaderboardEntry? leaderboardEntry)
     {
         var isNewWeeklyProgress = false;
 
@@ -443,7 +443,11 @@ public class SubmitLogic
             {
                 conditionProgress.IsCompleted = true;
 
-                _user.Score += 10;
+                uint scoreToAdd = 10;
+
+                _user.Score += scoreToAdd;
+
+                if(leaderboardEntry != null) leaderboardEntry.Score += scoreToAdd;
             }
 
             if(isNewConditionProgress) await _context.AddAsync(conditionProgress);
@@ -453,7 +457,11 @@ public class SubmitLogic
         {
             weeklyProgress.IsCompleted = true;
 
-            _user.Score += (uint) (weeklyChallenge.Conditions.Count * 10);
+            uint scoreToAdd = (uint) (weeklyChallenge.Conditions.Count * 10);
+
+            _user.Score += scoreToAdd;
+
+            if(leaderboardEntry != null) leaderboardEntry.Score += scoreToAdd;
         }
 
         if(isNewWeeklyProgress) await _context.AddAsync(weeklyProgress);
