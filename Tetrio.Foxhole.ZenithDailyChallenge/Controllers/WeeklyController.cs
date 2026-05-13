@@ -14,10 +14,10 @@ public class WeeklyController(TetrioApi api, TetrioContext context) : BaseContro
     [Route("")]
     public async Task<IActionResult> GetWeeklyChallenge()
     {
-        var day = DateOnly.FromDateTime(DateTime.Now);
+        var day = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        // check if the day is the start of the week if not get the first day of the week and store that into day
-        if (day.DayOfWeek != DayOfWeek.Monday) day = day.AddDays(-((int)day.DayOfWeek - 1));
+        var daysSinceMonday = ((int)day.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        day = day.AddDays(-daysSinceMonday);
 
         var weekly = context.WeeklyChallenges.AsNoTracking().FirstOrDefault(x => x.StartDate == day);
 
@@ -66,6 +66,7 @@ public class WeeklyController(TetrioApi api, TetrioContext context) : BaseContro
         return Ok(new
         {
             Week = week,
+            IsCompleted = weeklyProgression.IsCompleted,
             Progress = weeklyProgression.ConditionProgresses.Select(x => new { x.WeeklyChallengeCondition.Type, x.CurrentProgress, x.IsCompleted }).OrderBy(x => x.Type)
         });
     }
