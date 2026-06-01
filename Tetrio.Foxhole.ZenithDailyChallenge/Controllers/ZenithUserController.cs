@@ -116,7 +116,10 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var leaderboard = await context.Leaderboards.AsNoTracking().FirstOrDefaultAsync(x => x.StartDate <= leaderboardDate && (x.EndDate == null || x.EndDate >= leaderboardDate));
 
-        var seasonalScore = await context.LeaderboardEntries.FirstOrDefaultAsync(x => x.LeaderboardId == leaderboard.Id && x.User.Id == user.Id);
+        LeaderboardEntry? seasonalScore = null;
+
+        if(leaderboard != null)
+            seasonalScore = await context.LeaderboardEntries.FirstOrDefaultAsync(x => x.LeaderboardId == leaderboard.Id && x.User.Id == user.Id);
 
         var userInfo = await GetTetrioUserInformation(username);
 
