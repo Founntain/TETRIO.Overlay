@@ -503,7 +503,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 x.Quads,
                 x.Spins,
                 x.AllClears,
-                x.KOs,
+                ko = x.KOs,
                 x.Apm,
                 x.Pps,
                 x.Vs,
