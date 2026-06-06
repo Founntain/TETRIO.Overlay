@@ -14,6 +14,8 @@ public class User : BaseEntity
     /// </summary>
     public string Username { get; set; }
 
+    public string? Title { get; set; }
+
     /// <summary>
     /// The users current SessionToken
     /// </summary>

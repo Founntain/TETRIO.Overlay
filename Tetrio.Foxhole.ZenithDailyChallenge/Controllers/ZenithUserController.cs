@@ -26,6 +26,187 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
     }
 
     [HttpGet]
+    [Route("{username}")]
+    public async Task<ActionResult> GetUserData(string? username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+        username = username.ToLower();
+        var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
+
+        if (user == default) return NotFound();
+
+        var userInfo = await GetTetrioUserInformation(username);
+
+        var runCount = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
+        var topRun = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).OrderByDescending(x => x.Altitude).FirstOrDefaultAsync();
+        var totalGarbageSend = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.GarbageSent);
+        var totalGarbageCleared = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.GarbageCleared);
+        var totalKOs = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.KOs);
+        var totalTimePlayed = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.TotalTime);
+
+        var altitudes = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).GroupBy(x => x.User.Id).Select(x => new
+        {
+            NoMod = Math.Round(x.Where(y => y.Mods.Length == 0).Sum(y => y.Altitude), 2),
+            Expert = Math.Round(x.Where(y => y.Mods.Contains("expert")).Sum(y => y.Altitude), 2),
+            NoHold = Math.Round(x.Where(y => y.Mods.Contains("nohold")).Sum(y => y.Altitude), 2),
+            Messy = Math.Round(x.Where(y => y.Mods.Contains("messy")).Sum(y => y.Altitude), 2),
+            Gravity = Math.Round(x.Where(y => y.Mods.Contains("gravity")).Sum(y => y.Altitude), 2),
+            Volatile = Math.Round(x.Where(y => y.Mods.Contains("volatile")).Sum(y => y.Altitude), 2),
+            DoubleHole = Math.Round(x.Where(y => y.Mods.Contains("doublehole")).Sum(y => y.Altitude), 2),
+            Invisible = Math.Round(x.Where(y => y.Mods.Contains("invisible")).Sum(y => y.Altitude), 2),
+            AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2),
+
+            Reverse = Math.Round(x.Where(y => y.Mods.Contains("expert_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("nohold_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("messy_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("gravity_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("volatile_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("doublehole_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("invisible_reversed")).Sum(y => y.Altitude)
+                            + x.Where(y => y.Mods.Contains("allspin_reversed")).Sum(y => y.Altitude), 2)
+        }).FirstOrDefaultAsync();
+
+        var totalAltitude = 0d;
+        var percentages = new double[9];
+
+        if(altitudes != null)
+        {
+            totalAltitude = altitudes.NoMod + altitudes.Expert + altitudes.NoHold + altitudes.Messy + altitudes.Gravity + altitudes.Volatile + altitudes.DoubleHole + altitudes.Invisible + altitudes.AllSpin + altitudes.Reverse;
+            percentages =
+            [
+                Math.Round(altitudes.NoMod / totalAltitude * 100, 2),
+                Math.Round(altitudes.Expert / totalAltitude * 100, 2),
+                Math.Round(altitudes.NoHold / totalAltitude * 100, 2),
+                Math.Round(altitudes.Messy / totalAltitude * 100, 2),
+                Math.Round(altitudes.Gravity / totalAltitude * 100, 2),
+                Math.Round(altitudes.Volatile / totalAltitude * 100, 2),
+                Math.Round(altitudes.DoubleHole / totalAltitude * 100, 2),
+                Math.Round(altitudes.Invisible / totalAltitude * 100, 2),
+                Math.Round(altitudes.AllSpin / totalAltitude * 100, 2),
+                Math.Round(altitudes.Reverse / totalAltitude * 100, 2)
+            ];
+        }
+
+        return Ok(new
+        {
+            TetrioId = user.TetrioId,
+            Username = user.Username,
+            Title = user.Title,
+            Score = user.Score,
+            Avatar = userInfo?.AvatarRevision,
+            Banner = userInfo?.BannerRevision,
+            Runs = runCount,
+            TopAltitude = topRun?.Altitude ?? 0,
+            GarbageSend = totalGarbageSend,
+            GarbageCleared = totalGarbageCleared,
+            Kos = totalKOs,
+            TimePlayed = totalTimePlayed / 3600000,
+            AltitudePercentages = percentages,
+        });
+    }
+
+    [HttpGet]
+    [Route("{username}/extra")]
+    public async Task<ActionResult> GetUserDataExtra(string? username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+        username = username.ToLower();
+        var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Username == username);
+
+        if (user == default) return NotFound();
+
+        #region Get Average Values
+
+        var apmAverage = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).AverageAsync(x => x.Apm);
+        var apmAverageRecentDays = await context.Runs.AsNoTracking()
+            .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
+            .GroupBy(x => x.PlayedAt!.Value.Date)
+            .OrderByDescending(x => x.Key)
+            .Take(5)
+            .Select(g => new { Date = g.Key, Average = g.Average(x => x.Apm) })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
+
+        var vsAverage = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).AverageAsync(x => x.Vs);
+        var vsAverageRecentDays = await context.Runs.AsNoTracking()
+            .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
+            .GroupBy(x => x.PlayedAt!.Value.Date)
+            .OrderByDescending(x => x.Key)
+            .Take(5)
+            .Select(g => new { Date = g.Key, Average = g.Average(x => x.Vs) })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
+
+        var ppsAverage = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).AverageAsync(x => x.Pps);
+        var ppsAverageRecentDays = await context.Runs.AsNoTracking()
+            .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
+            .GroupBy(x => x.PlayedAt!.Value.Date)
+            .OrderByDescending(x => x.Key)
+            .Take(5)
+            .Select(g => new { Date = g.Key, Average = g.Average(x => x.Pps) })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
+
+        var altitudeAverage = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).AverageAsync(x => x.Altitude);
+        var altitudeAverageRecentDays = await context.Runs.AsNoTracking()
+            .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
+            .GroupBy(x => x.PlayedAt!.Value.Date)
+            .OrderByDescending(x => x.Key)
+            .Take(5)
+            .Select(g => new { Date = g.Key, Average = g.Average(x => x.Altitude) })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
+
+        #endregion
+
+        var floor1Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 0 && x.Altitude < 50 && x.TotalTime > 30000).CountAsync();
+        var floor2Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 50 && x.Altitude < 150).CountAsync();
+        var floor3Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 150 && x.Altitude < 300).CountAsync();
+        var floor4Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 300 && x.Altitude < 450).CountAsync();
+        var floor5Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 450 && x.Altitude < 650).CountAsync();
+        var floor6Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 650 && x.Altitude < 850).CountAsync();
+        var floor7Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 850 && x.Altitude < 1100).CountAsync();
+        var floor8Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 1100 && x.Altitude < 1350).CountAsync();
+        var floor9Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 1350 && x.Altitude < 1650).CountAsync();
+        var floor10Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 1650).CountAsync();
+
+        var floors = new[] { floor1Count, floor2Count, floor3Count, floor4Count, floor5Count, floor6Count, floor7Count, floor8Count, floor9Count, floor10Count };
+
+        return Ok(new
+        {
+            Floors = new
+            {
+                Average = floors.Select((count, index) => count * (index + 1d)).Sum() / floors.Sum(),
+                Floors = floors
+            },
+            Apm = new
+            {
+                Average = apmAverage,
+                Recent = apmAverageRecentDays,
+                Improvement = apmAverageRecentDays.Count() > 1 ? apmAverageRecentDays[0].Average - apmAverageRecentDays[1].Average : 0
+            },
+            Vs = new
+            {
+                Average = vsAverage,
+                Recent = vsAverageRecentDays,
+                Improvement = vsAverageRecentDays.Count() > 1 ? vsAverageRecentDays[0].Average - vsAverageRecentDays[1].Average : 0
+            },
+            Pps = new
+            {
+                Average = ppsAverage,
+                Recent = ppsAverageRecentDays,
+                Improvement = ppsAverageRecentDays.Count() > 1 ? ppsAverageRecentDays[0].Average - ppsAverageRecentDays[1].Average : 0
+            },
+            Altitude = new
+            {
+                Average = altitudeAverage,
+                Recent = altitudeAverageRecentDays,
+                Improvement = altitudeAverageRecentDays.Count() > 1 ? altitudeAverageRecentDays[0].Average - altitudeAverageRecentDays[1].Average : 0
+            }
+        });
+    }
+
+    [HttpGet]
     [Route("{username}/daily")]
     public async Task<ActionResult> GetDailyData(string? username)
     {
@@ -261,6 +442,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Skip(page * pageSize).Take(pageSize)
             .Select(x => new
             {
+                x.PlayedAt,
                 x.TetrioId,
                 x.Mods,
                 x.Altitude,
@@ -565,6 +747,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             var reverseCompleted = false;
 
             foreach (var challenge in x)
+            {
                 switch ((Difficulty)challenge.Difficulty)
                 {
                     case Difficulty.VeryEasy:
@@ -586,6 +769,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                         reverseCompleted = true;
                         break;
                 }
+            }
 
             return new
             {
