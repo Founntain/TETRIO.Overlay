@@ -87,12 +87,22 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             ];
         }
 
+        var leaderboardDate = DateTime.UtcNow;
+
+        var leaderboard = await context.Leaderboards.AsNoTracking().FirstOrDefaultAsync(x => x.StartDate <= leaderboardDate && (x.EndDate == null || x.EndDate >= leaderboardDate));
+
+        LeaderboardEntry? seasonalScore = null;
+
+        if(leaderboard != null)
+            seasonalScore = await context.LeaderboardEntries.FirstOrDefaultAsync(x => x.LeaderboardId == leaderboard.Id && x.User.Id == user.Id);
+
         return Ok(new
         {
             TetrioId = user.TetrioId,
             Username = user.Username,
             Title = user.Title,
             Score = user.Score,
+            SeasonalScore = seasonalScore?.Score ?? 0,
             Avatar = userInfo?.AvatarRevision,
             Banner = userInfo?.BannerRevision,
             Runs = runCount,
@@ -100,7 +110,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             GarbageSend = totalGarbageSend,
             GarbageCleared = totalGarbageCleared,
             Kos = totalKOs,
-            TimePlayed = totalTimePlayed / 3600000,
+            TimePlayed = (double) totalTimePlayed / 3600000,
             AltitudePercentages = percentages,
         });
     }
@@ -159,6 +169,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         #endregion
 
+        #region Floor Averages
+
         var floor1Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 0 && x.Altitude < 50 && x.TotalTime > 30000).CountAsync();
         var floor2Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 50 && x.Altitude < 150).CountAsync();
         var floor3Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 150 && x.Altitude < 300).CountAsync();
@@ -171,6 +183,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         var floor10Count = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.Altitude >= 1650).CountAsync();
 
         var floors = new[] { floor1Count, floor2Count, floor3Count, floor4Count, floor5Count, floor6Count, floor7Count, floor8Count, floor9Count, floor10Count };
+
+        #endregion
 
         return Ok(new
         {
@@ -204,6 +218,46 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 Improvement = altitudeAverageRecentDays.Count() > 1 ? altitudeAverageRecentDays[0].Average - altitudeAverageRecentDays[1].Average : 0
             }
         });
+    }
+
+    [HttpGet]
+    [Route("{username}/progression")]
+    public async Task<ActionResult> GetUserProgression(string? username, int progressionLimit = 100)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+        if (progressionLimit < 0) return BadRequest("Progression limit cant be lower than 0");
+        if (progressionLimit == 0) progressionLimit = 3000;
+        if(progressionLimit > 3000) progressionLimit = 3000;
+
+        username = username.ToLower();
+
+        var user = await context.Users.AsNoTracking().Where(x => x.Username == username).FirstOrDefaultAsync();
+
+        if (user == null) return NotFound();
+
+         var modProgression = new
+        {
+            NoMod = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Length == 0).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            Expert = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            NoHold = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            Messy = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            Gravity = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            Volatile = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            DoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            Invisible = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            AllSpin = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+
+            ReverseExpert = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            ReverseNoHold = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            ReverseMessy = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            ReverseGravity = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            ReverseVolatile = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            ReverseDoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            ReverseInvisible = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            ReverseAllspin = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x)
+        };
+
+         return Ok(modProgression);
     }
 
     [HttpGet]
@@ -350,8 +404,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
         if (progressionLimit < 0) return BadRequest("Progression limit cant be lower than 0");
-        if (progressionLimit == 0) progressionLimit = 3000;
-        if(progressionLimit > 3000) progressionLimit = 3000;
+        if (progressionLimit == 0) progressionLimit = 1000;
+        if(progressionLimit > 1000) progressionLimit = 1000;
 
         username = username.ToLower();
 
@@ -889,78 +943,87 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
     }
 
     [HttpGet]
-    [Route("{username}/getCommunityContributions")]
-    public async Task<ActionResult> GetCommunityContributions(string? username, int page = 0, int pageSize = 25)
-    {
-        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
-
-        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
-
-        if (user == null) return NotFound($"User '{username}' not found");
-
-        var contributions = await context.CommunityContributions
-            .AsNoTracking()
-            .OrderByDescending(x => x.CommunityChallenge.StartDate)
-            .Where(x => x.UserId == user.Id && !x.IsLate)
-            .GroupBy(x => x.CommunityChallengeId)
-            .Skip(page * pageSize).Take(pageSize)
-            .Select(group => new
-            {
-                CommunityChallengeId = group.Key,
-                Date = group.First().CommunityChallenge.StartDate,
-                Challenge = string.IsNullOrWhiteSpace(group.First().CommunityChallenge.Name) ? $"{group.First().CommunityChallenge.StartDate:yyyy-MM-dd}" : group.First().CommunityChallenge.Name,
-                TotalAmountContributed = Math.Round(group.Sum(x => x.Amount), 2),
-                group.First().CommunityChallenge.ConditionType
-            })
-            .ToArrayAsync();
-
-        var contributionsCount = await context.CommunityContributions
-            .AsNoTracking()
-            .OrderByDescending(x => x.CommunityChallenge.StartDate)
-            .Where(x => x.UserId == user.Id && !x.IsLate)
-            .GroupBy(x => x.CommunityChallengeId)
-            .CountAsync();
-
-        var challengeIds = contributions.Select(x => x.CommunityChallengeId).ToArray();
-
-        var participantStats = await context.CommunityContributions
-            .AsNoTracking()
-            .Where(x => challengeIds.Contains(x.CommunityChallengeId) && !x.IsLate)
-            .GroupBy(x => new { x.CommunityChallengeId, x.UserId })
-            .Select(g => new
-            {
-                g.Key.CommunityChallengeId,
-                g.Key.UserId,
-                TotalAmountContributed = g.Sum(x => x.Amount)
-            })
-            .ToArrayAsync();
-
-        var returnValue = contributions.OrderByDescending(x => x.Date).Select(x =>
+        [Route("{username}/getCommunityContributions")]
+        public async Task<ActionResult> GetCommunityContributions(string? username, int page = 0, int pageSize = 25)
         {
-            var participants = participantStats
-                .Where(p => p.CommunityChallengeId == x.CommunityChallengeId)
-                .ToArray();
+            if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-            var placement = participants
-                .OrderByDescending(p => p.TotalAmountContributed)
-                .ThenBy(p => p.UserId)
-                .Select((p, index) => new { p.UserId, Placement = index + 1 })
-                .FirstOrDefault(p => p.UserId == user.Id)?.Placement ?? 0;
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
 
-            return new
+            if (user == null) return NotFound($"User '{username}' not found");
+
+            var challenges = await context.CommunityChallenges
+                .AsNoTracking()
+                .Where(x => x.Contributions.Any(y => y.UserId == user.Id && !y.IsLate))
+                .OrderByDescending(x => x.StartDate)
+                .Skip(page * pageSize).Take(pageSize)
+                .Select(x => new
+                {
+                    CommunityChallengeId = x.Id,
+                    Date = x.StartDate,
+                    Challenge = string.IsNullOrWhiteSpace(x.Name) ? $"{x.StartDate:yyyy-MM-dd}" : x.Name,
+                    x.TargetValue,
+                    x.ConditionType
+                })
+                .ToArrayAsync();
+
+            var contributionsCount = await context.CommunityChallenges
+                .AsNoTracking()
+                .Where(x => x.Contributions.Any(y => y.UserId == user.Id && !y.IsLate))
+                .CountAsync();
+
+            var challengeIds = challenges.Select(x => x.CommunityChallengeId).ToArray();
+
+            var userContributions = await context.CommunityContributions
+                .AsNoTracking()
+                .Where(x => challengeIds.Contains(x.CommunityChallengeId) && x.UserId == user.Id && !x.IsLate)
+                .GroupBy(x => x.CommunityChallengeId)
+                .Select(g => new
+                {
+                    CommunityChallengeId = g.Key,
+                    TotalAmountContributed = Math.Round(g.Sum(x => x.Amount), 2)
+                })
+                .ToArrayAsync();
+
+            var participantStats = await context.CommunityContributions
+                .AsNoTracking()
+                .Where(x => challengeIds.Contains(x.CommunityChallengeId) && !x.IsLate)
+                .GroupBy(x => new { x.CommunityChallengeId, x.UserId })
+                .Select(g => new
+                {
+                    g.Key.CommunityChallengeId,
+                    g.Key.UserId,
+                    TotalAmountContributed = g.Sum(x => x.Amount)
+                })
+                .ToArrayAsync();
+
+            var result = challenges.Select(x =>
             {
-                x.Date,
-                x.Challenge,
-                x.TotalAmountContributed,
-                x.ConditionType,
-                Placement = placement,
-                ParticipantCount = participants.Length,
-                TotalContributions = contributionsCount
-            };
-        });
+                var participants = participantStats.Where(p => p.CommunityChallengeId == x.CommunityChallengeId).ToArray();
 
-        return Ok(returnValue);
-    }
+                var placement = participants
+                    .OrderByDescending(p => p.TotalAmountContributed)
+                    .ThenBy(p => p.UserId)
+                    .Select((p, index) => new { p.UserId, Placement = index + 1 })
+                    .FirstOrDefault(p => p.UserId == user.Id)?.Placement ?? 0;
+
+                var totalAmountContributed = userContributions.FirstOrDefault(y => y.CommunityChallengeId == x.CommunityChallengeId)?.TotalAmountContributed ?? 0;
+
+                return new
+                {
+                    x.Date,
+                    x.Challenge,
+                    TotalAmountContributed = totalAmountContributed,
+                    ContributionPercentage = totalAmountContributed / x.TargetValue * 100,
+                    x.ConditionType,
+                    Placement = placement,
+                    ParticipantCount = participants.Length,
+                    TotalContributions = contributionsCount
+                };
+            });
+
+            return Ok(result);
+        }
 
     [HttpGet]
     [Route("search")]
