@@ -26,7 +26,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             await GenerateDailyChallenges();
         }
 
-        var challenges = await context.Challenges.AsNoTracking().Where(x => x.Date == day).OrderByDescending(x => x.Points).Select(x => new
+        var challenges = await context.Challenges.AsNoTracking().Where(x => x.Date == day).OrderBy(x => x.Points).Select(x => new
         {
             Id = x.Id,
             IsMasteryChallenge = false,

@@ -862,6 +862,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Where(x => x.Date == date)
             .Select(x => new
             {
+                x.Id,
                 x.Date,
                 Difficulty = x.Points,
                 x.Mods,
@@ -879,6 +880,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         var hardCompleted = false;
         var expertCompleted = false;
         var reverseCompleted = false;
+
+        var ids = challenges.Select(x => x.Id).ToArray();
 
         foreach (var challenge in challenges)
             switch ((Difficulty)challenge.Difficulty)
@@ -931,6 +934,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         return Ok(new
         {
+            CompletedChallengesIds = ids,
             Date = date,
             VeryEasyCompleted = veryEasyCompleted,
             EasyCompleted = easyCompleted,
