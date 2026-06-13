@@ -246,7 +246,17 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             ReverseChallengesCompleted = x.Count(y => y.Points == (byte)Difficulty.Reverse)
         }).SumAsync(x => x.ReverseChallengesCompleted);
 
-        var totalMasteryScore = await context.MasteryAttempts.AsNoTracking().Select(y => new
+        double playTime = await context.Runs.AsNoTracking().Select(x => (long)x.TotalTime).SumAsync();
+        var runsPlayed = await context.Runs.AsNoTracking().CountAsync();
+
+        if (playTime > 0)
+        {
+            playTime /= 3600000;
+
+            playTime = Math.Round(playTime, 0);
+        }
+
+        var masteriesCompleted = await context.MasteryAttempts.AsNoTracking().Select(y => new
         {
             MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
                                             (y.NoHoldCompleted ? 1 : 0) +
@@ -265,7 +275,7 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
                                             (y.InvisibleReversedCompleted ? 1 : 0) +
                                             (y.AllSpinReversedCompleted ? 1 : 0)
 
-        }).SumAsync(y => y.MasteryChallengeModsCompleted) * 2;
+        }).SumAsync(y => y.MasteryChallengeModsCompleted);
 
         var altitudes = await context.Runs.AsNoTracking().GroupBy(_ => true).Select(x => new
         {
@@ -282,14 +292,35 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
             AllSpin = Math.Round(x.Where(y => y.Mods.Contains("allspin")).Sum(y => y.Altitude), 2),
         }).FirstOrDefaultAsync();
 
+        var apm = await context.Runs.AsNoTracking().AverageAsync(x => x.Apm);
+        var vs = await context.Runs.AsNoTracking().AverageAsync(x => x.Vs);
+        var pps = await context.Runs.AsNoTracking().AverageAsync(x => x.Pps);
+        var altitude = await context.Runs.AsNoTracking().AverageAsync(x => x.Altitude);
+
+        var kos = await context.Runs.AsNoTracking().SumAsync(x => x.KOs);
+        var send = await context.Runs.AsNoTracking().SumAsync(x => x.GarbageSent);
+        var cleared = await context.Runs.AsNoTracking().SumAsync(x => x.GarbageCleared);
+
         return Ok(new
         {
             TotalUsers = userCount,
             TotalScore = totalScore,
             ReverseCount = reverseCount,
-            MasteryScore = totalMasteryScore,
+            MasteriesCompleted = masteriesCompleted,
             RankedUsers = userCountWithAtLeastOneScore,
+            PlayTime = playTime,
+            RunsPlayed = runsPlayed,
             Altitudes = altitudes,
+            RunStats = new
+            {
+                apm,
+                vs,
+                pps,
+                altitude,
+                kos,
+                send,
+                cleared,
+            }
         });
     }
 
