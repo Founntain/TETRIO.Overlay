@@ -56,6 +56,57 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
     }
 
     [HttpGet]
+    [Route("info")]
+    public async Task<IActionResult> GetLeaderboardInfo(DateTime? date = null)
+    {
+        var leaderboardDate = date.HasValue
+            ? DateTime.SpecifyKind(date.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow;
+
+        var leaderboard = await context.Leaderboards.AsNoTracking()
+            .Where(x => x.StartDate <= leaderboardDate && (x.EndDate == null || x.EndDate >= leaderboardDate))
+            .Select(x => new
+            {
+                Id = x.Id,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Name = x.Name,
+                Description = x.Description,
+                Leaderboard = x.Entries.Select(y => new
+                {
+                    Rank = y.User.TetrioRank,
+                    Username = y.User.Username,
+                    UserId = y.User.Id,
+                    Score = y.Score
+                }).Where(y => y.Score > 0).OrderByDescending(y => y.Score).ToList()
+            }).FirstOrDefaultAsync();
+
+        if (leaderboard == null) return NotFound($"No leaderboard found for timestamp {leaderboardDate}");
+
+        var participants = await context.LeaderboardEntries.AsNoTracking().CountAsync(x => x.LeaderboardId == leaderboard.Id);
+
+        var leaderboardData = leaderboard.Leaderboard.Select(x => new
+        {
+            x.Rank,
+            x.Username,
+            x.Score,
+            Level = (context.UserXps.AsNoTracking().FirstOrDefault(y => y.Type == XpType.Lifetime && y.User.Id == x.UserId))?.CalculateLevel() ?? 0
+        }).Take(3);
+
+        return Ok(new
+        {
+            leaderboard.StartDate,
+            leaderboard.EndDate,
+            StartedAtUnixSeconds = ((DateTimeOffset)DateTime.SpecifyKind(leaderboard.StartDate, DateTimeKind.Utc)).ToUnixTimeSeconds(),
+            EndsAtUnixSeconds = leaderboard.EndDate.HasValue ? ((DateTimeOffset)DateTime.SpecifyKind(leaderboard.EndDate.Value, DateTimeKind.Utc)).ToUnixTimeSeconds() : -1,
+            leaderboard.Name,
+            leaderboard.Description,
+            participants,
+            Leaderboard = leaderboardData
+        });
+    }
+
+    [HttpGet]
     [Route("{username}")]
     public async Task<IActionResult> GetLeaderboardPosition(string username, DateTime? date = null)
     {
