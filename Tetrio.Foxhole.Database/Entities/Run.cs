@@ -76,7 +76,7 @@ public class Run : BaseEntity
         var app = 0d;
 
         if (stats?.Piecesplaced > 0 && stats?.Garbage?.Attack > 0)
-            app = (stats.Piecesplaced / stats.Garbage.Attack).Value;
+            app = (stats.Garbage.Attack / stats.Piecesplaced ).Value;
 
         return new Run
         {
