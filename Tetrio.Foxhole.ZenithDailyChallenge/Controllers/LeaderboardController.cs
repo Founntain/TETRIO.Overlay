@@ -24,35 +24,70 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
                 EndDate = x.EndDate,
                 Name = x.Name,
                 Description = x.Description,
-                Leaderboard = x.Entries.Select(y => new
-                {
-                    Rank = y.User.TetrioRank,
-                    Username = y.User.Username,
-                    UserId = y.User.Id,
-                    Score = y.Score
-                }).Where(x => x.Score > 0).OrderByDescending(y => y.Score).ToList()
+                UserIds = x.Entries
+                    .Where(y => y.Score > 0)
+                    .OrderByDescending(y => y.Score)
+                    .Select(y => y.UserId)
+                    .ToList(),
+                Entries = x.Entries
+                    .Where(y => y.Score > 0)
+                    .OrderByDescending(y => y.Score)
+                    .Select(y => new
+                    {
+                        Rank = y.User.TetrioRank,
+                        Username = y.User.Username,
+                        UserId = y.User.Id,
+                        Score = y.Score,
+                    }).ToList()
             }).FirstOrDefaultAsync();
 
         if (leaderboard == null) return NotFound($"No leaderboard found for timestamp {leaderboardDate}");
 
-        var leaderboardData = leaderboard.Leaderboard.Select(x => new
+        var runStats = await context.Runs.AsNoTracking()
+            .Where(x => x.PlayedAt >= leaderboard.StartDate && x.PlayedAt <= leaderboard.EndDate && leaderboard.UserIds.Contains(x.UserId))
+            .GroupBy(x => x.UserId)
+            .Select(g => new
+            {
+                UserId = g.Key,
+                TopRun = g.Max(y => y.Altitude),
+                Apm = g.Average(y => y.Apm),
+                Vs = g.Max(y => y.Vs),
+                Kos = g.Sum(y => y.KOs),
+                Runs = g.Count()
+            }).ToDictionaryAsync(x => x.UserId);
+
+        var userLevels = await context.UserXps.AsNoTracking()
+            .Where(x => x.Type == XpType.Lifetime && leaderboard.UserIds.Contains(x.User.Id))
+            .GroupBy(x => x.User.Id)
+            .Select(g => new
+            {
+                UserId = g.Key,
+                Level = g.FirstOrDefault().CalculateLevel()
+            }).ToDictionaryAsync(x => x.UserId);
+
+        var leaderboardData = leaderboard.Entries.Select(x => new
         {
             x.Rank,
             x.Username,
             x.Score,
-            Level = (context.UserXps.AsNoTracking().FirstOrDefault(y => y.Type == XpType.Lifetime && y.User.Id == x.UserId))?.CalculateLevel() ?? 0
+            TopRun = runStats.TryGetValue(x.UserId, out var stats) ? stats.TopRun : 0,
+            Apm = stats?.Apm ?? 0,
+            Vs = stats?.Vs ?? 0,
+            Kos = stats?.Kos ?? 0,
+            Runs = stats?.Runs ?? 0,
+            Level = userLevels.TryGetValue(x.UserId, out var level) ? level.Level : 0
         });
 
         return Ok(new
-            {
-                leaderboard.StartDate,
-                leaderboard.EndDate,
-                StartedAtUnixSeconds = ((DateTimeOffset)DateTime.SpecifyKind(leaderboard.StartDate, DateTimeKind.Utc)).ToUnixTimeSeconds(),
-                EndsAtUnixSeconds = leaderboard.EndDate.HasValue ? ((DateTimeOffset)DateTime.SpecifyKind(leaderboard.EndDate.Value, DateTimeKind.Utc)).ToUnixTimeSeconds() : -1,
-                leaderboard.Name,
-                leaderboard.Description,
-                Leaderboard = leaderboardData
-            });
+        {
+            leaderboard.StartDate,
+            leaderboard.EndDate,
+            StartedAtUnixSeconds = ((DateTimeOffset)DateTime.SpecifyKind(leaderboard.StartDate, DateTimeKind.Utc)).ToUnixTimeSeconds(),
+            EndsAtUnixSeconds = leaderboard.EndDate.HasValue ? ((DateTimeOffset)DateTime.SpecifyKind(leaderboard.EndDate.Value, DateTimeKind.Utc)).ToUnixTimeSeconds() : -1,
+            leaderboard.Name,
+            leaderboard.Description,
+            Leaderboard = leaderboardData
+        });
     }
 
     [HttpGet]
