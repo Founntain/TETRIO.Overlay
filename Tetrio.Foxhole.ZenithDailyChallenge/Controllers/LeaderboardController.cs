@@ -51,7 +51,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
                 UserId = g.Key,
                 TopRun = g.Max(y => y.Altitude),
                 Apm = g.Average(y => y.Apm),
-                Vs = g.Max(y => y.Vs),
+                Vs = g.Average(y => y.Vs),
                 Kos = g.Sum(y => y.KOs),
                 Runs = g.Count()
             }).ToDictionaryAsync(x => x.UserId);
