@@ -35,8 +35,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         if (user == default) return NotFound();
 
-        var userInfo = await GetTetrioUserInformation(username);
-
         var runCount = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).CountAsync();
         var topRun = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).OrderByDescending(x => x.Altitude).FirstOrDefaultAsync();
         var totalGarbageSend = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.GarbageSent);
@@ -103,8 +101,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             Title = user.Title,
             Score = user.Score,
             SeasonalScore = seasonalScore?.Score ?? 0,
-            Avatar = userInfo?.AvatarRevision,
-            Banner = userInfo?.BannerRevision,
             Runs = runCount,
             TopAltitude = topRun?.Altitude ?? 0,
             GarbageSend = totalGarbageSend,
@@ -356,8 +352,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         if(leaderboard != null)
             seasonalScore = await context.LeaderboardEntries.FirstOrDefaultAsync(x => x.LeaderboardId == leaderboard.Id && x.User.Id == user.Id);
 
-        var userInfo = await GetTetrioUserInformation(username);
-
         if (masteryCompletions != null)
         {
             totalChallengesCompleted += masteryCompletions.Expert;
@@ -378,8 +372,6 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             {
                 UserId = user.TetrioId,
                 user.Username,
-                Avatar = userInfo?.AvatarRevision,
-                Banner = userInfo?.BannerRevision,
                 TetrioRank = user.TetrioRank ?? "z",
                 TotalXP = lifetimeXp?.TotalXp ?? 0,
                 Level = lifetimeXp?.CalculateLevel() ?? 1

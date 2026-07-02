@@ -145,8 +145,7 @@ public class RunValidator
         switch (conditionType)
         {
             case ConditionType.Height:
-                //TEMPORARY
-                communityContribution.Amount = runs.Where(x => x.Spins == 0).Sum(x => x.Altitude);
+                communityContribution.Amount = runs.Sum(x => x.Altitude);
                 break;
             case ConditionType.KOs:
                 communityContribution.Amount = runs.Sum(x => x.KOs);

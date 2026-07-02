@@ -37,6 +37,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
                         Rank = y.User.TetrioRank,
                         Username = y.User.Username,
                         UserId = y.User.Id,
+                        TetrioId = y.User.TetrioId,
                         Score = y.Score,
                     }).ToList()
             }).FirstOrDefaultAsync();
@@ -68,6 +69,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
         var leaderboardData = leaderboard.Entries.Select(x => new
         {
             x.Rank,
+            x.TetrioId,
             x.Username,
             x.Score,
             TopRun = runStats.TryGetValue(x.UserId, out var stats) ? stats.TopRun : 0,
@@ -174,61 +176,64 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
 
     [HttpGet]
     [Route("getGlobalLeaderboard")]
-    public async Task<IActionResult> GetGlobalLeaderboard(int page = 1, int pageSize = 30)
+    public async Task<IActionResult> GetGlobalLeaderboard(int page = 1, int pageSize = 100)
     {
         var users = await context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).Select(x => new
             {
                 User = new
                 {
+                    TetrioId = x.TetrioId,
                     Name = x.Username,
                     Score = x.Score,
                     Rank = x.TetrioRank ?? "z",
                     Level = x.Xp.FirstOrDefault(x => x.Type == XpType.Lifetime).CalculateLevel()
                 },
-                EasyChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Easy),
-                NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
-                HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
-                ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
-                ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse),
-                MasteryScore = x.MasteryAttempts.Select(y => new
-                    {
-                        MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
-                                                        (y.NoHoldCompleted ? 1 : 0) +
-                                                        (y.MessyCompleted ? 1 : 0) +
-                                                        (y.GravityCompleted ? 1 : 0) +
-                                                        (y.VolatileCompleted ? 1 : 0) +
-                                                        (y.DoubleHoleCompleted ? 1 : 0) +
-                                                        (y.InvisibleCompleted ? 1 : 0) +
-                                                        (y.AllSpinCompleted ? 1 : 0) +
-                                                        (y.ExpertReversedCompleted ? 1 : 0) +
-                                                        (y.NoHoldReversedCompleted ? 1 : 0) +
-                                                        (y.MessyReversedCompleted ? 1 : 0) +
-                                                        (y.GravityReversedCompleted ? 1 : 0) +
-                                                        (y.VolatileReversedCompleted ? 1 : 0) +
-                                                        (y.DoubleHoleReversedCompleted ? 1 : 0) +
-                                                        (y.InvisibleReversedCompleted ? 1 : 0) +
-                                                        (y.AllSpinReversedCompleted ? 1 : 0)
-
-                    }).Sum(y => y.MasteryChallengeModsCompleted)
+                // EasyChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Easy),
+                // NormalChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Normal),
+                // HardChallenges = x.Challenges.Count(y => y.Points == (byte)Difficulty.Hard),
+                // ExpertChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Expert),
+                // ReverseChallengesCompleted = x.Challenges.Count(y => y.Points == (byte)Difficulty.Reverse),
+                // MasteryScore = x.MasteryAttempts.Select(y => new
+                //     {
+                //         MasteryChallengeModsCompleted = (y.ExpertCompleted ? 1 : 0) +
+                //                                         (y.NoHoldCompleted ? 1 : 0) +
+                //                                         (y.MessyCompleted ? 1 : 0) +
+                //                                         (y.GravityCompleted ? 1 : 0) +
+                //                                         (y.VolatileCompleted ? 1 : 0) +
+                //                                         (y.DoubleHoleCompleted ? 1 : 0) +
+                //                                         (y.InvisibleCompleted ? 1 : 0) +
+                //                                         (y.AllSpinCompleted ? 1 : 0) +
+                //                                         (y.ExpertReversedCompleted ? 1 : 0) +
+                //                                         (y.NoHoldReversedCompleted ? 1 : 0) +
+                //                                         (y.MessyReversedCompleted ? 1 : 0) +
+                //                                         (y.GravityReversedCompleted ? 1 : 0) +
+                //                                         (y.VolatileReversedCompleted ? 1 : 0) +
+                //                                         (y.DoubleHoleReversedCompleted ? 1 : 0) +
+                //                                         (y.InvisibleReversedCompleted ? 1 : 0) +
+                //                                         (y.AllSpinReversedCompleted ? 1 : 0)
+                //
+                //     }).Sum(y => y.MasteryChallengeModsCompleted)
             }).OrderByDescending(x => x.User.Score)
-                .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
-                .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
-                .Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync();
+                // .ThenByDescending( x => (x.EasyChallenges + x.NormalChallenges + x.HardChallenges))
+                // .ThenByDescending( x => (x.ExpertChallengesCompleted + x.ReverseChallengesCompleted))
+                // .Skip((page - 1) * pageSize).Take(pageSize)
+                .ToArrayAsync();
 
         var validUserCount = await context.Users.AsNoTracking().Where(x => x.Challenges.Count > 0).CountAsync();
 
         var leaderboardData = users.Select(x => new
         {
             Username = x.User.Name,
+            TetrioId = x.User.TetrioId,
             Rank = x.User.Rank,
             Score = x.User.Score,
             Level = x.User.Level,
-            EasyChallengesCompleted = x.EasyChallenges,
-            NormalChallengesCompleted = x.NormalChallenges,
-            HardChallengesCompleted = x.HardChallenges,
-            ExpertChallengesCompleted = x.ExpertChallengesCompleted,
-            ReverseChallengesCompleted = x.ReverseChallengesCompleted,
-            MasteryChallengesCompleted = x.MasteryScore,
+            // EasyChallengesCompleted = x.EasyChallenges,
+            // NormalChallengesCompleted = x.NormalChallenges,
+            // HardChallengesCompleted = x.HardChallenges,
+            // ExpertChallengesCompleted = x.ExpertChallengesCompleted,
+            // ReverseChallengesCompleted = x.ReverseChallengesCompleted,
+            // MasteryChallengesCompleted = x.MasteryScore,
         });
 
         return Ok(new
@@ -245,6 +250,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
         var users = await context.Users.AsNoTracking().Where(x => x.LegacyScore > 0).Select(x => new
         {
             Id =  x.Id,
+            TetrioId = x.TetrioId,
             Name = x.Username,
             Score = x.LegacyScore,
             Level = 0
@@ -253,6 +259,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
         var leaderboardData = users.Select(x => new
         {
             Username = x.Name,
+            TetrioId = x.TetrioId,
             Score = x.Score,
             Level = context.UserXps.FirstOrDefault(y => y.Type == XpType.Lifetime && y.User.Id == x.Id)?.CalculateLevel() ?? 0,
         });
