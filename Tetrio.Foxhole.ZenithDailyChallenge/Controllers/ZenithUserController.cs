@@ -40,7 +40,13 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         var totalGarbageSend = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.GarbageSent);
         var totalGarbageCleared = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.GarbageCleared);
         var totalKOs = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.KOs);
-        var totalTimePlayed = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => x.TotalTime);
+        var totalTimePlayed = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).SumAsync(x => (long) x.TotalTime);
+
+        var today = DateTime.UtcNow;
+        var daysSinceMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        var startOfWeek = today.Date.AddDays(-daysSinceMonday);
+
+        var topRunWeekly = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id && x.PlayedAt >= startOfWeek).OrderByDescending(x => x.Altitude).FirstOrDefaultAsync();
 
         var altitudes = await context.Runs.AsNoTracking().Where(x => x.User.Id == user.Id).GroupBy(x => x.User.Id).Select(x => new
         {
@@ -103,6 +109,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             SeasonalScore = seasonalScore?.Score ?? 0,
             Runs = runCount,
             TopAltitude = topRun?.Altitude ?? 0,
+            TopAltitudeWeekly = topRunWeekly?.Altitude ?? 0,
             GarbageSend = totalGarbageSend,
             GarbageCleared = totalGarbageCleared,
             Kos = totalKOs,
@@ -113,7 +120,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
     [HttpGet]
     [Route("{username}/extra")]
-    public async Task<ActionResult> GetUserDataExtra(string? username)
+    public async Task<ActionResult> GetUserDataExtra(string? username, int days = 5)
     {
         if (string.IsNullOrWhiteSpace(username)) return BadRequest();
         username = username.ToLower();
@@ -128,7 +135,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
             .GroupBy(x => x.PlayedAt!.Value.Date)
             .OrderByDescending(x => x.Key)
-            .Take(5)
+            .Take(days)
             .Select(g => new { Date = g.Key, Average = g.Average(x => x.Apm) })
             .OrderBy(x => x.Date)
             .ToListAsync();
@@ -138,7 +145,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
             .GroupBy(x => x.PlayedAt!.Value.Date)
             .OrderByDescending(x => x.Key)
-            .Take(5)
+            .Take(days)
             .Select(g => new { Date = g.Key, Average = g.Average(x => x.Vs) })
             .OrderBy(x => x.Date)
             .ToListAsync();
@@ -148,7 +155,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
             .GroupBy(x => x.PlayedAt!.Value.Date)
             .OrderByDescending(x => x.Key)
-            .Take(5)
+            .Take(days)
             .Select(g => new { Date = g.Key, Average = g.Average(x => x.Pps) })
             .OrderBy(x => x.Date)
             .ToListAsync();
@@ -158,7 +165,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             .Where(x => x.User.Id == user.Id && x.PlayedAt != null)
             .GroupBy(x => x.PlayedAt!.Value.Date)
             .OrderByDescending(x => x.Key)
-            .Take(5)
+            .Take(days)
             .Select(g => new { Date = g.Key, Average = g.Average(x => x.Altitude) })
             .OrderBy(x => x.Date)
             .ToListAsync();
