@@ -232,35 +232,58 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         if (progressionLimit == 0) progressionLimit = 3000;
         if(progressionLimit > 3000) progressionLimit = 3000;
 
+        progressionLimit = 1000000000;
+
         username = username.ToLower();
 
         var user = await context.Users.AsNoTracking().Where(x => x.Username == username).FirstOrDefaultAsync();
 
         if (user == null) return NotFound();
 
-         var modProgression = new
-        {
-            NoMod = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Length == 0).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Expert = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            NoHold = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Messy = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Gravity = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Volatile = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            DoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Invisible = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            AllSpin = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+        var modBaseQuery = context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Type == ProgressionType.Altitude);
 
-            ReverseExpert = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseNoHold = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseMessy = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseGravity = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseVolatile = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseDoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseInvisible = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseAllspin = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x)
+        var modProgression = new
+        {
+            NoMod = await modBaseQuery.Where(x => x.Mods == null).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Expert = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("expert") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            NoHold = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("nohold") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Messy = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("messy") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Gravity = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("gravity") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Volatile = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("volatile") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            DoubleHole = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("doublehole") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Invisible = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("invisible") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            AllSpin = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("allspin") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+
+            ReverseExpert = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("expert_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseNoHold = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("nohold_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseMessy = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("messy_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseGravity = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("gravity_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseVolatile = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("volatile_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseDoubleHole = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("doublehole_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseInvisible = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("invisible_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseAllspin = await modBaseQuery.Where(x => x.Mods != null && x.Mods.Contains("allspin_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync()
         };
 
-         return Ok(modProgression);
+        var splitBaseQuery = context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Type == ProgressionType.ZenithSplit && !x.Mods.Contains("snowman") && !x.Mods.Contains("pento"));
+
+        var splitsProgression = new
+        {
+            Hotel             = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Hotel).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            Casino            = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Casino).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            Arena             = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Arena).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            Museum            = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Museum).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            Offices           = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Offices).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            Laboratory        = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Laboratory).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            Core              = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Core).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            Corruption        = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.Corruption).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+            PlatformOfTheGods = await splitBaseQuery.Where(x => x.Floor == ZenithFloor.PlatformOfTheGods).Select(x => x.Value).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync(),
+        };
+
+        return Ok(new
+        {
+            modProgression,
+            splitsProgression
+        });
     }
 
     [HttpGet]
@@ -406,6 +429,8 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         if (progressionLimit == 0) progressionLimit = 1000;
         if(progressionLimit > 1000) progressionLimit = 1000;
 
+        progressionLimit = 1000000000;
+
         username = username.ToLower();
 
         var user = await context.Users.AsNoTracking().Where(x => x.Username == username).FirstOrDefaultAsync();
@@ -439,24 +464,24 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         var modProgression = new
         {
-            NoMod = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Length == 0).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Expert = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            NoHold = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Messy = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Gravity = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Volatile = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            DoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            Invisible = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            AllSpin = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
+            NoMod = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods == null).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Expert = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("expert") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            NoHold = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("nohold") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Messy = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("messy") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Gravity = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("gravity") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Volatile = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("volatile") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            DoubleHole = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("doublehole") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            Invisible = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("invisible") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            AllSpin = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("allspin") && !x.Mods.Contains("_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
 
-            ReverseExpert = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("expert_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseNoHold = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("nohold_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseMessy = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("messy_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseGravity = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("gravity_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseVolatile = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("volatile_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseDoubleHole = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("doublehole_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseInvisible = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("invisible_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x),
-            ReverseAllspin = (await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods.Contains("allspin_reversed")).Select(x => Math.Round(x.Altitude, 2)).OrderByDescending(x => x).Take(progressionLimit).ToArrayAsync()).OrderBy(x => x)
+            ReverseExpert = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("expert_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseNoHold = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("nohold_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseMessy = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("messy_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseGravity = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("gravity_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseVolatile = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("volatile_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseDoubleHole = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("doublehole_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseInvisible = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("invisible_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync(),
+            ReverseAllspin = await context.Progressions.AsNoTracking().Where(x => x.UserId == user.Id && x.Mods != null && x.Mods.Contains("allspin_reversed")).Select(x => Math.Round(x.Value, 2)).OrderBy(x => x).Take(progressionLimit).ToArrayAsync()
         };
 
         return Ok(new
@@ -529,12 +554,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
 
         if (user == default) return NotFound();
 
-        var splitsQuery = context.ZenithSplits
-            .AsNoTracking()
-            .Where(x => x.User.Id == user.Id);
-
-        // Remove event mods from splits
-        splitsQuery = splitsQuery.Where(x => !(x.Mods != null && x.Mods.Contains("snowman")));
+        var splitsQuery = context.ZenithSplits.AsNoTracking().Where(x => x.User.Id == user.Id);
 
         if (!string.IsNullOrWhiteSpace(mod))
         {
@@ -544,10 +564,16 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
             }
             else
             {
-                splitsQuery = splitsQuery.Where(x => x.Mods != null && x.Mods.Length > 0 && x.Mods.Contains(mod));
+                // Remove event mods from splits
+                splitsQuery = splitsQuery.Where(x => x.Mods != null && x.Mods.Length > 0 && x.Mods.Contains(mod) && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento")));
 
                 if (soloMod) splitsQuery = splitsQuery.Where(x => x.Mods == mod);
             }
+        }
+        else
+        {
+            // Remove event mods from splits
+            splitsQuery = splitsQuery.Where(x => x.Mods != null && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento")));
         }
 
         var splitData = await splitsQuery
@@ -557,15 +583,15 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
                 Mods = mod,
                 SplitAverages = new
                 {
-                    Hotel = group.Where(x => x.HotelReachedAt > 0).Average(x => (double?)x.HotelReachedAt) ?? 0,
-                    Casino = group.Where(x => x.CasinoReachedAt > 0).Average(x => (double?)x.CasinoReachedAt) ?? 0,
-                    Arena = group.Where(x => x.ArenaReachedAt > 0).Average(x => (double?)x.ArenaReachedAt) ?? 0,
-                    Museum = group.Where(x => x.MuseumReachedAt > 0).Average(x => (double?)x.MuseumReachedAt) ?? 0,
-                    Offices = group.Where(x => x.OfficesReachedAt > 0).Average(x => (double?)x.OfficesReachedAt) ?? 0,
-                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).Average(x => (double?)x.LaboratoryReachedAt) ?? 0,
-                    Core = group.Where(x => x.CoreReachedAt > 0).Average(x => (double?)x.CoreReachedAt) ?? 0,
-                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).Average(x => (double?)x.CorruptionReachedAt) ?? 0,
-                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).Average(x => (double?)x.PlatformOfTheGodsReachedAt) ?? 0
+                    Hotel = group.Where(x => x.HotelReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.HotelReachedAt) ?? 0,
+                    Casino = group.Where(x => x.CasinoReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.CasinoReachedAt) ?? 0,
+                    Arena = group.Where(x => x.ArenaReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.ArenaReachedAt) ?? 0,
+                    Museum = group.Where(x => x.MuseumReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.MuseumReachedAt) ?? 0,
+                    Offices = group.Where(x => x.OfficesReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.OfficesReachedAt) ?? 0,
+                    Laboratory = group.Where(x => x.LaboratoryReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.LaboratoryReachedAt) ?? 0,
+                    Core = group.Where(x => x.CoreReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.CoreReachedAt) ?? 0,
+                    Corruption = group.Where(x => x.CorruptionReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.CorruptionReachedAt) ?? 0,
+                    PlatformOfTheGods = group.Where(x => x.PlatformOfTheGodsReachedAt > 0).OrderByDescending(x => x.DatePlayed).Take(500).Average(x => (double?)x.PlatformOfTheGodsReachedAt) ?? 0
                 },
                 GoldSplits = new
                 {
@@ -946,87 +972,87 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
     }
 
     [HttpGet]
-        [Route("{username}/getCommunityContributions")]
-        public async Task<ActionResult> GetCommunityContributions(string? username, int page = 0, int pageSize = 25)
-        {
-            if (string.IsNullOrWhiteSpace(username)) return BadRequest();
+    [Route("{username}/getCommunityContributions")]
+    public async Task<ActionResult> GetCommunityContributions(string? username, int page = 0, int pageSize = 25)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return BadRequest();
 
-            var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
+        var user = await context.Users.FirstOrDefaultAsync(x => x.Username == username);
 
-            if (user == null) return NotFound($"User '{username}' not found");
+        if (user == null) return NotFound($"User '{username}' not found");
 
-            var challenges = await context.CommunityChallenges
-                .AsNoTracking()
-                .Where(x => x.Contributions.Any(y => y.UserId == user.Id && !y.IsLate))
-                .OrderByDescending(x => x.StartDate)
-                .Skip(page * pageSize).Take(pageSize)
-                .Select(x => new
-                {
-                    CommunityChallengeId = x.Id,
-                    Date = x.StartDate,
-                    Challenge = string.IsNullOrWhiteSpace(x.Name) ? $"{x.StartDate:yyyy-MM-dd}" : x.Name,
-                    x.TargetValue,
-                    x.ConditionType
-                })
-                .ToArrayAsync();
-
-            var contributionsCount = await context.CommunityChallenges
-                .AsNoTracking()
-                .Where(x => x.Contributions.Any(y => y.UserId == user.Id && !y.IsLate))
-                .CountAsync();
-
-            var challengeIds = challenges.Select(x => x.CommunityChallengeId).ToArray();
-
-            var userContributions = await context.CommunityContributions
-                .AsNoTracking()
-                .Where(x => challengeIds.Contains(x.CommunityChallengeId) && x.UserId == user.Id && !x.IsLate)
-                .GroupBy(x => x.CommunityChallengeId)
-                .Select(g => new
-                {
-                    CommunityChallengeId = g.Key,
-                    TotalAmountContributed = Math.Round(g.Sum(x => x.Amount), 2)
-                })
-                .ToArrayAsync();
-
-            var participantStats = await context.CommunityContributions
-                .AsNoTracking()
-                .Where(x => challengeIds.Contains(x.CommunityChallengeId) && !x.IsLate)
-                .GroupBy(x => new { x.CommunityChallengeId, x.UserId })
-                .Select(g => new
-                {
-                    g.Key.CommunityChallengeId,
-                    g.Key.UserId,
-                    TotalAmountContributed = g.Sum(x => x.Amount)
-                })
-                .ToArrayAsync();
-
-            var result = challenges.Select(x =>
+        var challenges = await context.CommunityChallenges
+            .AsNoTracking()
+            .Where(x => x.Contributions.Any(y => y.UserId == user.Id && !y.IsLate))
+            .OrderByDescending(x => x.StartDate)
+            .Skip(page * pageSize).Take(pageSize)
+            .Select(x => new
             {
-                var participants = participantStats.Where(p => p.CommunityChallengeId == x.CommunityChallengeId).ToArray();
+                CommunityChallengeId = x.Id,
+                Date = x.StartDate,
+                Challenge = string.IsNullOrWhiteSpace(x.Name) ? $"{x.StartDate:yyyy-MM-dd}" : x.Name,
+                x.TargetValue,
+                x.ConditionType
+            })
+            .ToArrayAsync();
 
-                var placement = participants
-                    .OrderByDescending(p => p.TotalAmountContributed)
-                    .ThenBy(p => p.UserId)
-                    .Select((p, index) => new { p.UserId, Placement = index + 1 })
-                    .FirstOrDefault(p => p.UserId == user.Id)?.Placement ?? 0;
+        var contributionsCount = await context.CommunityChallenges
+            .AsNoTracking()
+            .Where(x => x.Contributions.Any(y => y.UserId == user.Id && !y.IsLate))
+            .CountAsync();
 
-                var totalAmountContributed = userContributions.FirstOrDefault(y => y.CommunityChallengeId == x.CommunityChallengeId)?.TotalAmountContributed ?? 0;
+        var challengeIds = challenges.Select(x => x.CommunityChallengeId).ToArray();
 
-                return new
-                {
-                    x.Date,
-                    x.Challenge,
-                    TotalAmountContributed = totalAmountContributed,
-                    ContributionPercentage = totalAmountContributed / x.TargetValue * 100,
-                    x.ConditionType,
-                    Placement = placement,
-                    ParticipantCount = participants.Length,
-                    TotalContributions = contributionsCount
-                };
-            });
+        var userContributions = await context.CommunityContributions
+            .AsNoTracking()
+            .Where(x => challengeIds.Contains(x.CommunityChallengeId) && x.UserId == user.Id && !x.IsLate)
+            .GroupBy(x => x.CommunityChallengeId)
+            .Select(g => new
+            {
+                CommunityChallengeId = g.Key,
+                TotalAmountContributed = Math.Round(g.Sum(x => x.Amount), 2)
+            })
+            .ToArrayAsync();
 
-            return Ok(result);
-        }
+        var participantStats = await context.CommunityContributions
+            .AsNoTracking()
+            .Where(x => challengeIds.Contains(x.CommunityChallengeId) && !x.IsLate)
+            .GroupBy(x => new { x.CommunityChallengeId, x.UserId })
+            .Select(g => new
+            {
+                g.Key.CommunityChallengeId,
+                g.Key.UserId,
+                TotalAmountContributed = g.Sum(x => x.Amount)
+            })
+            .ToArrayAsync();
+
+        var result = challenges.Select(x =>
+        {
+            var participants = participantStats.Where(p => p.CommunityChallengeId == x.CommunityChallengeId).ToArray();
+
+            var placement = participants
+                .OrderByDescending(p => p.TotalAmountContributed)
+                .ThenBy(p => p.UserId)
+                .Select((p, index) => new { p.UserId, Placement = index + 1 })
+                .FirstOrDefault(p => p.UserId == user.Id)?.Placement ?? 0;
+
+            var totalAmountContributed = userContributions.FirstOrDefault(y => y.CommunityChallengeId == x.CommunityChallengeId)?.TotalAmountContributed ?? 0;
+
+            return new
+            {
+                x.Date,
+                x.Challenge,
+                TotalAmountContributed = totalAmountContributed,
+                ContributionPercentage = totalAmountContributed / x.TargetValue * 100,
+                x.ConditionType,
+                Placement = placement,
+                ParticipantCount = participants.Length,
+                TotalContributions = contributionsCount
+            };
+        });
+
+        return Ok(result);
+    }
 
     [HttpGet]
     [Route("search")]
@@ -1217,6 +1243,537 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         Console.WriteLine($"[XP CALC] Saved {entriesSaved} entries in database. Took {totalSw.Elapsed:g}");
 
         return Ok(entriesSaved);
+    }
+
+    [HttpGet]
+    [Route("migrateProgressions")]
+    public async Task<IActionResult> MigrateProgressions()
+    {
+        var users = await context.Users.AsNoTracking().ToListAsync();
+
+        var totalProgressions = 0;
+
+        foreach (var user in users)
+        {
+            var runs =  await context.Runs.AsNoTracking().Where(x => x.UserId == user.Id).OrderBy(x => x.PlayedAt).ToListAsync();
+
+            if (runs == null || runs.Count == 0)
+            {
+                Console.WriteLine($"[PROGRESSIONS] User {user.Username} has no runs");
+                continue;
+            }
+
+            var splits = await context.ZenithSplits.AsNoTracking().Where(x => x.User.Id == user.Id).ToListAsync();
+
+            var progressions = new List<Progression>();
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            foreach (var run in runs)
+            {
+                var isPb = !progressions.Any(x => x.Type == ProgressionType.Altitude && x.Value > run.Altitude && string.IsNullOrWhiteSpace(x.Mods));
+
+                if (string.IsNullOrWhiteSpace(run.Mods))
+                {
+                    var progression = new Progression()
+                    {
+                        UserId = user.Id,
+                        TetrioId = run.TetrioId,
+                        Value = run.Altitude,
+                        Type = ProgressionType.Altitude,
+                        Mods = null,
+                        PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                        IsPersonalBest = isPb
+                    };
+
+                    if (progression.IsPersonalBest)
+                    {
+                        progressions.Add(progression);
+                        context.Add(progression);
+                    }
+                }
+                else
+                {
+                    var mods = run.Mods.Split(' ');
+
+                    foreach (var mod in mods)
+                    {
+                        if(mod.Contains("snowman") || mod.Contains("pento")) continue;
+
+                        var isModPb = !progressions.Any(x => x.Type == ProgressionType.Altitude && !string.IsNullOrWhiteSpace(x.Mods) && x.Mods.Contains(mod) && x.Value > run.Altitude);
+
+                        var modProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Value = run.Altitude,
+                            Type = ProgressionType.Altitude,
+                            Mods = string.IsNullOrWhiteSpace(run.Mods) ? null : run.Mods,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isModPb,
+                        };
+
+                        if (!isModPb) continue;
+
+                        progressions.Add(modProgression);
+                        context.Add(modProgression);
+                    }
+                }
+
+                var runSplits = await context.ZenithSplits.AsNoTracking().FirstOrDefaultAsync(x => x.User.Id == user.Id && x.TetrioId == run.TetrioId);
+
+                if (runSplits == null) continue;
+
+                if (string.IsNullOrWhiteSpace(run.Mods))
+                {
+                    var isHotelPb = runSplits.HotelReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.HotelReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isCasinoPb = runSplits.CasinoReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.CasinoReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isArenaPb = runSplits.ArenaReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.ArenaReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isMuseumPb = runSplits.MuseumReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.MuseumReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isOfficesPb = runSplits.OfficesReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.OfficesReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isLaboratoryPb = runSplits.LaboratoryReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.LaboratoryReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isCorePb = runSplits.CoreReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.CoreReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isCorruptionPb = runSplits.CorruptionReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.CorruptionReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+                    var isPotgPb = runSplits.PlatformOfTheGodsReachedAt > 0 && !progressions.Any(x => x.Type == ProgressionType.ZenithSplit && x.Value > runSplits.PlatformOfTheGodsReachedAt && string.IsNullOrWhiteSpace(x.Mods));
+
+                    if(isHotelPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.HotelReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isHotelPb,
+                            Floor = ZenithFloor.Hotel,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isCasinoPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.CasinoReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isHotelPb,
+                            Floor = ZenithFloor.Casino,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isArenaPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.ArenaReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isArenaPb,
+                            Floor = ZenithFloor.Arena,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isMuseumPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.MuseumReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isMuseumPb,
+                            Floor = ZenithFloor.Museum,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isOfficesPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.OfficesReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isOfficesPb,
+                            Floor = ZenithFloor.Offices,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isLaboratoryPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.LaboratoryReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isLaboratoryPb,
+                            Floor = ZenithFloor.Laboratory,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isCorePb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.CoreReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isCorePb,
+                            Floor = ZenithFloor.Core,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isCorruptionPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.CorruptionReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isCorruptionPb,
+                            Floor = ZenithFloor.Corruption,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+
+                    if(isPotgPb)
+                    {
+                        var splitProgression = new Progression()
+                        {
+                            UserId = user.Id,
+                            TetrioId = run.TetrioId,
+                            Type = ProgressionType.ZenithSplit,
+                            Value = runSplits.PlatformOfTheGodsReachedAt,
+                            PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                            IsPersonalBest = isPotgPb,
+                            Floor = ZenithFloor.PlatformOfTheGods,
+                        };
+
+                        progressions.Add(splitProgression);
+                        context.Add(splitProgression);
+                    }
+                }
+                else
+                {
+                    var mods = run.Mods.Split(' ');
+
+                    foreach (var mod in mods)
+                    {
+                        if(mod.Contains("snowman") || mod.Contains("pento")) continue;
+
+                        // Hotel mod PBs
+                        if (runSplits.HotelReachedAt > 0)
+                        {
+                            var isHotelModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Hotel
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.HotelReachedAt);
+
+                            if (isHotelModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.HotelReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isHotelModPb,
+                                    Floor = ZenithFloor.Hotel,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // Casino mod PBs
+                        if (runSplits.CasinoReachedAt > 0)
+                        {
+                            var isCasinoModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Casino
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.CasinoReachedAt);
+
+                            if (isCasinoModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.CasinoReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isCasinoModPb,
+                                    Floor = ZenithFloor.Casino,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // Arena mod PBs
+                        if (runSplits.ArenaReachedAt > 0)
+                        {
+                            var isArenaModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Arena
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.ArenaReachedAt);
+
+                            if (isArenaModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.ArenaReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isArenaModPb,
+                                    Floor = ZenithFloor.Arena,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // Museum mod PBs
+                        if (runSplits.MuseumReachedAt > 0)
+                        {
+                            var isMuseumModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Museum
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.MuseumReachedAt);
+
+                            if (isMuseumModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.MuseumReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isMuseumModPb,
+                                    Floor = ZenithFloor.Museum,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // Offices mod PBs
+                        if (runSplits.OfficesReachedAt > 0)
+                        {
+                            var isOfficesModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Offices
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.OfficesReachedAt);
+
+                            if (isOfficesModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.OfficesReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isOfficesModPb,
+                                    Floor = ZenithFloor.Offices,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // Laboratory mod PBs
+                        if (runSplits.LaboratoryReachedAt > 0)
+                        {
+                            var isLaboratoryModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Laboratory
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.LaboratoryReachedAt);
+
+                            if (isLaboratoryModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.LaboratoryReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isLaboratoryModPb,
+                                    Floor = ZenithFloor.Laboratory,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // Core mod PBs
+                        if (runSplits.CoreReachedAt > 0)
+                        {
+                            var isCoreModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Core
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.CoreReachedAt);
+
+                            if (isCoreModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.CoreReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isCoreModPb,
+                                    Floor = ZenithFloor.Core,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // Corruption mod PBs
+                        if (runSplits.CorruptionReachedAt > 0)
+                        {
+                            var isCorruptionModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.Corruption
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.CorruptionReachedAt);
+
+                            if (isCorruptionModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.CorruptionReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isCorruptionModPb,
+                                    Floor = ZenithFloor.Corruption,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+
+                        // PlatformOfTheGods mod PBs
+                        if (runSplits.PlatformOfTheGodsReachedAt > 0)
+                        {
+                            var isPotgModPb = !progressions.Any(x => x.Type == ProgressionType.ZenithSplit
+                                && x.Floor == ZenithFloor.PlatformOfTheGods
+                                && !string.IsNullOrWhiteSpace(x.Mods)
+                                && x.Mods.Contains(mod)
+                                && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))
+                                && x.Value < runSplits.PlatformOfTheGodsReachedAt);
+
+                            if (isPotgModPb)
+                            {
+                                var splitProgression = new Progression()
+                                {
+                                    UserId = user.Id,
+                                    TetrioId = run.TetrioId,
+                                    Type = ProgressionType.ZenithSplit,
+                                    Value = runSplits.PlatformOfTheGodsReachedAt,
+                                    PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
+                                    IsPersonalBest = isPotgModPb,
+                                    Floor = ZenithFloor.PlatformOfTheGods,
+                                    Mods = run.Mods
+                                };
+
+                                progressions.Add(splitProgression);
+                                context.Add(splitProgression);
+                            }
+                        }
+                    }
+                }
+            }
+
+            sw.Stop();
+
+            totalProgressions += progressions.Count;
+
+            Console.WriteLine($"[PROGRESSIONS] {progressions.Count} progressions for {user.Username} | Took: {sw.ElapsedMilliseconds}ms");
+        }
+
+        Console.WriteLine($"Saving...");
+
+        var c = await context.SaveChangesAsync();
+
+        return Ok(totalProgressions);
     }
     #endif
 }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Tetrio.Foxhole.Database.Enums;
 using Tetrio.Foxhole.Network.Api.Tetrio.Models;
 
 namespace Tetrio.Foxhole.Database.Entities;
@@ -132,6 +133,24 @@ public class Run : BaseEntity
             FinalPlayerCount = record.Extras.Zenith.FinalCount,
 
             App = app
+        };
+    }
+
+    public ZenithFloor GetFloor()
+    {
+        return this.Altitude switch
+        {
+            >= 1650 => ZenithFloor.PlatformOfTheGods,
+            >= 1350 => ZenithFloor.Corruption,
+            >= 1100 => ZenithFloor.Core,
+            >= 850 => ZenithFloor.Laboratory,
+            >= 650 => ZenithFloor.Offices,
+            >= 450 => ZenithFloor.Museum,
+            >= 300 => ZenithFloor.Arena,
+            >= 150 => ZenithFloor.Casino,
+            >= 50 => ZenithFloor.Hotel,
+            >= 0 => ZenithFloor.HallOfBeginnings,
+            _ => ZenithFloor.Unknown
         };
     }
 }

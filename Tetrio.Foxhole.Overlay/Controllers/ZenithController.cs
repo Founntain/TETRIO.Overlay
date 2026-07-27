@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Tetrio.Foxhole.Backend.Base.Controllers;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Network.Api.Tetrio;
@@ -206,4 +207,4 @@ public class ZenithController(TetrioApi api, TetrioContext context) : BaseContro
 
         return Ok(result);
     }
-    }
+}

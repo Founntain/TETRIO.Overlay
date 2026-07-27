@@ -24,6 +24,7 @@ public class TetrioContext : DbContext
     public DbSet<WeeklyChallengeCondition> WeeklyChallengeConditions { get; set; }
     public DbSet<WeeklyProgress> WeeklyProgresses { get; set; }
     public DbSet<WeeklyConditionProgress> WeeklyConditionProgresses { get; set; }
+    public DbSet<Progression> Progressions { get; set; }
 
     public TetrioContext()
     {
@@ -64,5 +65,6 @@ public class TetrioContext : DbContext
         builder.ApplyConfiguration(new WeeklyChallengeConditionConfiguration());
         builder.ApplyConfiguration(new WeeklyProgressConfiguration());
         builder.ApplyConfiguration(new WeeklyConditionProgressConfiguration());
+        builder.ApplyConfiguration(new ProgressionConfiguration());
     }
 }

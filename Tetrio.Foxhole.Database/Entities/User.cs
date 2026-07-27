@@ -78,4 +78,5 @@ public class User : BaseEntity
     public virtual ISet<LeaderboardEntry> LeaderboardEntries { get; set; } = new HashSet<LeaderboardEntry>();
     public virtual ISet<UserXp> Xp { get; set; } = new HashSet<UserXp>();
     public virtual ISet<WeeklyProgress> WeeklyProgressions { get; set; } = new HashSet<WeeklyProgress>();
+    public virtual ISet<Progression> Progressions { get; set; } = new HashSet<Progression>();
 }

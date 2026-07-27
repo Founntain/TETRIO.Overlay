@@ -197,7 +197,7 @@ public class SubmitLogic
 
         ZenithSplit? splits = null;
 
-        // We only want to create splits when we at least reached the hotel, otherwise we just create empty rows
+        // We only want to create splits when we at least reached the hotel, otherwise we would just create empty rows
         if (hotelSplit > 0)
         {
             splits = new ZenithSplit
@@ -262,6 +262,19 @@ public class SubmitLogic
             Console.WriteLine($"Run {run.TetrioId} was played on a different day, added but its not counted for daily challenge");
         }
 
+        var sw = new Stopwatch();
+        sw.Start();
+
+        var pl = new ProgressionLogic(_context, _user);
+
+        await pl.InitializeCache();
+
+        await pl.ProcessAltitudeProgression(run);
+        await pl.ProcessSplitProgression(run, splits);
+
+        sw.Stop();
+        Console.WriteLine($"Progression took {sw.ElapsedMilliseconds}ms");
+
         #region Add XP
 
         var userXp = await _context.UserXps.FirstOrDefaultAsync(x => x.Type == XpType.Lifetime && x.User.Id == _user.Id);
@@ -299,6 +312,8 @@ public class SubmitLogic
 
         return (run, splits);
     }
+
+
 
     private uint CalculateScoreFromChallenge(Challenge challenge)
     {
