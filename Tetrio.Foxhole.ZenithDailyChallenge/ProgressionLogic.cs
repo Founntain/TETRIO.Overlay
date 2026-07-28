@@ -36,6 +36,7 @@ public class ProgressionLogic
                 var progression = new Progression()
                 {
                     UserId = _user.Id,
+                    TetrioId = run.TetrioId,
                     Value = run.Altitude,
                     Type = ProgressionType.Altitude,
                     Mods = null,
@@ -120,6 +121,7 @@ public class ProgressionLogic
             var progression = new Progression
             {
                 UserId = _user.Id,
+                TetrioId = run.TetrioId,
                 Type = ProgressionType.ZenithSplit,
                 Value = config.Value,
                 PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
@@ -151,6 +153,7 @@ public class ProgressionLogic
                 var progression = new Progression
                 {
                     UserId = _user.Id,
+                    TetrioId = run.TetrioId,
                     Type = ProgressionType.ZenithSplit,
                     Value = config.Value,
                     PlayedAt = run.PlayedAt ?? DateTime.UtcNow,
