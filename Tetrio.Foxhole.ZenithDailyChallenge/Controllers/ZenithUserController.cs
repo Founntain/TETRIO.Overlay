@@ -573,7 +573,7 @@ public class ZenithUserController(TetrioApi api, TetrioContext context) : BaseCo
         else
         {
             // Remove event mods from splits
-            splitsQuery = splitsQuery.Where(x => x.Mods != null && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento")));
+            splitsQuery = splitsQuery.Where(x => x.Mods == null || x.Mods.Length == 0 || (x.Mods != null && !(x.Mods.Contains("snowman") || x.Mods.Contains("pento"))));
         }
 
         var splitData = await splitsQuery
