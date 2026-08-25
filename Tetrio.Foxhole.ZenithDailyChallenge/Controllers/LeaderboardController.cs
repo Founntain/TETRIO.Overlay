@@ -120,7 +120,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
 
         if (leaderboard == null) return NotFound($"No leaderboard found for timestamp {leaderboardDate}");
 
-        var participants = await context.LeaderboardEntries.AsNoTracking().CountAsync(x => x.LeaderboardId == leaderboard.Id);
+        var participants = await context.LeaderboardEntries.AsNoTracking().Where(x => x.Score > 0).CountAsync(x => x.LeaderboardId == leaderboard.Id);
 
         var leaderboardData = leaderboard.Leaderboard.Select(x => new
         {
@@ -128,7 +128,7 @@ public class LeaderboardController(TetrioApi api, TetrioContext context) : BaseC
             x.Username,
             x.Score,
             Level = (context.UserXps.AsNoTracking().FirstOrDefault(y => y.Type == XpType.Lifetime && y.User.Id == x.UserId))?.CalculateLevel() ?? 0
-        }).Take(3);
+        }).Take(10);
 
         return Ok(new
         {

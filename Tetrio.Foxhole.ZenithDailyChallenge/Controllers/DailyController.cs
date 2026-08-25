@@ -169,6 +169,29 @@ public class DailyController(TetrioApi api, TetrioContext context) : BaseControl
         return response.ResponseCode != 200 ? StatusCode(response.ResponseCode, response.ResultObject) : Ok(response.ResultObject);
     }
 
+    #if DEBUG
+
+    [HttpPost]
+    [Route("submitForUser")]
+    public async Task<IActionResult> SubmitForUser(string username)
+    {
+        username = username.ToLower();
+
+        var user = context.Users.FirstOrDefault(u => u.Username == username);
+
+        if (user == null) return Ok("You are not authorized to submit daily challenges, please log in again and try again");
+        if (user.IsRestricted) return BadRequest("No bad person, no submitting for you, ask founntain to unrestrict you");
+
+        var day = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+
+        var submitLogic = new SubmitLogic(context, Api, user, day);
+
+        var response = await submitLogic.ProcessSubmissions();
+
+        return response.ResponseCode != 200 ? StatusCode(response.ResponseCode, response.ResultObject) : Ok(response.ResultObject);
+    }
+    #endif
+
     [HttpGet]
     [Route("getCommunityChallenge")]
     public async Task<IActionResult> GetCommunityChallenge()
