@@ -95,17 +95,19 @@ public class SubmitLogic
         var everyClear = new List<Clears>();
         var runValidator = new RunValidator();
 
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         foreach (var run in totalRuns)
         {
             if (existingTetrioIds.Any(x => x == run.Id)) continue;
             if (string.IsNullOrWhiteSpace(run.Id)) continue;
 
-            var stats = run.Results.Stats;
-
             var processResult = await ProcessRun(challenges, runValidator, run, leaderboardUserEntry);
 
             // Run processing was aborted or canceled and therefore skipped
             if(processResult.Run == null) continue;
+
+            var stats = run.Results.Stats;
 
             var clears = stats.Clears;
             everyClear.Add(clears);
@@ -114,9 +116,9 @@ public class SubmitLogic
                 splitsToAdd.Add(processResult.Splits);
 
             runsToAdd.Add(processResult.Run);
-        }
 
-        await using var transaction = await _context.Database.BeginTransactionAsync();
+            await _context.SaveChangesAsync();
+        }
 
         _user.LastSubmission = DateTime.UtcNow;
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Tetrio.Foxhole.Base.Enums;
 using Tetrio.Foxhole.Database;
 using Tetrio.Foxhole.Database.Entities;
 using Tetrio.Foxhole.Database.Enums;
@@ -58,7 +59,7 @@ public class ProgressionLogic
 
                 var isModPb = _cachedPbs.Where(x => x.Type == ProgressionType.Altitude && !string.IsNullOrWhiteSpace(x.Mods) && x.Mods.Contains(mod)).MaxBy(x => x.Value);
 
-                if (!(isModPb?.Value <= run.Altitude)) continue;
+                if (isModPb?.Value != null && !(isModPb.Value <= run.Altitude)) continue;
 
                 var modProgression = new Progression()
                 {
